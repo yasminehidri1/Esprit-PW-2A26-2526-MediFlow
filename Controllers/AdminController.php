@@ -1,9 +1,9 @@
 <?php
 /**
- * Admin CRUD Controller
+ * Admin Controller
  * 
- * Handles all admin user management operations (Create, Read, Update, Delete)
- * All operations in a single file
+ * Handles administrative user management (CRUD operations)
+ * Restricted to Admin role only
  * 
  * @package MediFlow\Controllers
  * @version 1.0.0
@@ -11,32 +11,42 @@
 
 namespace Controllers;
 
+use Core\SessionHelper;
 use Models\UserModel;
 
 class AdminController
 {
+    use SessionHelper;
+
     private UserModel $userModel;
     private string $action;
 
     public function __construct()
     {
+        $this->ensureSession();
+        $this->requireAdminAccess();
         $this->userModel = new UserModel();
-        $this->checkAdminAccess();
         $this->action = $_GET['action'] ?? 'list';
     }
 
-    private function checkAdminAccess(): void
+    /**
+     * Check if user has admin role
+     * 
+     * @return void
+     */
+    private function requireAdminAccess(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
         if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
             http_response_code(403);
             die('Accès refusé. Seuls les administrateurs peuvent accéder à cette page.');
         }
     }
 
+    /**
+     * Route action to appropriate method
+     * 
+     * @return void
+     */
     public function handle(): void
     {
         match($this->action) {
@@ -50,15 +60,17 @@ class AdminController
         };
     }
 
-    // ==================== LIST ====================
+    /**
+     * Display list of users with search and filtering
+     * 
+     * @return void
+     */
     private function list(): void
     {
         try {
-            // Get search and filter parameters
             $search = trim($_GET['search'] ?? '');
             $roleFilter = isset($_GET['role']) ? (int)$_GET['role'] : null;
             
-            // Get filtered users
             $users = $this->userModel->searchAndFilterUsers(
                 $search ?: null,
                 ($roleFilter && $roleFilter > 0) ? $roleFilter : null
@@ -84,7 +96,11 @@ class AdminController
         }
     }
 
-    // ==================== CREATE FORM ====================
+    /**
+     * Display create user form
+     * 
+     * @return void
+     */
     private function create(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -99,7 +115,11 @@ class AdminController
         include __DIR__ . '/../Views/Back/admin_users_create.php';
     }
 
-    // ==================== STORE ====================
+    /**
+     * Store new user in database
+     * 
+     * @return void
+     */
     private function store(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -107,26 +127,20 @@ class AdminController
             exit;
         }
 
-        $errors = [];
+        // Get and sanitize form data
+        $formData = [
+            'nom' => $this->getPost('nom'),
+            'prenom' => $this->getPost('prenom'),
+            'mail' => $this->getPost('mail'),
+            'tel' => $this->getPost('tel'),
+            'adresse' => $this->getPost('adresse'),
+            'id_role' => (int)$this->getPost('id_role'),
+            'password' => $this->getPost('password'),
+            'password_confirm' => $this->getPost('password_confirm')
+        ];
 
-        $nom = trim($_POST['nom'] ?? '');
-        $prenom = trim($_POST['prenom'] ?? '');
-        $mail = trim($_POST['mail'] ?? '');
-        $tel = trim($_POST['tel'] ?? '');
-        $adresse = trim($_POST['adresse'] ?? '');
-        $id_role = trim($_POST['id_role'] ?? '');
-        $password = trim($_POST['password'] ?? '');
-        $password_confirm = trim($_POST['password_confirm'] ?? '');
-
-        if (empty($nom)) $errors[] = 'Le nom est requis.';
-        if (empty($prenom)) $errors[] = 'Le prénom est requis.';
-        if (empty($mail)) $errors[] = 'L\'email est requis.';
-        if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email invalide.';
-        if ($this->userModel->emailExists($mail)) $errors[] = 'Cet email existe déjà.';
-        if (empty($id_role)) $errors[] = 'Le rôle est requis.';
-        if (empty($password)) $errors[] = 'Le mot de passe est requis.';
-        if (strlen($password) < 6) $errors[] = 'Le mot de passe doit contenir au moins 6 caractères.';
-        if ($password !== $password_confirm) $errors[] = 'Les mots de passe ne correspondent pas.';
+        // Validate form data
+        $errors = $this->validateUserInput($formData);
 
         if (!empty($errors)) {
             $_SESSION['error'] = implode('<br>', $errors);
@@ -134,14 +148,15 @@ class AdminController
             exit;
         }
 
+        // Prepare user data for creation
         $userData = [
-            'nom' => $nom,
-            'prenom' => $prenom,
-            'mail' => $mail,
-            'tel' => $tel ?: null,
-            'adresse' => $adresse ?: null,
-            'id_role' => $id_role,
-            'password' => $password
+            'nom' => $formData['nom'],
+            'prenom' => $formData['prenom'],
+            'mail' => $formData['mail'],
+            'tel' => $formData['tel'] ?: null,
+            'adresse' => $formData['adresse'] ?: null,
+            'id_role' => $formData['id_role'],
+            'password' => $formData['password']
         ];
 
         if ($this->userModel->createUser($userData)) {
@@ -154,7 +169,11 @@ class AdminController
         exit;
     }
 
-    // ==================== EDIT FORM ====================
+    /**
+     * Display edit user form
+     * 
+     * @return void
+     */
     private function edit(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -164,14 +183,7 @@ class AdminController
 
         $userId = (int)($_GET['id'] ?? 0);
         
-        if ($userId <= 0) {
-            $_SESSION['error'] = 'Utilisateur non trouvé.';
-            header('Location: /Mediflow/admin');
-            exit;
-        }
-
-        $user = $this->userModel->getUserById($userId);
-        if (!$user) {
+        if ($userId <= 0 || !$user = $this->userModel->getUserById($userId)) {
             $_SESSION['error'] = 'Utilisateur non trouvé.';
             header('Location: /Mediflow/admin');
             exit;
@@ -184,7 +196,11 @@ class AdminController
         include __DIR__ . '/../Views/Back/admin_users_edit.php';
     }
 
-    // ==================== UPDATE ====================
+    /**
+     * Update existing user
+     * 
+     * @return void
+     */
     private function update(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -193,34 +209,28 @@ class AdminController
         }
 
         $userId = (int)($_POST['id'] ?? 0);
-        $errors = [];
-
+        
         if ($userId <= 0) {
             $_SESSION['error'] = 'Utilisateur invalide.';
             header('Location: /Mediflow/admin');
             exit;
         }
 
-        $nom = trim($_POST['nom'] ?? '');
-        $prenom = trim($_POST['prenom'] ?? '');
-        $mail = trim($_POST['mail'] ?? '');
-        $tel = trim($_POST['tel'] ?? '');
-        $adresse = trim($_POST['adresse'] ?? '');
-        $id_role = trim($_POST['id_role'] ?? '');
-        $password = trim($_POST['password'] ?? '');
-        $password_confirm = trim($_POST['password_confirm'] ?? '');
+        // Get and sanitize form data
+        $formData = [
+            'id' => $userId,
+            'nom' => $this->getPost('nom'),
+            'prenom' => $this->getPost('prenom'),
+            'mail' => $this->getPost('mail'),
+            'tel' => $this->getPost('tel'),
+            'adresse' => $this->getPost('adresse'),
+            'id_role' => (int)$this->getPost('id_role'),
+            'password' => $this->getPost('password'),
+            'password_confirm' => $this->getPost('password_confirm')
+        ];
 
-        if (empty($nom)) $errors[] = 'Le nom est requis.';
-        if (empty($prenom)) $errors[] = 'Le prénom est requis.';
-        if (empty($mail)) $errors[] = 'L\'email est requis.';
-        if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email invalide.';
-        if ($this->userModel->emailExists($mail, $userId)) $errors[] = 'Cet email existe déjà.';
-        if (empty($id_role)) $errors[] = 'Le rôle est requis.';
-
-        if (!empty($password)) {
-            if (strlen($password) < 6) $errors[] = 'Le mot de passe doit contenir au moins 6 caractères.';
-            if ($password !== $password_confirm) $errors[] = 'Les mots de passe ne correspondent pas.';
-        }
+        // Validate form data
+        $errors = $this->validateUserInput($formData, $userId);
 
         if (!empty($errors)) {
             $_SESSION['error'] = implode('<br>', $errors);
@@ -228,17 +238,18 @@ class AdminController
             exit;
         }
 
+        // Prepare user data for update
         $userData = [
-            'nom' => $nom,
-            'prenom' => $prenom,
-            'mail' => $mail,
-            'tel' => $tel ?: null,
-            'adresse' => $adresse ?: null,
-            'id_role' => $id_role
+            'nom' => $formData['nom'],
+            'prenom' => $formData['prenom'],
+            'mail' => $formData['mail'],
+            'tel' => $formData['tel'] ?: null,
+            'adresse' => $formData['adresse'] ?: null,
+            'id_role' => $formData['id_role']
         ];
 
-        if (!empty($password)) {
-            $userData['password'] = $password;
+        if (!empty($formData['password'])) {
+            $userData['password'] = $formData['password'];
         }
 
         if ($this->userModel->updateUser($userId, $userData)) {
@@ -251,7 +262,11 @@ class AdminController
         exit;
     }
 
-    // ==================== DELETE ====================
+    /**
+     * Delete user
+     * 
+     * @return void
+     */
     private function delete(): void
     {
         $userId = (int)($_GET['id'] ?? 0);
@@ -270,5 +285,52 @@ class AdminController
 
         header('Location: /Mediflow/admin');
         exit;
+    }
+
+    /**
+     * Validate user input data
+     * 
+     * @param array $data Form data
+     * @param int|null $userId For update operations (email uniqueness check)
+     * @return array List of validation errors
+     */
+    private function validateUserInput(array $data, ?int $userId = null): array
+    {
+        $errors = [];
+
+        // Required fields
+        if (empty($data['nom'])) $errors[] = 'Le nom est requis.';
+        if (empty($data['prenom'])) $errors[] = 'Le prénom est requis.';
+        if (empty($data['mail'])) $errors[] = 'L\'email est requis.';
+        if (empty($data['id_role'])) $errors[] = 'Le rôle est requis.';
+
+        // Email validation
+        if (!empty($data['mail'])) {
+            if (!filter_var($data['mail'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Email invalide.';
+            } elseif ($this->userModel->emailExists($data['mail'], $userId)) {
+                $errors[] = 'Cet email existe déjà.';
+            }
+        }
+
+        // Password validation for new users
+        if ($userId === null) {
+            if (empty($data['password'])) {
+                $errors[] = 'Le mot de passe est requis.';
+            } elseif (strlen($data['password']) < 6) {
+                $errors[] = 'Le mot de passe doit contenir au moins 6 caractères.';
+            } elseif ($data['password'] !== $data['password_confirm']) {
+                $errors[] = 'Les mots de passe ne correspondent pas.';
+            }
+        } elseif (!empty($data['password'])) {
+            // Password validation for updates (optional)
+            if (strlen($data['password']) < 6) {
+                $errors[] = 'Le mot de passe doit contenir au moins 6 caractères.';
+            } elseif ($data['password'] !== $data['password_confirm']) {
+                $errors[] = 'Les mots de passe ne correspondent pas.';
+            }
+        }
+
+        return $errors;
     }
 }

@@ -2,7 +2,7 @@
 /**
  * Authentication Controller
  * 
- * Handles user authentication operations including login and registration
+ * Handles user login and patient registration
  * 
  * @package MediFlow\Controllers
  * @version 1.0.0
@@ -10,148 +10,241 @@
 
 namespace Controllers;
 
+use Core\SessionHelper;
+use Models\UserModel;
+
 class AuthController
 {
+    use SessionHelper;
+
     /**
-     * Display and handle login form
+     * Handle login page display and form submission
      * 
      * @return void
      */
     public function login(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
+        $this->ensureSession();
         $errors = [];
 
-        // Handle login form submission
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = trim((string)($_POST['username'] ?? ''));
-            $password = trim((string)($_POST['password'] ?? ''));
-
-            // Validate input
-            if (empty($username) || empty($password)) {
-                $errors[] = 'Veuillez remplir tous les champs.';
-            } else {
-                // Authenticate against database
-                try {
-                    require_once __DIR__ . '/../config.php';
-                    $pdo = \config::getConnexion();
-                    
-                    // Search by email or username
-                    $query = "SELECT u.id_PK, u.mail, u.prenom, u.nom, u.motdp, r.libelle as role_name 
-                             FROM utilisateurs u 
-                             LEFT JOIN roles r ON u.id_role = r.id_role 
-                             WHERE u.mail = :username OR u.prenom = :username";
-                    
-                    $stmt = $pdo->prepare($query);
-                    $stmt->execute(['username' => $username]);
-                    $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-                    
-                    // Verify password using bcrypt
-                    if ($user && password_verify($password, $user['motdp'])) {
-                        // Set comprehensive session data
-                        $_SESSION['user'] = [
-                            'id' => $user['id_PK'],
-                            'username' => $username,
-                            'email' => $user['mail'],
-                            'firstname' => $user['prenom'],
-                            'lastname' => $user['nom'],
-                            'role' => $user['role_name']
-                        ];
-                        
-                        $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '\\/');
-                        header('Location: ' . $base . '/dashboard');
-                        exit;
-                    } else {
-                        $errors[] = 'Email/Prénom ou mot de passe incorrect.';
-                    }
-                } catch (\PDOException $e) {
-                    $errors[] = 'Erreur de connexion à la base de données.';
-                }
-            }
+            $errors = $this->processLogin();
         }
 
-        // Render login page
-        include __DIR__ . '/../Views/layout/header.php';
-        include __DIR__ . '/../Views/Front/login.php';
-        include __DIR__ . '/../Views/layout/footer.php';
+        $this->renderView('Front/login', ['errors' => $errors]);
     }
 
     /**
-     * Display and handle registration form
+     * Process login form submission
+     * 
+     * @return array List of errors (empty if successful)
+     */
+    private function processLogin(): array
+    {
+        $errors = [];
+        $username = $this->getPost('username');
+        $password = $this->getPost('password');
+
+        // Validate required fields
+        if (empty($username) || empty($password)) {
+            return ['Veuillez remplir tous les champs.'];
+        }
+
+        try {
+            $user = $this->authenticateUser($username, $password);
+            
+            if (!$user) {
+                return ['Email/Prénom ou mot de passe incorrect.'];
+            }
+
+            // Set session and redirect
+            $this->setSession($user, $username);
+            header('Location: /Mediflow/dashboard');
+            exit;
+        } catch (\PDOException $e) {
+            return ['Erreur de connexion à la base de données.'];
+        }
+    }
+
+    /**
+     * Authenticate user credentials
+     * 
+     * @param string $username Email or first name
+     * @param string $password Raw password
+     * @return array|null User data if authenticated, null otherwise
+     */
+    private function authenticateUser(string $username, string $password): ?array
+    {
+        $db = $this->getDatabase();
+        
+        $query = "
+            SELECT u.id_PK, u.mail, u.prenom, u.nom, u.motdp, r.libelle as role_name
+            FROM utilisateurs u
+            LEFT JOIN roles r ON u.id_role = r.id_role
+            WHERE u.mail = :username OR u.prenom = :username
+            LIMIT 1
+        ";
+        
+        $stmt = $db->prepare($query);
+        $stmt->execute(['username' => $username]);
+        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if ($user && password_verify($password, $user['motdp'])) {
+            return $user;
+        }
+
+        return null;
+    }
+
+    /**
+     * Set user session data
+     * 
+     * @param array $user User data
+     * @param string $username Login username
+     * @return void
+     */
+    private function setSession(array $user, string $username): void
+    {
+        $_SESSION['user'] = [
+            'id' => $user['id_PK'],
+            'username' => $username,
+            'email' => $user['mail'],
+            'firstname' => $user['prenom'],
+            'lastname' => $user['nom'],
+            'role' => $user['role_name']
+        ];
+    }
+
+    /**
+     * Handle registration page display and form submission
      * 
      * @return void
      */
     public function register(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
+        $this->ensureSession();
         $errors = [];
 
-        // Handle registration form submission
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $firstName = trim((string)($_POST['firstName'] ?? ''));
-            $lastName = trim((string)($_POST['lastName'] ?? ''));
-            $email = trim((string)($_POST['email'] ?? ''));
-            $phone = trim((string)($_POST['phone'] ?? ''));
-            $password = trim((string)($_POST['password'] ?? ''));
-            $confirmPassword = trim((string)($_POST['confirmPassword'] ?? ''));
-
-            // Validate registration data
-            if (empty($firstName) || empty($lastName) || empty($email) || empty($password)) {
-                $errors[] = 'Veuillez remplir tous les champs requis.';
-            } elseif ($password !== $confirmPassword) {
-                $errors[] = 'Les mots de passe ne correspondent pas.';
-            } elseif (strlen($password) < 8) {
-                $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
-            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $errors[] = 'Adresse email invalide.';
-            } else {
-                // Only allow patient registration
-                try {
-                    require_once __DIR__ . '/../config.php';
-                    $pdo = \config::getConnexion();
-                    
-                    // Get patient role ID (assuming patient role ID = 5, adjust based on your roles)
-                    $roleQuery = "SELECT id_role FROM roles WHERE libelle = 'Patient' OR libelle = 'patient'";
-                    $roleStmt = $pdo->query($roleQuery);
-                    $roleResult = $roleStmt->fetch(\PDO::FETCH_ASSOC);
-                    $patientRoleId = $roleResult['id_role'] ?? 5; // Default to 5 if not found
-                    
-                    // Hash password
-                    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                    
-                    // Insert new patient user
-                    $insertQuery = "INSERT INTO utilisateurs (prenom, nom, mail, tel, motdp, id_role) 
-                                   VALUES (:prenom, :nom, :mail, :tel, :motdp, :id_role)";
-                    $stmt = $pdo->prepare($insertQuery);
-                    $stmt->execute([
-                        ':prenom' => $firstName,
-                        ':nom' => $lastName,
-                        ':mail' => $email,
-                        ':tel' => $phone,
-                        ':motdp' => $hashedPassword,
-                        ':id_role' => $patientRoleId
-                    ]);
-                    
-                    $_SESSION['success_message'] = 'Inscription réussie! Vous êtes enregistré en tant que patient. Vous pouvez maintenant vous connecter.';
-                    
-                    $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '\\/');
-                    header('Location: ' . ($base ?: '/') . 'login');
-                    exit;
-                } catch (\PDOException $e) {
-                    $errors[] = 'Erreur lors de l\'inscription: ' . $e->getMessage();
-                }
-            }
+            $errors = $this->processRegistration();
         }
 
-        // Render registration page
+        $this->renderView('Front/register', ['errors' => $errors]);
+    }
+
+    /**
+     * Process patient registration
+     * 
+     * @return array List of errors (empty if successful)
+     */
+    private function processRegistration(): array
+    {
+        $errors = [];
+        
+        // Get form data
+        $firstName = $this->getPost('firstName');
+        $lastName = $this->getPost('lastName');
+        $email = $this->getPost('email');
+        $phone = $this->getPost('phone');
+        $password = $this->getPost('password');
+        $confirmPassword = $this->getPost('confirmPassword');
+
+        // Validate input
+        $validationErrors = $this->validateRegistration($firstName, $lastName, $email, $password, $confirmPassword);
+        if (!empty($validationErrors)) {
+            return $validationErrors;
+        }
+
+        try {
+            $patientRoleId = $this->getPatientRoleId();
+            $userModel = new UserModel();
+            
+            $userData = [
+                'prenom' => $firstName,
+                'nom' => $lastName,
+                'mail' => $email,
+                'tel' => $phone ?: null,
+                'adresse' => null,
+                'id_role' => $patientRoleId,
+                'password' => $password
+            ];
+
+            $userId = $userModel->createUser($userData);
+
+            if (!$userId) {
+                return ['Erreur lors de la création du compte. Veuillez réessayer.'];
+            }
+
+            $_SESSION['success_message'] = 'Inscription réussie! Vous êtes enregistré en tant que patient. Vous pouvez maintenant vous connecter.';
+            header('Location: /Mediflow/login');
+            exit;
+        } catch (\PDOException $e) {
+            return ['Erreur lors de l\'inscription: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Validate registration form data
+     * 
+     * @param string $firstName
+     * @param string $lastName
+     * @param string $email
+     * @param string $password
+     * @param string $confirmPassword
+     * @return array List of validation errors
+     */
+    private function validateRegistration(string $firstName, string $lastName, string $email, string $password, string $confirmPassword): array
+    {
+        $errors = [];
+
+        if (empty($firstName) || empty($lastName) || empty($email) || empty($password)) {
+            $errors[] = 'Veuillez remplir tous les champs requis.';
+        }
+
+        if ($password !== $confirmPassword) {
+            $errors[] = 'Les mots de passe ne correspondent pas.';
+        }
+
+        if (strlen($password) < 8) {
+            $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Adresse email invalide.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Get patient role ID from database
+     * 
+     * @return int Patient role ID
+     */
+    private function getPatientRoleId(): int
+    {
+        $db = $this->getDatabase();
+        $query = "SELECT id_role FROM roles WHERE libelle = 'Patient' OR libelle = 'patient' LIMIT 1";
+        $stmt = $db->query($query);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        return $result['id_role'] ?? 5;
+    }
+
+    /**
+     * Render view with data
+     * 
+     * @param string $view View path
+     * @param array $data Data to pass to view
+     * @return void
+     */
+    private function renderView(string $view, array $data = []): void
+    {
+        extract($data);
+        $errors = $data['errors'] ?? [];
+        
         include __DIR__ . '/../Views/layout/header.php';
-        include __DIR__ . '/../Views/Front/register.php';
+        include __DIR__ . '/../Views/' . $view . '.php';
         include __DIR__ . '/../Views/layout/footer.php';
     }
 }

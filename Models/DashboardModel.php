@@ -181,6 +181,54 @@ class DashboardModel
     }
 
     /**
+     * Get all patients
+     * 
+     * @return array
+     */
+    public function getPatients(): array
+    {
+        $query = "
+            SELECT 
+                u.id_PK,
+                u.matricule,
+                u.nom,
+                u.prenom,
+                u.mail,
+                u.tel,
+                u.adresse,
+                r.libelle as role_name,
+                u.id_role
+            FROM utilisateurs u
+            LEFT JOIN roles r ON u.id_role = r.id_role
+            WHERE r.libelle = 'Patient' OR r.libelle = 'patient'
+            ORDER BY u.nom ASC, u.prenom ASC
+        ";
+        
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get total patient count
+     * 
+     * @return int
+     */
+    public function getTotalPatients(): int
+    {
+        $query = "
+            SELECT COUNT(*) as total 
+            FROM utilisateurs u
+            LEFT JOIN roles r ON u.id_role = r.id_role
+            WHERE r.libelle = 'Patient' OR r.libelle = 'patient'
+        ";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        return (int)$result['total'] ?? 0;
+    }
+
+    /**
      * Get dashboard statistics for admin
      * 
      * @return array
@@ -191,6 +239,7 @@ class DashboardModel
             'totalUsers' => $this->getTotalUsers(),
             'activeUsers' => $this->getActiveUsers(),
             'usersByRole' => $this->getUsersByRole(),
+            'totalPatients' => $this->getTotalPatients(),
         ];
     }
 }

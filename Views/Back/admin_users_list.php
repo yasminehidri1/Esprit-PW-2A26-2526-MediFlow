@@ -1,5 +1,406 @@
 <?php
 /**
+ * Admin - Users List View
+ */
+?>
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Gestion des Utilisateurs - MediFlow Admin</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/Mediflow/assets/css/style.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f7f9fb",
+                        "surface-container-high": "#e6e8ea",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#d8dadc",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#d6e3ff",
+                        "on-surface-variant": "#424752",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-primary-fixed-variant": "#00468c",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#dae5ff",
+                        "on-secondary-container": "#475c80",
+                        "outline": "#727783",
+                        "primary": "#004d99",
+                        "surface-bright": "#f7f9fb",
+                        "on-secondary-fixed": "#021b3c",
+                        "surface-variant": "#e0e3e5",
+                        "primary-container": "#1565c0",
+                        "on-primary-fixed": "#001b3d",
+                        "secondary": "#4a5f83",
+                        "on-tertiary-fixed-variant": "#005049",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#005db7",
+                        "surface-container": "#eceef0",
+                        "tertiary-container": "#00736a",
+                        "primary-fixed-dim": "#a9c7ff",
+                        "outline-variant": "#c2c6d4",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-container": "#87f8ea",
+                        "surface": "#f7f9fb",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "tertiary": "#005851",
+                        "inverse-primary": "#a9c7ff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#84f5e8",
+                        "tertiary-fixed-dim": "#66d9cc",
+                        "secondary-container": "#c0d5ff",
+                        "on-background": "#191c1e",
+                        "secondary-fixed": "#d6e3ff",
+                        "on-secondary-fixed-variant": "#32476a",
+                        "surface-container-low": "#f2f4f6",
+                        "on-tertiary-fixed": "#00201d",
+                        "secondary-fixed-dim": "#b2c7f1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Header animation */
+        header {
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        /* Content animation */
+        main {
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        /* Message boxes animation */
+        [style*="background: #ecfdf5"],
+        [style*="background: #fef2f2"] {
+            animation: slideInLeft 0.5s ease-out;
+        }
+
+        /* Filter form animation */
+        div[style*="background: white; border: 1px solid rgba(0, 77, 153, 0.1)"] {
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        /* Table animation */
+        table {
+            animation: fadeInUp 0.7s ease-out 0.4s both;
+        }
+
+        /* Table row hover effect */
+        tbody tr {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        tbody tr:hover {
+            background-color: #f0f7ff !important;
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0, 77, 153, 0.1);
+        }
+
+        tbody tr::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #004d99, #1565c0);
+            transform: scaleY(0);
+            transform-origin: center;
+            transition: transform 0.3s ease;
+        }
+
+        tbody tr:hover::before {
+            transform: scaleY(1);
+        }
+
+        /* Action buttons animation */
+        a[style*="color: #004d99"],
+        a[style*="color: #ba1a1a"] {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        a[style*="color: #004d99"]:hover {
+            transform: scale(1.15) rotate(-5deg);
+            filter: drop-shadow(0 4px 12px rgba(0, 77, 153, 0.3));
+        }
+
+        a[style*="color: #ba1a1a"]:hover {
+            transform: scale(1.15) rotate(5deg);
+            filter: drop-shadow(0 4px 12px rgba(186, 26, 26, 0.3));
+        }
+
+        /* Input focus effect */
+        input[type="text"],
+        select {
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            box-shadow: 0 0 0 3px rgba(0, 77, 153, 0.15) !important;
+            transform: translateY(-2px);
+        }
+
+        /* Button hover effect */
+        button[type="submit"],
+        a[href*="action=create"] {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button[type="submit"]:hover,
+        a[href*="action=create"]:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 77, 153, 0.2);
+            filter: brightness(1.1);
+        }
+
+        button[type="submit"]:active,
+        a[href*="action=create"]:active {
+            transform: translateY(-1px);
+        }
+
+        /* Reset button hover */
+        a[href="/Mediflow/admin"]:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Role badge animation */
+        span[style*="background: linear-gradient(135deg, #d6e3ff"] {
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover span[style*="background: linear-gradient(135deg, #d6e3ff"] {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 77, 153, 0.3);
+        }
+
+        /* Table row stagger animation */
+        tbody tr {
+            animation: fadeInUp 0.5s ease-out backwards;
+        }
+
+        tbody tr:nth-child(1) { animation-delay: 0.45s; }
+        tbody tr:nth-child(2) { animation-delay: 0.50s; }
+        tbody tr:nth-child(3) { animation-delay: 0.55s; }
+        tbody tr:nth-child(4) { animation-delay: 0.60s; }
+        tbody tr:nth-child(5) { animation-delay: 0.65s; }
+        tbody tr:nth-child(n+6) { animation-delay: 0.70s; }
+
+        /* Smooth page load */
+        body {
+            animation: fadeInUp 0.4s ease-out;
+        }
+    </style>
+<body class="bg-surface text-on-surface overflow-hidden">
+
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-50 dark:bg-slate-900 flex flex-col py-8 space-y-6 z-50 border-r border-outline">
+    <div class="px-8">
+        <h1 class="text-2xl font-black tracking-tight text-blue-900 dark:text-blue-100">MediFlow</h1>
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Admin Panel</p>
+    </div>
+    
+    <nav class="flex-1 flex flex-col space-y-2 px-4">
+        <a href="/Mediflow/admin/users" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
+            <span class="material-symbols-outlined">people</span>
+            <span class="font-medium">Utilisateurs</span>
+        </a>
+        <a href="/Mediflow/dashboard" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="font-medium">Dashboard</span>
+        </a>
+    </nav>
+
+    <div class="px-8 border-t border-outline pt-4">
+        <a href="/Mediflow/logout" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-error">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="font-medium text-sm">Déconnexion</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Main Content -->
+<div class="ml-64 h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white dark:bg-slate-800 border-b border-outline shadow-sm">
+        <div class="flex items-center justify-between px-8 py-6">
+            <div>
+                <h2 class="text-4xl font-black bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent">Gestion des Utilisateurs</h2>
+                <p class="text-on-surface-variant text-sm mt-2">Administrez tous les utilisateurs du système</p>
+            </div>
+            <a href="/Mediflow/admin?action=create" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #004d99 0%, #1565c0 100%); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 77, 153, 0.3); border: none; cursor: pointer;">
+                <span class="material-symbols-outlined">add_circle</span>
+                <span>Ajouter Utilisateur</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-auto">
+        <div class="p-8">
+            <!-- Messages -->
+            <?php if (!empty($data['message'])): ?>
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 12px;">
+                    <span class="material-symbols-outlined" style="flex-shrink: 0;">check_circle</span>
+                    <p><?php echo $data['message']; ?></p>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($data['error'])): ?>
+                <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 12px;">
+                    <span class="material-symbols-outlined" style="flex-shrink: 0;">error</span>
+                    <p><?php echo $data['error']; ?></p>
+                </div>
+            <?php endif; ?>
+
+            <!-- Search & Filter Form -->
+            <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafb 100%); border: 1px solid rgba(0, 77, 153, 0.08); border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <form method="GET" action="/Mediflow/admin" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+                    <!-- Search -->
+                    <div style="flex: 1; min-width: 220px;">
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #191c1e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Rechercher</label>
+                        <input type="text" name="search" placeholder="Nom, email, téléphone..." value="<?php echo htmlspecialchars($data['search'] ?? ''); ?>" 
+                               style="width: 100%; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white; box-sizing: border-box; transition: all 0.3s ease;">
+                    </div>
+                    
+                    <!-- Role Filter -->
+                    <div style="min-width: 160px;">
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #191c1e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Filtrer par rôle</label>
+                        <select name="role" style="width: 100%; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: white; box-sizing: border-box; cursor: pointer; transition: all 0.3s ease;">
+                            <option value="">-- Tous les rôles --</option>
+                            <?php foreach ($data['roles'] as $role): ?>
+                                <option value="<?php echo $role['id_role']; ?>" <?php echo $data['roleFilter'] == $role['id_role'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($role['libelle']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #004d99 0%, #1565c0 100%); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 77, 153, 0.2);">Chercher</button>
+                    <a href="/Mediflow/admin" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; transition: all 0.3s ease;">Réinitialiser</a>
+                </form>
+            </div>
+
+            <!-- Users Table -->
+            <div style="background: white; border: 1px solid rgba(0, 77, 153, 0.08); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: linear-gradient(90deg, rgba(0, 77, 153, 0.12) 0%, rgba(21, 101, 192, 0.08) 50%, rgba(0, 118, 81, 0.06) 100%); border-bottom: 2px solid rgba(0, 77, 153, 0.12);">
+                        <th style="padding: 18px 24px; text-align: left; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Matricule</th>
+                        <th style="padding: 18px 24px; text-align: left; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Nom</th>
+                        <th style="padding: 18px 24px; text-align: left; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Email</th>
+                        <th style="padding: 18px 24px; text-align: left; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Téléphone</th>
+                        <th style="padding: 18px 24px; text-align: left; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Rôle</th>
+                        <th style="padding: 18px 24px; text-align: center; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Actions</th>
+                    </tr>
+                    <?php if (!empty($data['users'])): ?>
+                        <?php foreach ($data['users'] as $user): ?>
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 16px 24px; font-size: 14px; color: #004d99; font-weight: 800;"><?php echo htmlspecialchars($user['matricule'] ?? 'N/A'); ?></td>
+                                <td style="padding: 16px 24px; font-size: 14px; color: #191c1e; font-weight: 600;"><?php echo htmlspecialchars($user['prenom'] . ' ' . $user['nom']); ?></td>
+                                <td style="padding: 16px 24px; font-size: 14px; color: #424752;"><?php echo htmlspecialchars($user['mail']); ?></td>
+                                <td style="padding: 16px 24px; font-size: 14px; color: #191c1e;"><?php echo htmlspecialchars($user['tel'] ?? '-'); ?></td>
+                                <td style="padding: 16px 24px; font-size: 14px;"><span style="background: linear-gradient(135deg, #d6e3ff 0%, #c0d5ff 100%); color: #004d99; font-weight: 800; padding: 8px 14px; border-radius: 20px; font-size: 12px; display: inline-block; border: 1px solid rgba(0, 77, 153, 0.2); box-shadow: 0 2px 8px rgba(0, 77, 153, 0.1); text-transform: uppercase; letter-spacing: 0.3px;"><?php echo htmlspecialchars($user['role_name'] ?? 'N/A'); ?></span></td>
+                                <td style="padding: 16px 24px; text-align: center;">
+                                    <a href="/Mediflow/admin?action=edit&id=<?php echo $user['id_PK']; ?>" title="Modifier" style="color: #004d99; text-decoration: none; margin-right: 12px; display: inline-block; padding: 8px; border-radius: 8px; transition: all 0.3s ease; background: rgba(0, 77, 153, 0.05);">
+                                        <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
+                                    </a>
+                                    <a href="/Mediflow/admin?action=delete&id=<?php echo $user['id_PK']; ?>" title="Supprimer" style="color: #ba1a1a; text-decoration: none; display: inline-block; padding: 8px; border-radius: 8px; transition: all 0.3s ease; background: rgba(186, 26, 26, 0.05);" onclick="return confirm('Êtes-vous sûr?');">
+                                        <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" style="padding: 60px 40px; text-align: center;">
+                                <span class="material-symbols-outlined" style="display: block; font-size: 56px; margin-bottom: 16px; opacity: 0.3; color: #004d99;">group_off</span>
+                                <p style="font-weight: 700; font-size: 18px; color: #191c1e; margin-bottom: 8px;">Aucun utilisateur trouvé</p>
+                                <p style="font-size: 14px; color: #999;">Cliquez sur "Ajouter Utilisateur" pour en créer un nouveau</p>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>
+<?php
+/**
  * Admin Users Management - Full Dashboard View
  */
 ?>
@@ -13,6 +414,7 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/Mediflow/assets/css/style.css">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {

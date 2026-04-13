@@ -22,7 +22,17 @@
 				<h2 class="step-title">Créer votre compte Patient</h2>
 				<p class="step-subtitle">Rejoignez MediFlow en tant que patient</p>
 
-				<!-- Error Alerts -->
+				<!-- Server-side Error Alerts -->
+				<?php if (!empty($errors)): ?>
+					<div class="register-alert-error" style="display: block; margin-bottom: 20px;">
+						<span class="alert-icon">⚠️</span>
+						<div class="alert-content">
+							<p><?php echo implode('<br>', array_map('htmlspecialchars', $errors)); ?></p>
+						</div>
+					</div>
+				<?php endif; ?>
+
+				<!-- Client-side Error Alerts -->
 				<div id="registerErrors" class="register-alert-error" style="display: none;"></div>
 
 				<!-- Registration Form -->

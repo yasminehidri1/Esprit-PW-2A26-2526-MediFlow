@@ -13,6 +13,7 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/Mediflow/assets/css/style.css">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -83,125 +84,6 @@
             },
         }
     </script>
-    <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        body { font-family: 'Inter', sans-serif; }
-        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .animate-slide-in-left {
-            animation: slideInLeft 0.5s ease-out;
-        }
-        
-        .animate-scale-in {
-            animation: scaleIn 0.3s ease-out;
-        }
-        
-        .animate-pulse-slow {
-            animation: pulse 3s ease-in-out infinite;
-        }
-        
-        /* Form field animations */
-        .form-group {
-            animation: fadeIn 0.5s ease-out backwards;
-        }
-        
-        .form-group:nth-child(1) { animation-delay: 0.1s; }
-        .form-group:nth-child(2) { animation-delay: 0.15s; }
-        .form-group:nth-child(3) { animation-delay: 0.2s; }
-        .form-group:nth-child(4) { animation-delay: 0.25s; }
-        .form-group:nth-child(5) { animation-delay: 0.3s; }
-        .form-group:nth-child(6) { animation-delay: 0.35s; }
-        .form-group:nth-child(7) { animation-delay: 0.4s; }
-        
-        /* Input focus effect */
-        input:focus, textarea:focus, select:focus {
-            box-shadow: 0 0 0 3px rgba(0, 77, 153, 0.1) !important;
-            transition: all 0.3s ease;
-        }
-        
-        /* Button hover effects */
-        .btn-submit {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 77, 153, 0.3);
-        }
-        
-        .btn-submit:active {
-            transform: translateY(0);
-        }
-        
-        /* Cancel button */
-        .btn-cancel {
-            transition: all 0.3s ease;
-        }
-        
-        .btn-cancel:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-        }
-        
-        /* Field labels */
-        label {
-            transition: color 0.3s ease;
-        }
-        
-        input:focus ~ label, textarea:focus ~ label, select:focus ~ label {
-            color: #004d99;
-        }
-    </style>
 </head>
 <body class="bg-surface text-on-surface overflow-hidden">
 
@@ -312,8 +194,7 @@
                         <div class="form-group">
                             <label for="id_role" class="block text-sm font-semibold text-on-surface mb-2">Rôle *</label>
                             <select id="id_role" name="id_role"
-                                    class="w-full px-4 py-3 border border-outline/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container-lowest dark:bg-slate-700 transition-all duration-300 hover:border-outline/50 appearance-none cursor-pointer"
-                                    style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23004d99%22><path d=%22M7 10l5 5 5-5z%22/></svg>'); background-repeat: no-repeat; background-position: right 12px center; background-size: 20px; padding-right: 40px;">
+                                    class="admin-select-dropdown w-full px-4 py-3 border border-outline/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container-lowest dark:bg-slate-700 transition-all duration-300 hover:border-outline/50 appearance-none cursor-pointer">
                                 <option value="">Sélectionner un rôle</option>
                                 <?php foreach ($roles as $role): ?>
                                     <option value="<?php echo $role['id_role']; ?>"

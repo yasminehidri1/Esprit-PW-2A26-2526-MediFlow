@@ -18,6 +18,7 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/Mediflow/assets/css/style.css">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -88,113 +89,6 @@
             },
         }
     </script>
-    <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        body { font-family: 'Inter', sans-serif; }
-        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        /* Logout Button Styles */
-        .logout-btn {
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, #ba1a1a 0%, #a41817 100%);
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: none;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            justify-content: flex-start;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 4px 15px rgba(186, 26, 26, 0.2);
-        }
-        
-        .logout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(186, 26, 26, 0.35);
-            background: linear-gradient(135deg, #d32f2f 0%, #ba1a1a 100%);
-        }
-        
-        .logout-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 10px rgba(186, 26, 26, 0.2);
-        }
-        
-        .logout-icon {
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            font-size: 20px;
-        }
-        
-        .logout-btn:hover .logout-icon {
-            transform: scale(1.2) rotate(-15deg);
-        }
-        
-        /* Sidebar animations */
-        aside {
-            animation: slideInLeft 0.6s ease-out;
-        }
-        
-        /* Header enhancement animations */
-        header {
-            animation: fadeIn 0.6s ease-out;
-        }
-        
-        /* KPI Cards animations */
-        section > div {
-            animation: fadeIn 0.6s ease-out backwards;
-        }
-        
-        /* Smooth hover effects */
-        .hover-lift {
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        
-        .hover-lift:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0, 77, 153, 0.12);
-        }
-        
-        /* Button ripple effect */
-        .ripple-btn {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .ripple-btn span {
-            position: relative;
-            z-index: 2;
-        }
-    </style>
 </head>
 <body class="bg-surface text-on-surface overflow-hidden">
 <!-- SideNavBar -->
@@ -296,7 +190,7 @@
         <!-- Greeting -->
         <section>
             <h2 class="text-4xl font-extrabold bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent tracking-tight">Welcome back, <?php echo isset($data['currentUser']) ? htmlspecialchars($data['currentUser']['prenom']) : 'Admin'; ?></h2>
-            <p class="text-on-surface-variant mt-2 font-medium">Your system summary for today, <?php echo date('F d, Y'); ?>.</p>
+            <p class="text-on-surface-variant mt-2 font-medium">Votre résumé du système pour aujourd'hui, <?php echo date('d F Y'); ?>.</p>
         </section>
 
         <!-- KPI Cards Grid -->
@@ -370,7 +264,7 @@
                 </div>
             </div>
 
-            <!-- KPI 4: Other Staff -->
+            <!-- KPI 4: Support Staff -->
             <div class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-6 rounded-xl shadow-sm border-t-2 border-error border-r border-b border-outline/10">
                 <div class="flex justify-between items-start">
                     <div>
@@ -394,6 +288,23 @@
                 <div class="mt-4 flex items-center text-error">
                     <span class="material-symbols-outlined text-lg mr-2">people</span>
                     <span class="text-xs font-semibold">Reception & pharmacy</span>
+                </div>
+            </div>
+
+            <!-- KPI 5: Patients (New) -->
+            <div class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-6 rounded-xl shadow-sm border-t-2 border-green-500 border-r border-b border-outline/10">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-on-surface-variant">Patients</p>
+                        <h3 class="text-3xl font-black mt-2 text-green-600">
+                            <?php echo isset($data['stats']['totalPatients']) ? $data['stats']['totalPatients'] : 0; ?>
+                        </h3>
+                    </div>
+                    <span class="material-symbols-outlined text-green-500 text-2xl">badge</span>
+                </div>
+                <div class="mt-4 flex items-center text-green-600">
+                    <span class="material-symbols-outlined text-lg mr-2">person_check</span>
+                    <span class="text-xs font-semibold">Registered patients</span>
                 </div>
             </div>
         </section>
@@ -478,8 +389,53 @@
                 </div>
             </div>
         </section>
+
+        <!-- Patients Section (New) -->
+        <section class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h3 class="text-2xl font-bold text-on-surface">Registered Patients</h3>
+                    <p class="text-sm text-on-surface-variant font-medium">All patient accounts in the system</p>
+                </div>
+                <div class="bg-gradient-to-r from-green-500/10 to-green-500/5 px-4 py-2 rounded-full text-sm font-bold text-green-600">
+                    Total: <?php echo isset($data['stats']['totalPatients']) ? $data['stats']['totalPatients'] : 0; ?>
+                </div>
+            </div>
+
+            <!-- Patients Table -->
+            <div style="background: white; border: 1px solid rgba(0, 77, 153, 0.08); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 163, 74, 0.08) 50%, rgba(16, 185, 129, 0.06) 100%); border-bottom: 2px solid rgba(34, 197, 94, 0.12);">
+                        <th style="padding: 18px 24px; text-align: left; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Matricule</th>
+                        <th style="padding: 18px 24px; text-align: left; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Nom</th>
+                        <th style="padding: 18px 24px; text-align: left; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Email</th>
+                        <th style="padding: 18px 24px; text-align: left; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Téléphone</th>
+                        <th style="padding: 18px 24px; text-align: center; font-size: 12px; font-weight: 800; color: #191c1e; text-transform: uppercase; letter-spacing: 0.6px;">Status</th>
+                    </tr>
+                    <?php if (!empty($data['patients'])): ?>
+                        <?php foreach ($data['patients'] as $patient): ?>
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 16px 24px; font-size: 14px; color: #22c55e; font-weight: 800;"><?php echo htmlspecialchars($patient['matricule'] ?? 'N/A'); ?></td>
+                                <td style="padding: 16px 24px; font-size: 14px; color: #191c1e; font-weight: 600;"><?php echo htmlspecialchars($patient['prenom'] . ' ' . $patient['nom']); ?></td>
+                                <td style="padding: 16px 24px; font-size: 14px; color: #424752;"><?php echo htmlspecialchars($patient['mail']); ?></td>
+                                <td style="padding: 16px 24px; font-size: 14px; color: #191c1e;"><?php echo htmlspecialchars($patient['tel'] ?? '-'); ?></td>
+                                <td style="padding: 16px 24px; text-align: center;"><span style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); color: #16a34a; font-weight: 800; padding: 8px 14px; border-radius: 20px; font-size: 12px; display: inline-block; border: 1px solid rgba(34, 197, 94, 0.2); box-shadow: 0 2px 8px rgba(34, 197, 94, 0.1); text-transform: uppercase; letter-spacing: 0.3px;">Active</span></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" style="padding: 60px 40px; text-align: center;">
+                                <span class="material-symbols-outlined" style="display: block; font-size: 56px; margin-bottom: 16px; opacity: 0.3; color: #22c55e;">person_add</span>
+                                <p style="font-weight: 700; font-size: 18px; color: #191c1e; margin-bottom: 8px;">Aucun patient enregistré</p>
+                                <p style="font-size: 14px; color: #999;">Les patients apparaîtront ici après leur inscription</p>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </table>
+            </div>
+        </section>
     </div>
-    
+
     <!-- Include Users Section Component (Admin Only) -->
     <?php include __DIR__ . '/users_section.php'; ?>
 </main>

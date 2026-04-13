@@ -1,8 +1,8 @@
 <?php
 /**
- * Back Office Dashboard Controller
+ * Dashboard Controller
  * 
- * Handles dashboard display and data for authenticated users
+ * Handles admin dashboard display and data management
  * 
  * @package MediFlow\Controllers
  * @version 1.0.0
@@ -10,10 +10,13 @@
 
 namespace Controllers;
 
+use Core\SessionHelper;
 use Models\DashboardModel;
 
 class DashboardController
 {
+    use SessionHelper;
+
     private DashboardModel $dashboardModel;
 
     public function __construct()
@@ -22,87 +25,69 @@ class DashboardController
     }
 
     /**
-     * Display admin dashboard
+     * Display admin dashboard with statistics and user data
      * 
      * @return void
      */
     public function index(): void
     {
-        // Check if user is authenticated
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
+        $this->ensureSession();
+        $this->requireAuth();
 
-        if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
-            header('Location: /Mediflow/login');
-            exit;
-        }
-
-        // Get current user data
         $userId = $_SESSION['user']['id'];
-        $currentUser = $this->dashboardModel->getUserById($userId);
-
-        // Get dashboard statistics
-        $stats = $this->dashboardModel->getDashboardStats();
-        $roles = $this->dashboardModel->getAllRoles();
-        $recentActivity = $this->dashboardModel->getRecentActivity();
-        $users = $this->dashboardModel->getAllUsers();
-
-        // Prepare data for view
+        
+        // Gather dashboard data
         $data = [
-            'currentUser' => $currentUser,
-            'stats' => $stats,
-            'roles' => $roles,
-            'recentActivity' => $recentActivity,
-            'users' => $users,
+            'currentUser' => $this->dashboardModel->getUserById($userId),
+            'stats' => $this->dashboardModel->getDashboardStats(),
+            'roles' => $this->dashboardModel->getAllRoles(),
+            'recentActivity' => $this->dashboardModel->getRecentActivity(),
+            'users' => $this->dashboardModel->getAllUsers(),
+            'patients' => $this->dashboardModel->getPatients(),
             'pageTitle' => 'Admin Dashboard',
         ];
 
-        // Render dashboard
         include __DIR__ . '/../Views/Back/dashboard.php';
     }
 
     /**
-     * Get users API endpoint (for AJAX requests)
+     * API endpoint: Get all users (JSON response)
      * 
      * @return void
      */
     public function getUsers(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user'])) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Unauthorized']);
-            exit;
-        }
+        $this->ensureSession();
+        $this->requireAuth();
 
         $users = $this->dashboardModel->getAllUsers();
-        header('Content-Type: application/json');
-        echo json_encode($users);
+        $this->jsonResponse($users);
     }
 
     /**
-     * Get dashboard stats API endpoint
+     * API endpoint: Get dashboard statistics (JSON response)
      * 
      * @return void
      */
     public function getStats(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['user'])) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Unauthorized']);
-            exit;
-        }
+        $this->ensureSession();
+        $this->requireAuth();
 
         $stats = $this->dashboardModel->getDashboardStats();
-        header('Content-Type: application/json');
-        echo json_encode($stats);
+        $this->jsonResponse($stats);
+    }
+
+    /**
+     * Send JSON response
+     * 
+     * @param mixed $data
+     * @return void
+     */
+    private function jsonResponse($data): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data);
+        exit;
     }
 }
