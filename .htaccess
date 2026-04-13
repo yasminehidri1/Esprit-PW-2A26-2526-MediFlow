@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Set the base directory
+    RewriteBase /Mediflow/
+    
+    # Don't rewrite if the request is for an existing file or directory
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Rewrite all non-file, non-directory requests to index.php
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
