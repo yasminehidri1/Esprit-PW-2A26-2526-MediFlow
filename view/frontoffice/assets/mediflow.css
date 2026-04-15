@@ -1,0 +1,501 @@
+/* ============================================================
+   mediflow.css — Styles partagés MediFlow
+   Inclure dans TOUTES les pages HTML/PHP du projet
+   ============================================================ */
+
+/* ---------- Google Fonts ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+/* ---------- Design Tokens ---------- */
+:root {
+  /* Couleurs primaires */
+  --primary:               #004d99;
+  --primary-container:     #1565c0;
+  --on-primary:            #ffffff;
+  --primary-fixed:         #d6e3ff;
+  --primary-fixed-dim:     #a9c7ff;
+  --inverse-primary:       #a9c7ff;
+
+  /* Couleurs secondaires */
+  --secondary:             #4a5f83;
+  --secondary-container:   #c0d5ff;
+  --on-secondary:          #ffffff;
+  --secondary-fixed:       #d6e3ff;
+  --secondary-fixed-dim:   #b2c7f1;
+
+  /* Couleurs tertiaires (teal) */
+  --tertiary:              #005851;
+  --tertiary-container:    #00736a;
+  --on-tertiary:           #ffffff;
+  --tertiary-fixed:        #84f5e8;
+  --tertiary-fixed-dim:    #66d9cc;
+
+  /* Surfaces */
+  --background:            #f7f9fb;
+  --surface:               #f7f9fb;
+  --surface-bright:        #f7f9fb;
+  --surface-dim:           #d8dadc;
+  --surface-variant:       #e0e3e5;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f2f4f6;
+  --surface-container:     #eceef0;
+  --surface-container-high:#e6e8ea;
+  --surface-container-highest: #e0e3e5;
+
+  /* Texte */
+  --on-background:         #191c1e;
+  --on-surface:            #191c1e;
+  --on-surface-variant:    #424752;
+
+  /* Contours */
+  --outline:               #727783;
+  --outline-variant:       #c2c6d4;
+
+  /* Erreur */
+  --error:                 #ba1a1a;
+  --error-container:       #ffdad6;
+  --on-error:              #ffffff;
+  --on-error-container:    #93000a;
+
+  /* Misc */
+  --inverse-surface:       #2d3133;
+  --inverse-on-surface:    #eff1f3;
+  --surface-tint:          #005db7;
+
+  /* Layout */
+  --sidebar-width:         256px;
+  --header-height:         72px;
+  --radius-sm:             8px;
+  --radius-md:             12px;
+  --radius-lg:             16px;
+  --radius-xl:             20px;
+  --radius-full:           9999px;
+
+  /* Ombres */
+  --shadow-card:           0 4px 24px rgba(0,77,153,0.07);
+  --shadow-hover:          0 8px 32px rgba(0,77,153,0.12);
+  --shadow-header:         0 2px 20px rgba(0,77,153,0.06);
+}
+
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--background);
+  color: var(--on-surface);
+  min-height: 100vh;
+  display: flex;
+}
+
+h1, h2, h3, h4, .font-headline {
+  font-family: 'Manrope', sans-serif;
+}
+
+a { text-decoration: none; color: inherit; }
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* ---------- Layout principal ---------- */
+.app-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main-content {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  background: #f8fafc;
+  border-right: 1px solid #e8ecf0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  gap: 8px;
+  z-index: 50;
+}
+
+/* Brand / Logo */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 20px;
+  border-bottom: 1px solid var(--outline-variant);
+  margin-bottom: 8px;
+}
+
+.sidebar-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+/* Placeholder logo quand l'image n'existe pas encore */
+.sidebar-logo-placeholder {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-container));
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 17px;
+  color: #1e3a6e;
+  line-height: 1.1;
+}
+
+.brand-sub {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  display: block;
+}
+
+/* Profil docteur dans sidebar */
+.sidebar-doctor-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface-container-low);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+}
+
+.doctor-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-full);
+  background: var(--primary-fixed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.doctor-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.doctor-name {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--on-surface);
+  display: block;
+}
+
+.doctor-specialty {
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  display: block;
+}
+
+/* Navigation */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.18s ease;
+  border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+  background: rgba(0,77,153,0.06);
+  color: var(--primary);
+  transform: translateX(2px);
+}
+
+.nav-item.nav-active {
+  background: white;
+  color: var(--primary);
+  font-weight: 700;
+  border-left-color: var(--tertiary);
+  box-shadow: 0 2px 8px rgba(0,77,153,0.10);
+}
+
+.sidebar-footer {
+  padding-top: 16px;
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-logout {
+  color: var(--error);
+}
+
+.nav-logout:hover {
+  background: rgba(186,26,26,0.06);
+  color: var(--error);
+}
+
+/* ---------- Header / TopBar ---------- */
+.topbar {
+  height: var(--header-height);
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(194,198,212,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: var(--shadow-header);
+}
+
+.topbar-title {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  background: linear-gradient(135deg, #1e3a6e, #004d99);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-search {
+  display: flex;
+  align-items: center;
+  background: var(--surface-container-low);
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  gap: 8px;
+  width: 260px;
+}
+
+.topbar-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: var(--on-surface);
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.topbar-search input::placeholder { color: #94a3b8; }
+
+.topbar-icon-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.topbar-icon-btn:hover { background: var(--surface-container-low); }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(194,198,212,0.25);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+/* ---------- Boutons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 22px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-container));
+  color: white;
+  box-shadow: 0 2px 10px rgba(0,77,153,0.25);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 16px rgba(0,77,153,0.35);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--on-surface-variant);
+  border: 2px solid var(--outline-variant);
+}
+
+.btn-outline:hover {
+  background: var(--surface-container-high);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #64748b;
+}
+
+.btn-ghost:hover { background: var(--surface-container-low); }
+
+.btn-danger {
+  background: rgba(186,26,26,0.08);
+  color: var(--error);
+}
+
+.btn-danger:hover {
+  background: var(--error);
+  color: white;
+}
+
+/* ---------- Badges de statut RDV ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-confirmed {
+  background: rgba(0,88,81,0.12);
+  color: var(--tertiary);
+}
+
+.badge-pending {
+  background: rgba(0,77,153,0.10);
+  color: var(--primary);
+}
+
+.badge-cancelled {
+  background: var(--error-container);
+  color: var(--error);
+}
+
+.badge-urgent {
+  background: rgba(186,26,26,0.10);
+  color: var(--error);
+}
+
+/* ---------- Champs de formulaire ---------- */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--surface-container-low);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: var(--on-surface);
+  outline: none;
+  transition: border-color 0.18s;
+}
+
+.form-input:focus {
+  border-color: rgba(0,88,81,0.4);
+  background: white;
+}
+
+.form-input::placeholder { color: #94a3b8; }
+
+/* ---------- Utilitaires ---------- */
+.page-content {
+  padding: 32px;
+  flex: 1;
+}
+
+.section-title {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--on-surface);
+}
+
+.text-muted {
+  color: var(--on-surface-variant);
+  font-size: 13px;
+}
