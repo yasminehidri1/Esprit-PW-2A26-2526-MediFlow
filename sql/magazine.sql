@@ -1,6 +1,6 @@
 -- ============================================================
 -- MediFlow Magazine Module — Database Schema
--- Tables: posts, comments
+-- Tables: roles, utilisateurs, posts, comments
 -- Database: mediflow
 -- ============================================================
 
@@ -12,6 +12,33 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
+
+-- --------------------------------------------------------
+-- Table: roles (User Roles)
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `roles` (
+  `id_role` int(11) NOT NULL AUTO_INCREMENT,
+  `libelle` varchar(50) NOT NULL,
+  PRIMARY KEY (`id_role`),
+  UNIQUE KEY `unique_role_name` (`libelle`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table: utilisateurs (Users)
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `utilisateurs` (
+  `id_PK` int(11) NOT NULL AUTO_INCREMENT,
+  `nom` varchar(100) NOT NULL,
+  `prenom` varchar(100) NOT NULL,
+  `mail` varchar(100) NOT NULL UNIQUE,
+  `id_role` int(11) NOT NULL DEFAULT 1,
+  `date_creation` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_PK`),
+  KEY `fk_utilisateurs_role` (`id_role`),
+  CONSTRAINT `fk_utilisateurs_role` FOREIGN KEY (`id_role`) REFERENCES `roles` (`id_role`) ON DELETE SET DEFAULT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table: posts (Magazine Articles)
@@ -57,6 +84,23 @@ CREATE TABLE IF NOT EXISTS `comments` (
   CONSTRAINT `fk_comments_post` FOREIGN KEY (`id_post`) REFERENCES `posts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_comments_utilisateur` FOREIGN KEY (`id_utilisateur`) REFERENCES `utilisateurs` (`id_PK`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Seed Data: Roles and Users
+-- --------------------------------------------------------
+
+INSERT IGNORE INTO `roles` (`id_role`, `libelle`) VALUES
+(1, 'User'),
+(2, 'Author'),
+(3, 'Admin');
+
+INSERT IGNORE INTO `utilisateurs` (`id_PK`, `nom`, `prenom`, `mail`, `id_role`, `date_creation`) VALUES
+(1, 'Dupont', 'Marie', 'marie.dupont@mediflow.com', 2, current_timestamp()),
+(2, 'Martin', 'Jean', 'jean.martin@mediflow.com', 2, current_timestamp()),
+(3, 'Bernard', 'Paul', 'paul.bernard@mediflow.com', 3, current_timestamp()),
+(4, 'Reader', 'Test', 'test@mediflow.com', 1, current_timestamp()),
+(5, 'Johnson', 'Sarah', 'sarah.johnson@mediflow.com', 1, current_timestamp()),
+(6, 'Williams', 'Emma', 'emma.williams@mediflow.com', 1, current_timestamp());
 
 -- --------------------------------------------------------
 -- Seed Data: Sample Articles

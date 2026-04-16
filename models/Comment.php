@@ -60,6 +60,23 @@ class Comment {
     }
 
     /**
+     * Get the N most recent comments (any status) — used by the dashboard Comment Moderation panel
+     */
+    public function getRecentAll(int $limit = 20) {
+        $sql = "SELECT c.*, u.nom, u.prenom, u.mail, p.titre as post_titre, p.id as id_post_ref
+                FROM {$this->table} c
+                LEFT JOIN utilisateurs u  ON c.id_utilisateur = u.id_PK
+                LEFT JOIN posts p         ON c.id_post = p.id
+                ORDER BY c.date_creation DESC
+                LIMIT :limit";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Get a single comment by ID
      */
     public function getById($id) {

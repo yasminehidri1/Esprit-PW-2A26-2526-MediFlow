@@ -101,7 +101,6 @@
         $navItems = [
             ['action' => 'dashboard', 'icon' => 'dashboard', 'label' => 'Dashboard'],
             ['action' => 'articles', 'icon' => 'article', 'label' => 'Content Library'],
-            ['action' => 'moderation', 'icon' => 'forum', 'label' => 'Moderation Queue'],
         ];
         foreach ($navItems as $item):
             $isActive = ($action === $item['action']);

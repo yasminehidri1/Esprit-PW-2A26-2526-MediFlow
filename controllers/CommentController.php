@@ -106,10 +106,10 @@ class CommentController {
             'id_post'        => $postId,
             'id_utilisateur' => $userId,
             'contenu'        => htmlspecialchars($contenu, ENT_QUOTES, 'UTF-8'),
-            'statut'         => 'en_attente'
+            'statut'         => 'approuve'
         ]);
 
-        $_SESSION['flash_success'] = 'Your comment has been submitted and is awaiting moderation.';
+        $_SESSION['flash_success'] = 'Your comment has been posted!';
         header('Location: frontOffice.php?action=view&id=' . $postId);
         exit;
     }
@@ -139,12 +139,12 @@ class CommentController {
             'id_post'        => $postId,
             'id_utilisateur' => $userId,
             'contenu'        => htmlspecialchars($contenu, ENT_QUOTES, 'UTF-8'),
-            'statut'         => 'en_attente'
+            'statut'         => 'approuve'
         ]);
 
         echo json_encode([
             'success' => true,
-            'message' => 'Comment submitted for moderation',
+            'message' => 'Comment posted!',
             'comment_id' => $commentId
         ]);
         exit;

@@ -1,138 +1,273 @@
 /**
  * MediFlow Magazine — Front Office JavaScript
- * Patient interactions: likes, search, comments, animations
+ * Real-time likes (DB-backed, session-deduped), AJAX comments, live search,
+ * desktop search dropdown, toast notifications.
  */
 
 // ============================================================
-// AJAX Like Button
+// Like Buttons — calls DB, respects session deduplication
 // ============================================================
-
 function initLikeButtons() {
-    const likeButtons = document.querySelectorAll('.like-btn');
-    
-    likeButtons.forEach(btn => {
-        btn.addEventListener('click', async function(e) {
+    document.querySelectorAll('.like-btn').forEach(btn => {
+        // Mark already-liked buttons (from PHP-rendered state)
+        if (btn.dataset.alreadyLiked === 'true') {
+            _markLiked(btn);
+        }
+
+        btn.addEventListener('click', async function (e) {
             e.preventDefault();
             const postId = this.dataset.postId;
-            const icon = this.querySelector('.like-icon');
+            if (!postId || this.dataset.busy) return;
+
+            this.dataset.busy = 'true';
+            const icon    = this.querySelector('.like-icon');
             const countEl = this.querySelector('.like-count');
-            
-            // Optimistic UI update
-            this.classList.add('liked');
-            icon.style.fontVariationSettings = "'FILL' 1";
-            icon.classList.add('animate-heartBeat');
-            
+
+            // Optimistic fill animation
+            icon?.classList.add('animate-heartBeat');
+
             try {
-                const response = await fetch(`frontOffice.php?action=like&id=${postId}`);
-                const data = await response.json();
-                
+                const res  = await fetch(`frontOffice.php?action=like&id=${postId}`);
+                const data = await res.json();
+
                 if (data.success) {
-                    // Format the new count
-                    let count = data.likes;
-                    countEl.textContent = count >= 1000 ? (count / 1000).toFixed(1) + 'k' : count;
-                    showToast('Thanks for the love! ❤️', 'success');
+                    if (data.already_liked) {
+                        showToast('You already liked this article ❤️');
+                    } else {
+                        _markLiked(this);
+                        if (countEl) {
+                            const n = parseInt(data.likes, 10);
+                            countEl.textContent = n >= 1000 ? (n / 1000).toFixed(1) + 'k' : n;
+                        }
+                        showToast('Thanks for your support! ❤️', 'success');
+                    }
                 }
-            } catch (error) {
-                console.error('Like failed:', error);
-                // Revert on error
-                this.classList.remove('liked');
-                icon.style.fontVariationSettings = "'FILL' 0";
+            } catch (err) {
+                console.error('Like failed:', err);
+                showToast('Could not register like. Try again.', 'error');
+            } finally {
+                delete this.dataset.busy;
+                setTimeout(() => icon?.classList.remove('animate-heartBeat'), 500);
             }
-            
-            // Remove animation class after it plays
-            setTimeout(() => icon.classList.remove('animate-heartBeat'), 500);
         });
     });
 }
 
-// ============================================================
-// Search Overlay
-// ============================================================
-
-function toggleSearch() {
-    const overlay = document.getElementById('searchOverlay');
-    const input = document.getElementById('searchInput');
-    
-    if (overlay.classList.contains('hidden')) {
-        overlay.classList.remove('hidden');
-        overlay.classList.add('animate-fadeIn');
-        document.body.style.overflow = 'hidden';
-        setTimeout(() => input?.focus(), 100);
-    } else {
-        overlay.classList.add('hidden');
-        document.body.style.overflow = '';
-        if (input) input.value = '';
-        document.getElementById('searchResults')?.classList.add('hidden');
+function _markLiked(btn) {
+    btn.classList.add('liked');
+    const icon = btn.querySelector('.like-icon');
+    if (icon) {
+        icon.style.fontVariationSettings = "'FILL' 1";
+        icon.style.color = '#ef4444';
     }
 }
 
-let searchTimeout = null;
+// ============================================================
+// AJAX Comment Submission (article page)
+// ============================================================
+function initCommentForm() {
+    const form = document.getElementById('commentForm');
+    if (!form) return;
 
-function initSearch() {
-    const input = document.getElementById('searchInput');
-    const resultsContainer = document.getElementById('searchResults');
-    const toggle = document.getElementById('searchToggle');
-    
-    toggle?.addEventListener('click', toggleSearch);
-    
-    if (!input || !resultsContainer) return;
-    
-    input.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        const query = this.value.trim();
-        
-        if (query.length < 2) {
-            resultsContainer.classList.add('hidden');
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const textarea  = form.querySelector('textarea[name="contenu"]');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const content   = textarea?.value.trim();
+
+        if (!content) {
+            showToast('Please write something before submitting.', 'error');
             return;
         }
-        
-        searchTimeout = setTimeout(async () => {
+
+        // Show loading state
+        const originalText   = submitBtn.innerHTML;
+        submitBtn.disabled   = true;
+        submitBtn.innerHTML  = '<span class="spinner" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:6px;"></span> Submitting...';
+
+        try {
+            const formData = new FormData(form);
+            const res = await fetch('frontOffice.php?action=add_comment', {
+                method: 'POST',
+                body:   formData
+            });
+
+            // Server always redirects, so a redirect means success
+            if (res.redirected || res.ok) {
+                // Clear form
+                if (textarea) textarea.value = '';
+
+                // Inject a pending comment into the UI immediately
+                _prependPendingComment(content);
+                showToast('Comment submitted successfully! ✓', 'success');
+            } else {
+                showToast('Submission failed. Please try again.', 'error');
+            }
+        } catch (err) {
+            // fetch follows the redirect — network errors only
+            console.error('Comment submit error:', err);
+            if (textarea) textarea.value = '';
+            _prependPendingComment(content);
+            showToast('Comment submitted! It will appear after moderation.', 'success');
+        } finally {
+            submitBtn.disabled  = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+}
+
+function _prependPendingComment(content) {
+    const list = document.getElementById('commentsList');
+    if (!list) return;
+
+    // Remove "no comments yet" placeholder if present
+    const empty = list.querySelector('.empty-comments');
+    empty?.remove();
+
+    let div = document.createElement('div');
+    div.className = 'bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(0,77,153,0.03)] border-l-4 border-tertiary-fixed animate-slideIn';
+    div.innerHTML = `
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-on-secondary-container">U</div>
+            <div>
+                <p class="text-sm font-bold text-on-surface">You</p>
+                <p class="text-[10px] text-slate-400">just now</p>
+            </div>
+        </div>
+        <p class="text-sm text-on-surface-variant leading-relaxed pl-12">${esc(content)}</p>
+    `;
+    list.prepend(div);
+
+    // Update comment counter
+    const counter = document.getElementById('commentCount');
+    if (counter) {
+        counter.textContent = parseInt(counter.textContent || '0', 10) + 1;
+    }
+}
+
+// ============================================================
+// Desktop Inline Search — live dropdown
+// ============================================================
+function initDesktopSearch() {
+    const input     = document.getElementById('navSearchInput');
+    const resultsEl = document.getElementById('navSearchResults');
+    if (!input || !resultsEl) return;
+
+    let timer = null;
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        const q = input.value.trim();
+
+        if (q.length < 2) { resultsEl.classList.add('hidden'); return; }
+
+        timer = setTimeout(async () => {
             try {
-                const response = await fetch(`frontOffice.php?action=search&q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if (data.results && data.results.length > 0) {
-                    resultsContainer.innerHTML = data.results.map(post => `
-                        <a href="frontOffice.php?action=view&id=${post.id}" 
-                           class="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                                <span class="material-symbols-outlined text-primary text-xl">article</span>
-                            </div>
+                const res  = await fetch(`frontOffice.php?action=search&q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+
+                if (!data.results?.length) {
+                    resultsEl.innerHTML = `<div class="px-5 py-4 text-sm text-on-surface-variant text-center">No results for "<b>${esc(q)}</b>"</div>`;
+                } else {
+                    resultsEl.innerHTML = data.results.map(p => `
+                        <a href="frontOffice.php?action=view&id=${p.id}"
+                           class="flex items-center gap-4 px-5 py-3 hover:bg-surface-container-low transition-colors border-b border-surface-container last:border-0 group">
+                            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">article</span>
                             <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-bold text-blue-900 truncate">${escapeHtml(post.titre)}</h4>
-                                <p class="text-xs text-slate-400">${escapeHtml(post.categorie)} · ${escapeHtml((post.prenom || '') + ' ' + (post.nom || ''))}</p>
+                                <p class="text-sm font-bold text-on-surface truncate group-hover:text-primary transition-colors">${esc(p.titre)}</p>
+                                <p class="text-[11px] text-outline mt-0.5">${esc(p.categorie)} · ${esc((p.prenom || '') + ' ' + (p.nom || ''))}</p>
                             </div>
-                            <span class="material-symbols-outlined text-slate-300 text-sm">arrow_forward</span>
+                            <span class="material-symbols-outlined text-outline text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
                         </a>
                     `).join('');
-                    resultsContainer.classList.remove('hidden');
-                } else {
-                    resultsContainer.innerHTML = `
-                        <div class="text-center py-8 text-slate-400">
-                            <span class="material-symbols-outlined text-3xl mb-2">search_off</span>
-                            <p class="text-sm">No articles found for "${escapeHtml(query)}"</p>
-                        </div>
-                    `;
-                    resultsContainer.classList.remove('hidden');
                 }
-            } catch (error) {
-                console.error('Search failed:', error);
-            }
-        }, 300);
+                resultsEl.classList.remove('hidden');
+            } catch (err) { console.error('Search error:', err); }
+        }, 280);
     });
-    
-    // Close on Escape
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
+
+    document.addEventListener('click', e => {
+        if (!input.contains(e.target) && !resultsEl.contains(e.target)) {
+            resultsEl.classList.add('hidden');
+        }
+    });
+
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { resultsEl.classList.add('hidden'); input.blur(); }
+    });
+}
+
+// ============================================================
+// Mobile Search Overlay
+// ============================================================
+function toggleSearch() {
+    const overlay  = document.getElementById('searchOverlay');
+    const inputEl  = document.getElementById('searchInput');
+    const resultsEl = document.getElementById('searchResults');
+
+    const isHidden = overlay.classList.contains('hidden');
+    overlay.classList.toggle('hidden', !isHidden);
+    document.body.style.overflow = isHidden ? 'hidden' : '';
+
+    if (isHidden) {
+        overlay.classList.add('animate-fadeIn');
+        setTimeout(() => inputEl?.focus(), 80);
+    } else {
+        if (inputEl)  inputEl.value = '';
+        resultsEl?.classList.add('hidden');
+    }
+}
+
+function initMobileSearch() {
+    const inputEl   = document.getElementById('searchInput');
+    const resultsEl = document.getElementById('searchResults');
+
+    document.getElementById('searchToggle')?.addEventListener('click', toggleSearch);
+    document.getElementById('searchOverlay')?.addEventListener('click', e => {
+        if (e.target === e.currentTarget) toggleSearch();
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !document.getElementById('searchOverlay')?.classList.contains('hidden')) {
             toggleSearch();
         }
+    });
+
+    if (!inputEl || !resultsEl) return;
+
+    let timer = null;
+    inputEl.addEventListener('input', () => {
+        clearTimeout(timer);
+        const q = inputEl.value.trim();
+        if (q.length < 2) { resultsEl.classList.add('hidden'); return; }
+
+        timer = setTimeout(async () => {
+            try {
+                const res  = await fetch(`frontOffice.php?action=search&q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+
+                resultsEl.innerHTML = !data.results?.length
+                    ? `<div class="px-4 py-4 text-sm text-center text-on-surface-variant">No results for "<b>${esc(q)}</b>"</div>`
+                    : data.results.map(p => `
+                        <a href="frontOffice.php?action=view&id=${p.id}"
+                           class="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors border-b border-surface-container last:border-0">
+                            <span class="material-symbols-outlined text-on-surface-variant text-sm">article</span>
+                            <div>
+                                <p class="text-sm font-bold text-on-surface">${esc(p.titre)}</p>
+                                <p class="text-[11px] text-outline">${esc(p.categorie)}</p>
+                            </div>
+                        </a>
+                    `).join('');
+
+                resultsEl.classList.remove('hidden');
+            } catch (err) { console.error('Mobile search error:', err); }
+        }, 280);
     });
 }
 
 // ============================================================
 // Toast Notifications
 // ============================================================
-
 function showToast(message, type = 'default') {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -140,119 +275,76 @@ function showToast(message, type = 'default') {
         container.id = 'toast-container';
         document.body.appendChild(container);
     }
-    
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
     container.appendChild(toast);
-    
-    // Auto-remove after 3 seconds
+
     setTimeout(() => {
-        toast.style.transition = 'opacity 0.3s, transform 0.3s';
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(10px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+        toast.style.transition = 'opacity 0.25s, transform 0.25s';
+        toast.style.opacity    = '0';
+        toast.style.transform  = 'translateY(6px)';
+        setTimeout(() => toast.remove(), 260);
+    }, 3500);
 }
 
 // ============================================================
 // Auto-dismiss Flash Messages
 // ============================================================
-
 function initFlashDismiss() {
-    const flashes = document.querySelectorAll('.toast-notification, [id^="flash-"]');
-    flashes.forEach(flash => {
+    ['flash-success', 'flash-error'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
         setTimeout(() => {
-            flash.style.transition = 'opacity 0.3s, transform 0.3s';
-            flash.style.opacity = '0';
-            flash.style.transform = 'translateY(-12px)';
-            setTimeout(() => flash.remove(), 300);
+            el.style.transition = 'opacity 0.3s';
+            el.style.opacity    = '0';
+            setTimeout(() => el.remove(), 300);
         }, 5000);
     });
 }
 
 // ============================================================
-// Utility: Escape HTML
+// Stagger card entrance animation (Intersection Observer)
 // ============================================================
+function initStaggerAnimation() {
+    const items = document.querySelectorAll('.stagger-item');
+    if (!('IntersectionObserver' in window) || !items.length) return;
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ============================================================
-// Stagger Animation on Scroll
-// ============================================================
-
-function initScrollAnimations() {
-    const observer = new IntersectionObserver((entries) => {
+    const obs = new IntersectionObserver(entries => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.classList.add('animate-slideUp');
-                observer.unobserve(entry.target);
+                entry.target.style.animationPlayState = 'running';
+                obs.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.1 });
-    
-    document.querySelectorAll('article, section').forEach(el => {
-        observer.observe(el);
+    }, { threshold: 0.06 });
+
+    items.forEach(item => {
+        item.style.animationPlayState = 'paused';
+        obs.observe(item);
     });
 }
 
 // ============================================================
-// Magazine Sidebar Toggle
+// Utility: Escape HTML for injected content
 // ============================================================
-
-let magazineOpen = false;
-
-function toggleMagazineMenu() {
-    const menu = document.getElementById('magazineCategories');
-    const chevron = document.getElementById('magazineChevron');
-    if (!menu || !chevron) return;
-
-    magazineOpen = !magazineOpen;
-
-    if (magazineOpen) {
-        // Expand: measure scroll height and animate to it
-        menu.style.maxHeight = menu.scrollHeight + 'px';
-        menu.style.opacity = '1';
-        chevron.style.transform = 'rotate(180deg)';
-    } else {
-        menu.style.maxHeight = '0';
-        menu.style.opacity = '0';
-        chevron.style.transform = 'rotate(0deg)';
-    }
-}
-
-function initMagazineMenu() {
-    const menu = document.getElementById('magazineCategories');
-    if (!menu) return;
-
-    // Auto-expand if we are on a category page (URL contains action=category)
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('action') === 'category') {
-        magazineOpen = true;
-        menu.style.transition = 'none'; // No animation on load
-        menu.style.maxHeight = menu.scrollHeight + 'px';
-        menu.style.opacity = '1';
-        const chevron = document.getElementById('magazineChevron');
-        if (chevron) chevron.style.transform = 'rotate(180deg)';
-        // Restore transition after paint
-        requestAnimationFrame(() => {
-            menu.style.transition = '';
-        });
-    }
+function esc(str) {
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 }
 
 // ============================================================
-// Initialize
+// Init all on DOMContentLoaded
 // ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     initLikeButtons();
-    initSearch();
+    initCommentForm();
+    initDesktopSearch();
+    initMobileSearch();
     initFlashDismiss();
-    initScrollAnimations();
-    initMagazineMenu();
+    initStaggerAnimation();
 });

@@ -26,8 +26,8 @@ class PostController {
     public function dashboard() {
         $postStats = $this->postModel->getStats();
         $commentStats = $this->commentModel->getStats();
-        $recentPosts = $this->postModel->getRecent(5);
-        $pendingComments = $this->commentModel->getPending();
+        $recentPosts  = $this->postModel->getRecent(8);
+        $allComments  = $this->commentModel->getRecentAll(20);
 
         include __DIR__ . '/../views/backOffice/layout.php';
     }
@@ -145,6 +145,11 @@ class PostController {
             $featuredPost['comment_count'] = $this->commentModel->countByPost($featuredPost['id']);
         }
 
+        // Attach comment count to recent posts
+        foreach ($recentPosts as &$post) {
+            $post['comment_count'] = $this->commentModel->countByPost($post['id']);
+        }
+
         $currentView = 'home';
         include __DIR__ . '/../views/frontOffice/layout.php';
     }
@@ -180,6 +185,11 @@ class PostController {
         });
         $relatedPosts = array_slice($relatedPosts, 0, 3);
 
+        // Attach comment count to related posts
+        foreach ($relatedPosts as &$rp) {
+            $rp['comment_count'] = $this->commentModel->countByPost($rp['id']);
+        }
+
         $currentView = 'article';
         include __DIR__ . '/../views/frontOffice/layout.php';
     }
@@ -210,7 +220,13 @@ class PostController {
             exit;
         }
 
+        if (isset($_SESSION['liked_posts'][$id])) {
+            echo json_encode(['success' => false, 'message' => 'Already liked']);
+            exit;
+        }
+
         $newCount = $this->postModel->incrementLikes($id);
+        $_SESSION['liked_posts'][$id] = true;
         echo json_encode(['success' => true, 'likes' => $newCount]);
         exit;
     }

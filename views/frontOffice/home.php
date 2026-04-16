@@ -1,182 +1,324 @@
 <?php
 /**
- * Front Office — Home Page View
- * Featured article, recent feed, and community discussion
+ * Front Office — Home Page
+ * Faithful PHP rebuild of frontOffice.html template design
  */
 
-// Helper function for read time
-function estimateReadTime($text) {
+// ---------- helpers ----------
+function estimateReadTime(string $text): string {
     $words = str_word_count(strip_tags($text));
-    $minutes = max(1, ceil($words / 200));
-    return $minutes . ' min read';
+    return max(1, ceil($words / 200)) . ' min read';
 }
-
-// Helper function for time ago
-function timeAgo($datetime) {
-    $now = new DateTime();
-    $past = new DateTime($datetime);
-    $diff = $now->diff($past);
-    
-    if ($diff->y > 0) return $diff->y . ' year' . ($diff->y > 1 ? 's' : '') . ' ago';
-    if ($diff->m > 0) return $diff->m . ' month' . ($diff->m > 1 ? 's' : '') . ' ago';
-    if ($diff->d > 0) return $diff->d . ' day' . ($diff->d > 1 ? 's' : '') . ' ago';
-    if ($diff->h > 0) return $diff->h . ' hour' . ($diff->h > 1 ? 's' : '') . ' ago';
-    if ($diff->i > 0) return $diff->i . ' min ago';
+function timeAgo(string $datetime): string {
+    $diff = (new DateTime())->diff(new DateTime($datetime));
+    if ($diff->y > 0) return $diff->y . 'y ago';
+    if ($diff->m > 0) return $diff->m . 'mo ago';
+    if ($diff->d > 0) return $diff->d . 'd ago';
+    if ($diff->h > 0) return $diff->h . 'h ago';
+    if ($diff->i > 0) return $diff->i . 'm ago';
     return 'Just now';
 }
-
-// Helper function for formatting likes
-function formatNumber($num) {
-    if ($num >= 1000) {
-        return round($num / 1000, 1) . 'k';
-    }
-    return $num;
+function fmt(int $n): string {
+    return $n >= 1000 ? round($n / 1000, 1) . 'k' : (string)$n;
 }
+
+$catBadge = [
+    'General Health'  => 'text-blue-700',
+    'Mental Wellness' => 'text-violet-700',
+    'Diet & Nutrition'=> 'text-emerald-700',
+    'Active Living'   => 'text-orange-700',
+    'Research'        => 'text-tertiary',
+    'Journals'        => 'text-rose-700',
+];
 ?>
 
-<!-- Hero Header -->
-<header class="mb-12">
-    <div class="inline-flex items-center gap-2 px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-xs font-bold uppercase tracking-tighter mb-4">
-        <span class="w-1.5 h-1.5 bg-tertiary rounded-full animate-pulse"></span>
-        Trending Today
-    </div>
-    <h1 class="text-4xl md:text-5xl font-extrabold text-blue-900 tracking-tight leading-tight mb-4">
-        Curated Healthcare <br/><span class="text-tertiary">Knowledge Base</span>
-    </h1>
-    <p class="text-lg text-slate-500 max-w-2xl leading-relaxed">
-        Verified medical insights and news directly from our clinical staff to help you navigate your wellness journey.
-    </p>
-</header>
+<!-- ============================================================ -->
+<!-- HERO — Full-Width Featured Article                             -->
+<!-- ============================================================ -->
+<?php if ($featuredPost): ?>
+<section class="mb-16">
+  <div class="relative w-full h-[540px] rounded-xl overflow-hidden shadow-2xl group">
 
-<!-- Articles Feed (Asymmetric Layout) -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <!-- Main Featured Article Card -->
-    <?php if ($featuredPost): ?>
-    <article class="lg:col-span-8 bg-surface-container-lowest rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,77,153,0.05)] border-t-2 border-tertiary-fixed hover:shadow-[0_25px_60px_rgba(0,77,153,0.08)] transition-shadow">
-        <?php if (!empty($featuredPost['image_url'])): ?>
-        <img alt="<?= htmlspecialchars($featuredPost['titre']) ?>" class="w-full h-80 object-cover" src="<?= htmlspecialchars($featuredPost['image_url']) ?>"/>
-        <?php else: ?>
-        <div class="w-full h-80 bg-gradient-to-br from-primary/10 to-tertiary/10 flex items-center justify-center">
-            <span class="material-symbols-outlined text-8xl text-primary/20">article</span>
-        </div>
-        <?php endif; ?>
-        <div class="p-8">
-            <div class="flex items-center gap-4 mb-6">
-                <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold text-sm border-2 border-primary-fixed">
-                    <?= strtoupper(substr($featuredPost['prenom'] ?? 'A', 0, 1)) ?>
-                </div>
-                <div>
-                    <p class="text-sm font-bold text-on-surface">
-                        <?= htmlspecialchars(($featuredPost['prenom'] ?? '') . ' ' . ($featuredPost['nom'] ?? '')) ?>
-                        <span class="text-slate-400 font-normal ml-2"><?= htmlspecialchars($featuredPost['role_name'] ?? '') ?></span>
-                    </p>
-                    <p class="text-xs text-slate-400">
-                        <?= date('M d, Y', strtotime($featuredPost['date_publication'] ?? $featuredPost['date_creation'])) ?>
-                        · <?= estimateReadTime($featuredPost['contenu']) ?>
-                    </p>
-                </div>
-            </div>
-            <h2 class="text-3xl font-extrabold text-blue-900 mb-4 leading-tight"><?= htmlspecialchars($featuredPost['titre']) ?></h2>
-            <p class="text-slate-600 mb-8 leading-relaxed">
-                <?= htmlspecialchars(substr(strip_tags($featuredPost['contenu']), 0, 250)) ?>...
-            </p>
-            <!-- Interactions Bar -->
-            <div class="flex items-center justify-between pt-6 border-t border-slate-50">
-                <div class="flex items-center gap-6">
-                    <button class="flex items-center gap-2 group like-btn" data-post-id="<?= $featuredPost['id'] ?>">
-                        <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-red-500 transition-colors like-icon">favorite</span>
-                        <span class="text-sm font-bold text-slate-500 like-count"><?= formatNumber($featuredPost['likes_count']) ?></span>
-                    </button>
-                    <a href="frontOffice.php?action=view&id=<?= $featuredPost['id'] ?>#comments" class="flex items-center gap-2 group">
-                        <span class="material-symbols-outlined text-2xl text-slate-400 group-hover:text-blue-500 transition-colors">forum</span>
-                        <span class="text-sm font-bold text-slate-500"><?= $featuredPost['comment_count'] ?? 0 ?> Comments</span>
-                    </a>
-                </div>
-                <a href="frontOffice.php?action=view&id=<?= $featuredPost['id'] ?>" class="flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
-                    <span>Read Full Article</span>
-                    <span class="material-symbols-outlined">arrow_forward</span>
-                </a>
-            </div>
-        </div>
-    </article>
+    <?php if (!empty($featuredPost['image_url'])): ?>
+    <img src="<?= htmlspecialchars($featuredPost['image_url']) ?>"
+         alt="<?= htmlspecialchars($featuredPost['titre']) ?>"
+         class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"/>
+    <?php else: ?>
+    <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-primary to-primary-container"></div>
     <?php endif; ?>
 
-    <!-- Sidebar Content (Secondary Feed) -->
-    <div class="lg:col-span-4 space-y-8">
-        <!-- Recent Article Cards -->
-        <?php 
-        $secondaryPosts = array_slice($recentPosts, 1, 3);
-        $categoryColors = [
-            'General Health' => ['text-tertiary', 'bg-tertiary-fixed/30'],
-            'Mental Wellness' => ['text-primary', 'bg-primary-fixed/30'],
-            'Diet & Nutrition' => ['text-tertiary', 'bg-tertiary-fixed/30'],
-            'Active Living' => ['text-secondary', 'bg-secondary-fixed/30'],
-            'Research' => ['text-secondary', 'bg-secondary-fixed/30'],
-            'Journals' => ['text-primary', 'bg-primary-fixed/30'],
-        ];
-        foreach ($secondaryPosts as $index => $sPost): 
-            $colors = $categoryColors[$sPost['categorie']] ?? ['text-tertiary', 'bg-tertiary-fixed/30'];
-        ?>
-        <article class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_10px_30px_rgba(0,77,153,0.03)] <?= $index === 0 ? 'border-t-2 border-secondary-container' : '' ?> hover:shadow-[0_15px_40px_rgba(0,77,153,0.06)] transition-shadow">
-            <a href="frontOffice.php?action=view&id=<?= $sPost['id'] ?>">
-                <h3 class="text-xl font-bold text-blue-900 mb-3 hover:text-primary transition-colors"><?= htmlspecialchars($sPost['titre']) ?></h3>
-            </a>
-            <p class="text-sm text-slate-500 mb-4 line-clamp-2"><?= htmlspecialchars(substr(strip_tags($sPost['contenu']), 0, 120)) ?>...</p>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <button class="like-btn flex items-center gap-1" data-post-id="<?= $sPost['id'] ?>">
-                        <span class="material-symbols-outlined text-slate-400 text-lg like-icon">favorite</span>
-                        <span class="text-xs font-bold text-slate-400 like-count"><?= formatNumber($sPost['likes_count']) ?></span>
-                    </button>
-                </div>
-                <span class="text-xs font-bold px-2 py-1 rounded <?= $colors[0] ?> <?= $colors[1] ?>"><?= htmlspecialchars($sPost['categorie']) ?></span>
-            </div>
-        </article>
-        <?php endforeach; ?>
+    <!-- Gradient overlay -->
+    <div class="absolute inset-0 bg-gradient-to-t from-on-primary-fixed/90 via-on-primary-fixed/40 to-transparent"></div>
 
-        <!-- Community Discussion Mini-View -->
-        <div class="bg-surface-container-high rounded-2xl p-6">
-            <h4 class="font-headline font-bold text-sm text-blue-900 mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-lg">comment</span>
-                Recent Community Discussion
-            </h4>
-            <div class="space-y-3 text-center py-4">
-                <span class="material-symbols-outlined text-2xl text-outline">forum</span>
-                <p class="text-xs text-on-surface-variant">Read articles and join the discussion!</p>
-            </div>
+    <!-- Content -->
+    <div class="absolute bottom-0 left-0 p-12 w-full lg:w-2/3">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container font-headline text-xs font-bold tracking-wider uppercase mb-6">
+        <?= htmlspecialchars($featuredPost['categorie']) ?>
+      </span>
+
+      <h1 class="text-white font-headline text-5xl font-extrabold tracking-tight mb-6 leading-tight">
+        <?= htmlspecialchars($featuredPost['titre']) ?>
+      </h1>
+
+      <div class="flex items-center gap-4 text-white/90 font-label flex-wrap">
+        <!-- Author avatar initials -->
+        <div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center font-bold text-sm flex-shrink-0">
+          <?= strtoupper(substr($featuredPost['prenom'] ?? 'A', 0, 1)) ?>
         </div>
-    </div>
-</div>
-
-<!-- Bento Grid of More Articles -->
-<?php
-$morePosts = array_slice($recentPosts, 4);
-if (!empty($morePosts)):
-?>
-<section class="mt-16">
-    <h2 class="text-2xl font-bold text-blue-900 mb-8">Clinical Insights</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <?php foreach ($morePosts as $mIndex => $mPost): ?>
-        <div class="<?= $mIndex === 0 ? 'md:col-span-2' : '' ?> bg-surface-container-lowest p-6 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform shadow-[0_10px_30px_rgba(0,77,153,0.03)] <?= $mIndex === 0 ? 'border-b-4 border-primary' : '' ?>">
-            <div>
-                <span class="text-[10px] font-bold text-primary-container tracking-widest uppercase"><?= htmlspecialchars($mPost['categorie']) ?></span>
-                <a href="frontOffice.php?action=view&id=<?= $mPost['id'] ?>">
-                    <h3 class="text-xl font-bold text-blue-900 mt-2 mb-4 leading-tight hover:text-primary transition-colors"><?= htmlspecialchars($mPost['titre']) ?></h3>
-                </a>
-                <p class="text-sm text-slate-500"><?= htmlspecialchars(substr(strip_tags($mPost['contenu']), 0, 150)) ?>...</p>
-            </div>
-            <div class="mt-8 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-on-secondary-container">
-                        <?= strtoupper(substr($mPost['prenom'] ?? 'A', 0, 1)) ?>
-                    </div>
-                    <span class="text-xs text-on-surface-variant"><?= htmlspecialchars(($mPost['prenom'] ?? '') . ' ' . ($mPost['nom'] ?? '')) ?></span>
-                </div>
-                <span class="text-xs text-slate-400"><?= estimateReadTime($mPost['contenu']) ?></span>
-            </div>
+        <div>
+          <p class="font-bold"><?= htmlspecialchars(($featuredPost['prenom'] ?? '') . ' ' . ($featuredPost['nom'] ?? '')) ?></p>
+          <p class="text-xs opacity-75"><?= htmlspecialchars($featuredPost['role_name'] ?? 'Author') ?> &bull; <?= estimateReadTime($featuredPost['contenu']) ?></p>
         </div>
-        <?php endforeach; ?>
-
+        <a href="frontOffice.php?action=view&id=<?= $featuredPost['id'] ?>"
+           class="ml-auto bg-white text-primary px-8 py-3 rounded-lg font-headline font-bold text-sm hover:bg-surface-container-low transition-all active:scale-95">
+          Read Article
+        </a>
+      </div>
     </div>
+
+    <!-- Stats chips top-right -->
+    <div class="absolute top-6 right-6 flex gap-2">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md rounded-full text-white text-xs font-semibold">
+        <span class="material-symbols-outlined text-sm">visibility</span>
+        <?= fmt((int)$featuredPost['views_count']) ?>
+      </span>
+      <span class="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md rounded-full text-white text-xs font-semibold">
+        <span class="material-symbols-outlined text-sm">favorite</span>
+        <?= fmt((int)$featuredPost['likes_count']) ?>
+      </span>
+    </div>
+
+  </div>
 </section>
 <?php endif; ?>
+
+
+<!-- ============================================================ -->
+<!-- CONTENT GRID + SIDEBAR                                        -->
+<!-- ============================================================ -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+  <!-- ---- Main Feed (8 cols) ---- -->
+  <div class="lg:col-span-8">
+
+    <!-- Section heading -->
+    <div class="flex items-center justify-between mb-8">
+      <h2 class="font-headline text-2xl font-bold text-blue-900 tracking-tight">Latest Publications</h2>
+      <div class="h-[2px] flex-grow mx-8 bg-surface-container-high rounded-full"></div>
+    </div>
+
+    <!-- 2-col article card grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <?php
+      // Show up to 4 recent posts (skip featured if same)
+      $cardPosts = array_filter($recentPosts, fn($p) => $p['id'] !== ($featuredPost['id'] ?? null));
+      $cardPosts = array_slice(array_values($cardPosts), 0, 4);
+      foreach ($cardPosts as $post):
+        $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
+      ?>
+      <div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,77,153,0.03)] group flex flex-col stagger-item">
+
+        <!-- Thumbnail -->
+        <div class="relative h-56 overflow-hidden">
+          <?php if (!empty($post['image_url'])): ?>
+          <img src="<?= htmlspecialchars($post['image_url']) ?>"
+               alt="<?= htmlspecialchars($post['titre']) ?>"
+               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"/>
+          <?php else: ?>
+          <div class="w-full h-full bg-gradient-to-br from-surface-container to-surface-container-high flex items-center justify-center">
+            <span class="material-symbols-outlined text-5xl text-outline/30">article</span>
+          </div>
+          <?php endif; ?>
+          <span class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-md rounded-md text-[10px] font-bold uppercase tracking-widest <?= $badge ?>">
+            <?= htmlspecialchars($post['categorie']) ?>
+          </span>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 flex-grow flex flex-col">
+          <p class="text-[11px] text-slate-400 font-label mb-2 uppercase tracking-wider">
+            <?= timeAgo($post['date_publication'] ?? $post['date_creation']) ?>
+            &bull; <?= estimateReadTime($post['contenu']) ?>
+          </p>
+          <h3 class="font-headline text-xl font-bold text-blue-900 mb-3 leading-snug line-clamp-2">
+            <?= htmlspecialchars($post['titre']) ?>
+          </h3>
+          <p class="text-on-surface-variant text-sm line-clamp-2 mb-6 flex-grow">
+            <?= htmlspecialchars(substr(strip_tags($post['contenu']), 0, 140)) ?>...
+          </p>
+
+          <!-- Footer row -->
+          <div class="flex items-center justify-between border-t border-surface-container pt-4">
+            <div class="flex items-center gap-4 text-slate-400">
+              <button class="like-btn flex items-center gap-1.5 hover:text-red-500 cursor-pointer transition-colors"
+                      data-post-id="<?= $post['id'] ?>">
+                <span class="material-symbols-outlined text-[20px] like-icon">favorite</span>
+                <span class="text-xs font-bold like-count"><?= fmt((int)$post['likes_count']) ?></span>
+              </button>
+              <a href="frontOffice.php?action=view&id=<?= $post['id'] ?>#comments"
+                 class="flex items-center gap-1.5 hover:text-blue-500 cursor-pointer transition-colors">
+                <span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+                <span class="text-xs font-bold">
+                  <?= isset($post['comment_count']) ? $post['comment_count'] : '' ?>
+                </span>
+              </a>
+            </div>
+            <a href="frontOffice.php?action=view&id=<?= $post['id'] ?>"
+               class="text-primary font-headline text-sm font-bold flex items-center gap-1 group/btn">
+              Read More
+              <span class="material-symbols-outlined text-[18px] transition-transform group-hover/btn:translate-x-1">chevron_right</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <?php endforeach; ?>
+
+      <!-- CTA card if fewer than 4 posts -->
+      <?php if (count($cardPosts) < 4): ?>
+      <div class="bg-gradient-to-br from-primary to-primary-container rounded-xl p-8 flex flex-col justify-center text-on-primary">
+        <span class="material-symbols-outlined text-4xl mb-4 opacity-80">edit_square</span>
+        <h3 class="font-headline text-xl font-bold mb-2">More Coming Soon</h3>
+        <p class="text-sm opacity-80 mb-6">Our editorial team is publishing new content regularly.</p>
+        <a href="frontOffice.php?action=category&cat=General Health"
+           class="bg-white text-primary px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-surface-container-low transition-all self-start active:scale-95">
+          Browse Topics →
+        </a>
+      </div>
+      <?php endif; ?>
+    </div><!-- /grid -->
+
+    <!-- ---- Second Row: Wide "Spotlight" Card ---- -->
+    <?php
+    $spotlights = array_slice(array_values(array_filter($recentPosts,
+        fn($p) => $p['id'] !== ($featuredPost['id'] ?? null) && !in_array($p['id'], array_column($cardPosts, 'id'))
+    )), 0, 2);
+    ?>
+    <?php if (!empty($spotlights)): ?>
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+      <?php foreach ($spotlights as $sp):
+        $badge = $catBadge[$sp['categorie']] ?? 'text-tertiary';
+      ?>
+      <div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,77,153,0.03)] group flex gap-5 p-5 items-start">
+        <!-- Thumbnail -->
+        <div class="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
+          <?php if (!empty($sp['image_url'])): ?>
+          <img src="<?= htmlspecialchars($sp['image_url']) ?>" alt="<?= htmlspecialchars($sp['titre']) ?>"
+               class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
+          <?php else: ?>
+          <div class="w-full h-full bg-surface-container-high flex items-center justify-center">
+            <span class="material-symbols-outlined text-2xl text-outline/30">article</span>
+          </div>
+          <?php endif; ?>
+        </div>
+        <!-- Text -->
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-widest <?= $badge ?>"><?= htmlspecialchars($sp['categorie']) ?></span>
+          <h3 class="font-headline font-bold text-blue-900 text-sm mt-1 mb-2 leading-snug line-clamp-3">
+            <?= htmlspecialchars($sp['titre']) ?>
+          </h3>
+          <div class="flex items-center gap-3">
+            <a href="frontOffice.php?action=view&id=<?= $sp['id'] ?>"
+               class="text-primary text-xs font-bold flex items-center gap-0.5 group/btn">
+              Read More
+              <span class="material-symbols-outlined text-sm transition-transform group-hover/btn:translate-x-0.5">chevron_right</span>
+            </a>
+            <span class="text-[11px] text-slate-400"><?= estimateReadTime($sp['contenu']) ?></span>
+          </div>
+        </div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
+  </div><!-- /col-8 -->
+
+
+  <!-- ---- Sidebar (4 cols) ---- -->
+  <aside class="lg:col-span-4 space-y-12">
+
+    <!-- Popular This Week -->
+    <div class="bg-surface-container-low rounded-xl p-8">
+      <h4 class="font-headline text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">trending_up</span>
+        Popular This Week
+      </h4>
+      <div class="space-y-6">
+        <?php foreach (array_slice($recentPosts, 0, 4) as $pIdx => $pPost): ?>
+        <div class="flex gap-4 group cursor-pointer">
+          <span class="text-3xl font-black text-blue-100 font-headline leading-none">
+            <?= str_pad($pIdx + 1, 2, '0', STR_PAD_LEFT) ?>
+          </span>
+          <div>
+            <a href="frontOffice.php?action=view&id=<?= $pPost['id'] ?>">
+              <h5 class="text-sm font-bold text-blue-950 group-hover:text-primary transition-colors leading-snug">
+                <?= htmlspecialchars($pPost['titre']) ?>
+              </h5>
+            </a>
+            <p class="text-[11px] text-slate-500 mt-1 uppercase tracking-wider">
+              <?= htmlspecialchars($pPost['categorie']) ?>
+            </p>
+          </div>
+        </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+
+    <!-- Newsletter Signup -->
+    <div class="bg-primary rounded-xl p-8 text-white relative overflow-hidden">
+      <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+      <div class="absolute -left-6 -bottom-8 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+      <h4 class="font-headline text-xl font-bold mb-3 relative z-10">
+        Medical Excellence in your inbox.
+      </h4>
+      <p class="text-on-primary-container text-sm mb-6 relative z-10 opacity-90">
+        Receive our weekly selection of the most impactful healthcare research and insights.
+      </p>
+      <div class="space-y-3 relative z-10">
+        <input class="w-full bg-white/10 border-none rounded-lg py-3 px-4 text-sm placeholder:text-white/60 focus:ring-2 focus:ring-tertiary-fixed/30 text-white"
+               placeholder="Your email address" type="email"/>
+        <button class="w-full bg-tertiary-fixed text-on-tertiary-fixed font-headline font-bold py-3 rounded-lg hover:bg-tertiary-fixed-dim transition-all active:scale-[0.98]">
+          Subscribe
+        </button>
+      </div>
+      <p class="text-[10px] mt-4 text-center text-white/50">Your privacy is guaranteed.</p>
+    </div>
+
+    <!-- Category Tags Cloud -->
+    <div class="p-2">
+      <h4 class="font-headline text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Key Topics</h4>
+      <div class="flex flex-wrap gap-2">
+        <?php
+        $tags = ['General Health', 'Research', 'Mental Wellness', 'Diet & Nutrition', 'Active Living', 'Journals', 'Telemedicine', 'Neuroscience'];
+        foreach ($tags as $tag):
+          $isCat = in_array($tag, ['General Health','Research','Mental Wellness','Diet & Nutrition','Active Living','Journals']);
+          $href  = $isCat ? "frontOffice.php?action=category&cat=" . urlencode($tag) : "#";
+        ?>
+        <a class="px-4 py-2 bg-surface-container-high rounded-lg text-xs font-bold text-slate-600 hover:bg-primary hover:text-white transition-all"
+           href="<?= $href ?>"><?= htmlspecialchars($tag) ?></a>
+        <?php endforeach; ?>
+      </div>
+    </div>
+
+    <!-- Categories by count from DB stats -->
+    <?php if (!empty($categories)): ?>
+    <div class="bg-surface-container-low rounded-xl p-6">
+      <h4 class="font-headline text-sm font-bold text-slate-400 uppercase tracking-widest mb-5">Browse Categories</h4>
+      <div class="space-y-3">
+        <?php foreach ($categories as $catName):
+          $badge = $catBadge[$catName] ?? 'text-tertiary';
+        ?>
+        <a href="frontOffice.php?action=category&cat=<?= urlencode($catName) ?>"
+           class="flex items-center justify-between group py-1">
+          <span class="text-sm font-semibold text-on-surface-variant group-hover:text-primary transition-colors">
+            <?= htmlspecialchars($catName) ?>
+          </span>
+          <span class="material-symbols-outlined text-sm text-outline group-hover:translate-x-1 transition-transform">chevron_right</span>
+        </a>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <?php endif; ?>
+
+  </aside><!-- /sidebar -->
+
+</div><!-- /grid -->
