@@ -17,6 +17,9 @@ if ($controller === 'comment') {
     $commentController = new CommentController();
 
     switch ($action) {
+        case 'view_post_comments':
+            $commentController->viewPostComments();
+            break;
         case 'approve':
             $commentController->approveComment();
             break;

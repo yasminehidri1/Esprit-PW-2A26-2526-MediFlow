@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../models/Comment.php';
+require_once __DIR__ . '/../models/Post.php';
 
 class CommentController {
     private $commentModel;
@@ -71,6 +72,38 @@ class CommentController {
         $redirect = $_GET['redirect'] ?? 'backOffice.php?action=moderation';
         header('Location: ' . $redirect);
         exit;
+    }
+
+    /**
+     * View comments tab — all comments or filtered by post
+     */
+    public function viewPostComments() {
+        $postId  = !empty($_GET['post_id']) ? (int)$_GET['post_id'] : null;
+        $page    = max(1, (int)($_GET['page'] ?? 1));
+        $perPage = 8;
+
+        $postModel = new Post();
+
+        if ($postId) {
+            // ---- Filtered mode: specific post ----
+            $post          = $postModel->getById($postId);
+            $totalComments = $this->commentModel->countAllByPost($postId);
+            $totalPages    = max(1, (int)ceil($totalComments / $perPage));
+            $currentPage   = min($page, $totalPages);
+            $postComments  = $this->commentModel->getAllByPostWithPagination($postId, $currentPage, $perPage);
+        } else {
+            // ---- All-comments mode: no filter ----
+            $post          = null;
+            $totalComments = $this->commentModel->countAll();
+            $totalPages    = max(1, (int)ceil($totalComments / $perPage));
+            $currentPage   = min($page, $totalPages);
+            $postComments  = $this->commentModel->getRecentAllPaginated($currentPage, $perPage);
+        }
+
+        $commentStats = $this->commentModel->getStats();
+        $currentView  = 'post_comments';
+
+        include __DIR__ . '/../views/backOffice/layout.php';
     }
 
     // =========================================================

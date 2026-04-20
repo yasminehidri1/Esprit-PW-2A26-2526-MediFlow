@@ -30,6 +30,37 @@ class Comment {
     }
 
     /**
+     * Get all comments for a post with pagination
+     */
+    public function getAllByPostWithPagination($postId, int $page = 1, int $perPage = 6) {
+        $offset = ($page - 1) * $perPage;
+        
+        $sql = "SELECT c.*, u.nom, u.prenom, u.mail
+                FROM {$this->table} c
+                LEFT JOIN utilisateurs u ON c.id_utilisateur = u.id_PK
+                WHERE c.id_post = :id_post
+                ORDER BY c.date_creation DESC
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id_post', $postId);
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Count all comments for a specific post
+     */
+    public function countAllByPost($postId) {
+        $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE id_post = :id_post";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id_post' => $postId]);
+        return $stmt->fetch()['total'];
+    }
+
+    /**
      * Get all comments for a post (any status — admin use)
      */
     public function getAllByPost($postId) {
@@ -72,6 +103,34 @@ class Comment {
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Count all comments (any status) — for pagination
+     */
+    public function countAll() {
+        $stmt = $this->db->query("SELECT COUNT(*) as total FROM {$this->table}");
+        return $stmt->fetch()['total'];
+    }
+
+    /**
+     * Get paginated recent comments (any status) — for dashboard comment moderation with pagination
+     */
+    public function getRecentAllPaginated(int $page = 1, int $perPage = 6) {
+        $offset = ($page - 1) * $perPage;
+
+        $sql = "SELECT c.*, u.nom, u.prenom, u.mail, p.titre as post_titre, p.id as id_post_ref
+                FROM {$this->table} c
+                LEFT JOIN utilisateurs u  ON c.id_utilisateur = u.id_PK
+                LEFT JOIN posts p         ON c.id_post = p.id
+                ORDER BY c.date_creation DESC
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
     }

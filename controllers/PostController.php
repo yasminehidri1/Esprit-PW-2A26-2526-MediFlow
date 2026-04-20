@@ -21,13 +21,27 @@ class PostController {
     // =========================================================
 
     /**
-     * Dashboard — show stats and recent articles
+     * Dashboard — show stats and recent articles (with pagination)
      */
     public function dashboard() {
-        $postStats = $this->postModel->getStats();
+        $postStats    = $this->postModel->getStats();
         $commentStats = $this->commentModel->getStats();
-        $recentPosts  = $this->postModel->getRecent(8);
-        $allComments  = $this->commentModel->getRecentAll(20);
+
+        // --- Recent Publications pagination ---
+        $postsPerPage     = 5;
+        $postsPage        = max(1, (int)($_GET['posts_page'] ?? 1));
+        $totalPostsCount  = $this->postModel->countRecent();
+        $totalPostsPages  = max(1, (int)ceil($totalPostsCount / $postsPerPage));
+        $postsPage        = min($postsPage, $totalPostsPages);
+        $recentPosts      = $this->postModel->getRecentPaginated($postsPage, $postsPerPage);
+
+        // --- Comment Moderation pagination ---
+        $commentsPerPage    = 6;
+        $commentsPage       = max(1, (int)($_GET['comments_page'] ?? 1));
+        $totalCommentsCount = $this->commentModel->countAll();
+        $totalCommentsPages = max(1, (int)ceil($totalCommentsCount / $commentsPerPage));
+        $commentsPage       = min($commentsPage, $totalCommentsPages);
+        $allComments        = $this->commentModel->getRecentAllPaginated($commentsPage, $commentsPerPage);
 
         include __DIR__ . '/../views/backOffice/layout.php';
     }
@@ -93,11 +107,25 @@ class PostController {
             exit;
         }
 
+        $imageUrl = !empty($_POST['image_url']) ? trim($_POST['image_url']) : null;
+
+        // Handle file upload if a file is provided
+        if (!empty($_FILES['image_file']['name'])) {
+            $uploadResult = $this->handleImageUpload($_FILES['image_file']);
+            if ($uploadResult['success']) {
+                $imageUrl = $uploadResult['path'];
+            } else {
+                $_SESSION['flash_error'] = $uploadResult['error'];
+                header('Location: backOffice.php?action=form&id=' . ($_POST['id'] ?? ''));
+                exit;
+            }
+        }
+
         $data = [
             'titre'     => htmlspecialchars(trim($_POST['titre']), ENT_QUOTES, 'UTF-8'),
             'contenu'   => trim($_POST['contenu']),
             'categorie' => $_POST['categorie'] ?? 'General Health',
-            'image_url' => !empty($_POST['image_url']) ? trim($_POST['image_url']) : null,
+            'image_url' => $imageUrl,
             'auteur_id' => $_POST['auteur_id'] ?? 1,
             'statut'    => $_POST['statut'] ?? 'brouillon'
         ];
@@ -246,5 +274,70 @@ class PostController {
         $results = $this->postModel->searchByTitle($query);
         echo json_encode(['results' => $results]);
         exit;
+    }
+
+    /**
+     * Handle image file uploads with validation
+     */
+    private function handleImageUpload($file) {
+        // Validate file was uploaded without errors
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return [
+                'success' => false,
+                'error' => 'File upload failed. Please try again.'
+            ];
+        }
+
+        // Validate file type
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
+        if (!in_array($mimeType, $allowedMimes)) {
+            return [
+                'success' => false,
+                'error' => 'Only JPG, PNG, and WebP images are allowed.'
+            ];
+        }
+
+        // Validate file size (5MB max)
+        $maxSize = 5 * 1024 * 1024;
+        if ($file['size'] > $maxSize) {
+            return [
+                'success' => false,
+                'error' => 'Image size must be less than 5MB.'
+            ];
+        }
+
+        // Create uploads directory if it doesn't exist
+        $uploadDir = __DIR__ . '/../assets/uploads';
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                return [
+                    'success' => false,
+                    'error' => 'Failed to create upload directory.'
+                ];
+            }
+        }
+
+        // Generate unique filename
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid('img_', true) . '.' . $extension;
+        $filepath = $uploadDir . '/' . $filename;
+
+        // Move uploaded file
+        if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+            return [
+                'success' => false,
+                'error' => 'Failed to save the uploaded image.'
+            ];
+        }
+
+        // Return relative path for database storage
+        return [
+            'success' => true,
+            'path' => 'assets/uploads/' . $filename
+        ];
     }
 }

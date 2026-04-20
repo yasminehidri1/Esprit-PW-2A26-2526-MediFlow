@@ -98,12 +98,13 @@
     <nav class="flex-1 px-2 space-y-1">
         <?php
         $action = $_GET['action'] ?? 'dashboard';
+        $controller = $_GET['controller'] ?? '';
         $navItems = [
             ['action' => 'dashboard', 'icon' => 'dashboard', 'label' => 'Dashboard'],
             ['action' => 'articles', 'icon' => 'article', 'label' => 'Content Library'],
         ];
         foreach ($navItems as $item):
-            $isActive = ($action === $item['action']);
+            $isActive = ($action === $item['action'] && $controller !== 'comment');
         ?>
         <a class="flex items-center gap-3 px-4 py-3 transition-all duration-300 ease-out <?= $isActive 
             ? 'text-blue-700 font-bold border-r-4 border-teal-500 bg-blue-50' 
@@ -113,6 +114,21 @@
             <span class="font-label"><?= $item['label'] ?></span>
         </a>
         <?php endforeach; ?>
+
+        <!-- Comments Tab — always visible -->
+        <?php
+        $isCommentsActive = ($controller === 'comment' && $action === 'view_post_comments');
+        $commentsHref = $isCommentsActive
+            ? 'backOffice.php?controller=comment&action=view_post_comments&post_id=' . htmlspecialchars($_GET['post_id'] ?? '')
+            : 'backOffice.php?controller=comment&action=view_post_comments';
+        ?>
+        <a class="flex items-center gap-3 px-4 py-3 transition-all duration-300 ease-out <?= $isCommentsActive
+            ? 'text-blue-700 font-bold border-r-4 border-teal-500 bg-blue-50'
+            : 'text-slate-500 hover:bg-blue-50' ?>"
+           href="<?= $commentsHref ?>">
+            <span class="material-symbols-outlined">forum</span>
+            <span class="font-label">Comments</span>
+        </a>
     </nav>
     <div class="p-6">
         <a href="backOffice.php?action=form" 

@@ -1,7 +1,7 @@
 <?php
 /**
  * Back Office — Comment Moderation View
- * Full moderation queue with delete only (approve/reject removed)
+ * Full moderation queue with approve/reject/delete actions
  */
 ?>
 
@@ -58,8 +58,18 @@
 
             <!-- Actions -->
             <div class="flex justify-end">
+                <a href="backOffice.php?controller=comment&showDeleteModal&id=<?= $comment['id'] ?>&redirect=backOffice.php?action=moderation" 
+                   class="flex-1 py-2.5 text-xs font-bold rounded-lg bg-tertiary text-on-tertiary text-center hover:opacity-90 transition-opacity flex items-center justify-center gap-1">
+                    <span class="material-symbols-outlined text-sm">check</span>
+                    Approve
+                </a>
+                <a href="backOffice.php?controller=comment&showDeleteModal&id=<?= $comment['id'] ?>&redirect=backOffice.php?action=moderation" 
+                   class="flex-1 py-2.5 text-xs font-bold rounded-lg bg-surface-container text-on-surface text-center hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1">
+                    <span class="material-symbols-outlined text-sm">block</span>
+                    Reject
+                </a>
                 <button onclick="showDeleteModal('backOffice.php?controller=comment&action=delete_comment&id=<?= $comment['id'] ?>&redirect=backOffice.php?action=moderation', 'comment')" 
-                        class="py-2 px-3 text-xs font-bold rounded-lg bg-error text-on-error hover:opacity-90 transition-opacity flex items-center justify-center gap-1">
+                        class="flex-1 py-2.5 text-xs font-bold rounded-lg bg-error text-on-error text-center hover:opacity-90 transition-opacity flex items-center justify-center gap-1">
                     <span class="material-symbols-outlined text-sm">delete</span>
                     Delete
                 </button>

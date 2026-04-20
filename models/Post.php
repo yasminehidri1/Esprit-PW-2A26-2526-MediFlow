@@ -227,6 +227,35 @@ class Post {
     }
 
     /**
+     * Count all published posts — for dashboard pagination
+     */
+    public function countRecent() {
+        $stmt = $this->db->query("SELECT COUNT(*) as total FROM {$this->table} WHERE statut = 'publie'");
+        return $stmt->fetch()['total'];
+    }
+
+    /**
+     * Get paginated recent published posts — for dashboard with pagination
+     */
+    public function getRecentPaginated(int $page = 1, int $perPage = 5) {
+        $offset = ($page - 1) * $perPage;
+
+        $sql = "SELECT p.*, u.nom, u.prenom, r.libelle as role_name
+                FROM {$this->table} p
+                LEFT JOIN utilisateurs u ON p.auteur_id = u.id_PK
+                LEFT JOIN roles r ON u.id_role = r.id_role
+                WHERE p.statut = 'publie'
+                ORDER BY p.date_publication DESC
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', (int)$perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Get the most popular post (by views)
      */
     public function getMostPopular() {
