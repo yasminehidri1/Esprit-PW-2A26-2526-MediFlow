@@ -3,30 +3,21 @@ require_once __DIR__ . '/../../model/Equipement.php';
 $model       = new Equipement();
 $equipements = $model->getAll();
 
-/* Taux BCT : 1 EUR = 3.4052 DT */
-define('EUR_TO_DT', 3.4052);
-
-$imagesDemo = [
-    'EQ-9402' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2N9gClr4mS8O2pP-7dPsIr6ltmDKPzk7JVJMz2xoTa0cLG_8-VDEFjvc9BiuwT4LuxmFCvGRV2KCwuA6qq6DybcN3KmFeHe06k5n_xg9-84Rm0hb2N6oS6uFvWqSBnmNtExc9CqZ6pJwwuNo1LDQoNmF2V247d8vi_ET5yj6nYVkmYebvGSqvVcMq-A9VjY6dNWt3V6feLI6-ofdo04hKPb1eKNxL4C0yRSOZe0ZE9nALh8x8nBE_9R1hLcDF2MPOEbrMREYiEc',
-    'EQ-1108' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlAeD12gHGgF_WxdKdWCnAZXSa9xCQL-rYTpvRvK4k6HAj06HWJEOxowr9iomXwCGx6lNc_S2xAsYu_i3eIOH6yYrJBv0eeCCNdBBqYCiAcmUtc-biVseOzUOZ4t5zxFwZrS-ywCcShu2brIZGbji1vYKjVm6pg1g0AELad-YvcnIAleTOUu9EKrzOwdB8YPuoSl7T5wMXNpx-khvlEJW62YT6eFaIFWxzcHzQIfNI2fbcveL1j75vxjT2vATgdsbvtLSskq7nVzI',
-    'EQ-7721' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuASF4CH3yRiFxmEjcycHQjg-OUbYQT77I53FBZzckUXpa2EtPtmunb7ZRxYISNkrLGEAWuscNqpec_8frZZpIDJvKZDDSwEqBnV4W29wv4-vrFh33FIYb14bKr4O-MFxWuUIBprgX7SHhODjGHfvZ7RKlWLREZY-t6I2wvxjWPNtP-01AY8eTMyBhGdsUImxYLwhsDe_y1h-cpUs8pL9OiEHV7pzOGu9gk53SNUQEbzNvGRygDOgsp7fXUzZfgOItBUyNUZsEwmKTU',
-    'EQ-2256' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2N9gClr4mS8O2pP-7dPsIr6ltmDKPzk7JVJMz2xoTa0cLG_8-VDEFjvc9BiuwT4LuxmFCvGRV2KCwuA6qq6DybcN3KmFeHe06k5n_xg9-84Rm0hb2N6oS6uFvWqSBnmNtExc9CqZ6pJwwuNo1LDQoNmF2V247d8vi_ET5yj6nYVkmYebvGSqvVcMq-A9VjY6dNWt3V6feLI6-ofdo04hKPb1eKNxL4C0yRSOZe0ZE9nALh8x8nBE_9R1hLcDF2MPOEbrMREYiEc',
-    'EQ-3310' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlAeD12gHGgF_WxdKdWCnAZXSa9xCQL-rYTpvRvK4k6HAj06HWJEOxowr9iomXwCGx6lNc_S2xAsYu_i3eIOH6yYrJBv0eeCCNdBBqYCiAcmUtc-biVseOzUOZ4t5zxFwZrS-ywCcShu2brIZGbji1vYKjVm6pg1g0AELad-YvcnIAleTOUu9EKrzOwdB8YPuoSl7T5wMXNpx-khvlEJW62YT6eFaIFWxzcHzQIfNI2fbcveL1j75vxjT2vATgdsbvtLSskq7nVzI',
-    'EQ-4401' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuD7Grmehl5yETNWyJDc-A9yRVrtJLksaZyf4sJ7joP2sjKPeU2cmKryKdP5tXghMptmSFPOx0QWe7gGuz16Kc7FzTT6_A5IslIW-sQRKX9Fhp2OtfOXUKo1LcRtW1AvYoWfEuMQm2UlLBGS3IwcgBl9d85kI0Lm8Qh6ixkLF51ZMCjLgV5LPCKJmGvvgsoS8PSbfRX73L_8MU9oovtKjftr_y0f_vBSFVo74P3d_qEL-JfA97pVTJTXk2s_9_NpMzVGD5VygLgiHE0',
-];
-$imagesCat = [
-    'Mobilité'     => 'https://lh3.googleusercontent.com/aida-public/AB6AXuAUWAqVVgdD68nfBWg0dXKwdLWpnTlMCKLy44AgjzeTUuXyMkd6oReRSckFR3xIVCZUKdxF2Lk0X7-2m-AtWVEOImdMZ_rT5jDf4eKgzPSExAeV1ifKVSdtJHTQL9FJH0S5IjCpNyKzodadcfJ7aOJi1CaQP-wo_Nnj6IrbILxue4IOtdG6QMh4Z6fE0ahwu4m1NLaQL8ofVf38sA7xDv4dd7U_VKlBBqUxmcjv4dpiNgiHzj3Oc2uOVVXBMqKelsq37dejHb8_izA',
-    'Gériatrie'    => 'https://lh3.googleusercontent.com/aida-public/AB6AXuASF4CH3yRiFxmEjcycHQjg-OUbYQT77I53FBZzckUXpa2EtPtmunb7ZRxYISNkrLGEAWuscNqpec_8frZZpIDJvKZDDSwEqBnV4W29wv4-vrFh33FIYb14bKr4O-MFxWuUIBprgX7SHhODjGHfvZ7RKlWLREZY-t6I2wvxjWPNtP-01AY8eTMyBhGdsUImxYLwhsDe_y1h-cpUs8pL9OiEHV7pzOGu9gk53SNUQEbzNvGRygDOgsp7fXUzZfgOItBUyNUZsEwmKTU',
-    'Respiratoire' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlAeD12gHGgF_WxdKdWCnAZXSa9xCQL-rYTpvRvK4k6HAj06HWJEOxowr9iomXwCGx6lNc_S2xAsYu_i3eIOH6yYrJBv0eeCCNdBBqYCiAcmUtc-biVseOzUOZ4t5zxFwZrS-ywCcShu2brIZGbji1vYKjVm6pg1g0AELad-YvcnIAleTOUu9EKrzOwdB8YPuoSl7T5wMXNpx-khvlEJW62YT6eFaIFWxzcHzQIfNI2fbcveL1j75vxjT2vATgdsbvtLSskq7nVzI',
-    'Réanimation'  => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlAeD12gHGgF_WxdKdWCnAZXSa9xCQL-rYTpvRvK4k6HAj06HWJEOxowr9iomXwCGx6lNc_S2xAsYu_i3eIOH6yYrJBv0eeCCNdBBqYCiAcmUtc-biVseOzUOZ4t5zxFwZrS-ywCcShu2brIZGbji1vYKjVm6pg1g0AELad-YvcnIAleTOUu9EKrzOwdB8YPuoSl7T5wMXNpx-khvlEJW62YT6eFaIFWxzcHzQIfNI2fbcveL1j75vxjT2vATgdsbvtLSskq7nVzI',
-    'Radiologie'   => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2N9gClr4mS8O2pP-7dPsIr6ltmDKPzk7JVJMz2xoTa0cLG_8-VDEFjvc9BiuwT4LuxmFCvGRV2KCwuA6qq6DybcN3KmFeHe06k5n_xg9-84Rm0hb2N6oS6uFvWqSBnmNtExc9CqZ6pJwwuNo1LDQoNmF2V247d8vi_ET5yj6nYVkmYebvGSqvVcMq-A9VjY6dNWt3V6feLI6-ofdo04hKPb1eKNxL4C0yRSOZe0ZE9nALh8x8nBE_9R1hLcDF2MPOEbrMREYiEc',
-    'Cardiologie'  => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2N9gClr4mS8O2pP-7dPsIr6ltmDKPzk7JVJMz2xoTa0cLG_8-VDEFjvc9BiuwT4LuxmFCvGRV2KCwuA6qq6DybcN3KmFeHe06k5n_xg9-84Rm0hb2N6oS6uFvWqSBnmNtExc9CqZ6pJwwuNo1LDQoNmF2V247d8vi_ET5yj6nYVkmYebvGSqvVcMq-A9VjY6dNWt3V6feLI6-ofdo04hKPb1eKNxL4C0yRSOZe0ZE9nALh8x8nBE_9R1hLcDF2MPOEbrMREYiEc',
-];
-
-function getImageUrl($eq, $imagesDemo, $imagesCat) {
-    if (!empty($eq['image']))                     return '/projet web/Assets/images/' . htmlspecialchars($eq['image']);
-    if (isset($imagesDemo[$eq['reference']]))     return $imagesDemo[$eq['reference']];
-    if (isset($imagesCat[$eq['categorie']]))      return $imagesCat[$eq['categorie']];
+/**
+ * getImageUrl()
+ * Cherche dans Assets/images/equipements/EQ-XXXX.jpg
+ */
+function getImageUrl($eq) {
+    $extensions = ['jpg', 'jpeg', 'png', 'webp'];
+    foreach ($extensions as $ext) {
+        $localPath = __DIR__ . '/../../Assets/images/equipements/' . $eq['reference'] . '.' . $ext;
+        if (file_exists($localPath)) {
+            return '/projet%20web/Assets/images/equipements/' . $eq['reference'] . '.' . $ext;
+        }
+    }
+    if (!empty($eq['image'])) {
+        return '/projet%20web/Assets/images/equipements/' . htmlspecialchars($eq['image']);
+    }
     return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="160"><rect fill="%23f3f4f6" width="200" height="160"/><text fill="%239ca3af" font-family="sans-serif" font-size="13" x="50%25" y="50%25" text-anchor="middle" dy=".3em">Image non disponible</text></svg>';
 }
 ?>
@@ -40,21 +31,25 @@ function getImageUrl($eq, $imagesDemo, $imagesCat) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800;900&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/projet web/Assets/materiel.css"/>
+  <link rel="stylesheet" href="/projet%20web/Assets/materiel.css"/>
 </head>
 <body>
 
-<!-- TOP NAV -->
+<!-- ══ TOP NAV ══ -->
 <nav class="topnav">
-  <a class="topnav-brand" href="/projet web/view/Frontoffice/catalogue.php">MediFlow Rental</a>
+  <a class="topnav-brand" href="/projet%20web/view/Frontoffice/catalogue.php">MediFlow Rental</a>
   <div class="topnav-links">
-    <a href="/projet web/view/Frontoffice/catalogue.php" class="active">Catalog</a>
+    <a href="/projet%20web/view/Frontoffice/catalogue.php" class="active">Catalog</a>
     <a href="#">Support</a>
-    <a href="#">My Rentals</a>
+    <a href="/projet%20web/view/Frontoffice/mes-reservations.php">My Rentals</a>
   </div>
   <div class="topnav-actions">
     <button class="icon-btn"><span class="material-symbols-outlined">notifications</span></button>
-    <button class="icon-btn"><span class="material-symbols-outlined">shopping_cart</span></button>
+    <!--  Panier → mes-reservations.php -->
+    <a href="/projet%20web/view/Frontoffice/mes-reservations.php"
+       class="icon-btn" title="Mes Réservations" style="text-decoration:none;">
+      <span class="material-symbols-outlined">shopping_cart</span>
+    </a>
     <div class="nav-avatar" style="width:34px;height:34px;border-radius:50%;background:#dbeafe;
          display:flex;align-items:center;justify-content:center;">
       <span class="material-symbols-outlined" style="font-size:20px;color:#1a56db;">person</span>
@@ -64,7 +59,7 @@ function getImageUrl($eq, $imagesDemo, $imagesCat) {
 
 <div class="layout">
 
-  <!-- SIDEBAR -->
+  <!-- ══ SIDEBAR ══ -->
   <aside class="sidebar">
     <div class="sb-brand">
       <div class="name">MediFlow</div>
@@ -72,7 +67,7 @@ function getImageUrl($eq, $imagesDemo, $imagesCat) {
     </div>
     <nav class="sb-nav">
       <a href="#"><span class="material-symbols-outlined">grid_view</span>Dashboard</a>
-      <a href="/projet web/view/Frontoffice/catalogue.php" class="active">
+      <a href="/projet%20web/view/Frontoffice/catalogue.php" class="active">
         <span class="material-symbols-outlined">medical_services</span>Location Matériel
       </a>
       <a href="#"><span class="material-symbols-outlined">inventory_2</span>Orders</a>
@@ -91,7 +86,7 @@ function getImageUrl($eq, $imagesDemo, $imagesCat) {
     </div>
   </aside>
 
-  <!-- MAIN -->
+  <!-- ══ MAIN ══ -->
   <main class="main">
 
     <div class="page-top">
@@ -105,7 +100,6 @@ function getImageUrl($eq, $imagesDemo, $imagesCat) {
           <button data-filter="mobilite">Mobilité</button>
           <button data-filter="respiratoire">Respiratoire</button>
         </div>
-        <small style="color:#9ca3af;font-size:11px;">Taux BCT : 1 EUR = <?= EUR_TO_DT ?> DT</small>
       </div>
     </div>
 
@@ -126,7 +120,7 @@ function getImageUrl($eq, $imagesDemo, $imagesCat) {
             if ($eq['statut'] === 'loue')        { $badgeClass = 'badge-demand';      $badgeLabel = 'LOUÉ'; }
             if ($eq['statut'] === 'maintenance') { $badgeClass = 'badge-maintenance'; $badgeLabel = 'MAINTENANCE'; }
 
-            // Catégorie pour le filtre
+            // Filtre catégorie
             $catFilter = strtolower(str_replace(
               ['é','è','ê','à','â','î','ô','û','ç'],
               ['e','e','e','a','a','i','o','u','c'],
@@ -134,56 +128,47 @@ function getImageUrl($eq, $imagesDemo, $imagesCat) {
             ));
 
             // Image
-            $imgUrl = getImageUrl($eq, $imagesDemo, $imagesCat);
+            $imgUrl = getImageUrl($eq);
 
-            // Prix converti EUR → DT
-            $prixDT = number_format((float)$eq['prix_jour'] * EUR_TO_DT, 3, ',', '.');
+            //  Prix affiché directement en DT (même logique que equipements.php)
+            // Pas de multiplication × 3.4052
+            $prixDT = number_format((float)$eq['prix_jour'], 3, ',', '.');
 
-            // ✅ URL de réservation avec l'ID de l'équipement
-            $urlReservation = '/projet web/view/Frontoffice/reservation.php?id=' . (int)$eq['id'];
+            // URL réservation
+            $urlReservation = '/projet%20web/view/Frontoffice/reservation.php?id=' . (int)$eq['id'];
           ?>
 
           <div class="product-card" data-category="<?= $catFilter ?>" data-id="<?= $eq['id'] ?>">
             <div class="card-img">
-              <img src="<?= $imgUrl ?>" alt="<?= htmlspecialchars($eq['nom']) ?>" loading="lazy"/>
+              <img src="<?= $imgUrl ?>"
+                   alt="<?= htmlspecialchars($eq['nom']) ?>"
+                   loading="lazy"
+                   onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22160%22><rect fill=%22%23f3f4f6%22 width=%22200%22 height=%22160%22/><text fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2213%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>Image non disponible</text></svg>'"/>
               <span class="badge-pill <?= $badgeClass ?>"><?= $badgeLabel ?></span>
             </div>
             <div class="card-body">
               <div class="card-title-row">
                 <h3 class="card-title"><?= htmlspecialchars($eq['nom']) ?></h3>
+                <!--  Prix en DT directement -->
                 <div class="card-price"><?= $prixDT ?><span class="unit"> DT/j</span></div>
               </div>
               <p class="card-desc"><?= htmlspecialchars($eq['categorie']) ?></p>
               <div class="card-actions">
 
                 <?php if ($eq['statut'] === 'disponible'): ?>
-                  <!--
-                    ✅ BOUTON RÉSERVER
-                    href contient ?id= avec l'ID réel de l'équipement depuis la BDD
-                    Ex: /projet web/view/Frontoffice/reservation.php?id=5
-                    C'est un <a> tag (lien) → pas de onclick JS → navigation directe
-                  -->
-                  <a class="btn-reserve"
-                     href="<?= $urlReservation ?>">
+                  <a class="btn-reserve" href="<?= $urlReservation ?>">
                     <span class="material-symbols-outlined">calendar_today</span>
                     Réserver
                   </a>
-
                 <?php else: ?>
-                  <!-- Bouton désactivé si non disponible -->
-                  <button class="btn-reserve"
-                          type="button"
-                          disabled
+                  <button class="btn-reserve" type="button" disabled
                           style="opacity:.5;cursor:not-allowed;background:#9ca3af;">
                     <span class="material-symbols-outlined">block</span>
                     Indisponible
                   </button>
                 <?php endif; ?>
 
-                <!-- Bouton historique -->
-                <button class="btn-history"
-                        type="button"
-                        title="Voir l'historique"
+                <button class="btn-history" type="button" title="Historique"
                         onclick="showEquipHistory(<?= (int)$eq['id'] ?>, '<?= htmlspecialchars($eq['nom'], ENT_QUOTES) ?>')">
                   <span class="material-symbols-outlined">history</span>
                 </button>
@@ -209,7 +194,7 @@ function getImageUrl($eq, $imagesDemo, $imagesCat) {
 
       <?php endif; ?>
 
-    </div><!-- /product-grid -->
+    </div>
   </main>
 </div>
 
@@ -219,6 +204,6 @@ function getImageUrl($eq, $imagesDemo, $imagesCat) {
 </button>
 
 <div class="toast-container"></div>
-<script src="/projet web/Assets/materiel.js"></script>
+<script src="/projet%20web/Assets/materiel.js"></script>
 </body>
 </html>
