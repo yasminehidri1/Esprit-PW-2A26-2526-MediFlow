@@ -128,7 +128,7 @@ class DossierController {
         $data = [
             'id_medecin'         => $this->medecinId,
             'id_patient'         => $patientId,
-            'date_consultation'  => $_POST['date_consultation'] ?? date('Y-m-d H:i:s'),
+            'date_consultation'  => $this->formatDateTime($_POST['date_consultation'] ?? ''),
             'type_consultation'  => htmlspecialchars(trim($_POST['type_consultation'] ?? '')),
             'diagnostic'         => htmlspecialchars(trim($_POST['diagnostic'] ?? '')),
             'compte_rendu'       => htmlspecialchars(trim($_POST['compte_rendu'] ?? '')),
@@ -165,7 +165,7 @@ class DossierController {
             $allergies   = $this->buildAllergiesFromPost();
 
             $data = [
-                'date_consultation'  => $_POST['date_consultation'] ?? date('Y-m-d H:i:s'),
+                'date_consultation'  => $this->formatDateTime($_POST['date_consultation'] ?? ''),
                 'type_consultation'  => htmlspecialchars(trim($_POST['type_consultation'] ?? '')),
                 'diagnostic'         => htmlspecialchars(trim($_POST['diagnostic'] ?? '')),
                 'compte_rendu'       => htmlspecialchars(trim($_POST['compte_rendu'] ?? '')),
@@ -314,6 +314,21 @@ class DossierController {
             }
         }
         return json_encode($result, JSON_UNESCAPED_UNICODE);
+    }
+
+    /** Convert datetime-local format (2026-04-20T10:00) to MySQL format (2026-04-20 10:00:00) */
+    private function formatDateTime(string $dateTime): string {
+        if (empty($dateTime)) {
+            return date('Y-m-d H:i:s');
+        }
+
+        // Convert T to space and add :00 for seconds if not present
+        $formatted = str_replace('T', ' ', $dateTime);
+        if (strlen($formatted) === 16) { // YYYY-MM-DD HH:MM
+            $formatted .= ':00';
+        }
+
+        return $formatted;
     }
 
     /** Build JSON for allergies from POST. */

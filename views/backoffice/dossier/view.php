@@ -369,19 +369,36 @@ require __DIR__ . '/../layout/topbar.php';
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form method="POST" action="index.php?page=dossier&action=add" class="px-8 py-6 space-y-5">
+        <form id="modal-consult-form" method="POST" action="index.php?page=dossier&action=add" class="px-8 py-6 space-y-5" onsubmit="return validateConsultationForm(event)">
             <input type="hidden" name="id_patient" value="<?= $patient['id_PK'] ?>"/>
+
+            <!-- Error Messages -->
+            <div id="modal-form-errors" class="hidden p-4 rounded-lg bg-error-container/20 border border-error/30">
+                <div class="flex items-start gap-2">
+                    <span class="material-symbols-outlined text-error">error</span>
+                    <ul id="errors-list" class="text-sm text-error space-y-1"></ul>
+                </div>
+            </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="field-label">Date de consultation</label>
-                    <input type="datetime-local" name="date_consultation"
+                    <label class="field-label">Date de consultation *</label>
+                    <input type="datetime-local" name="date_consultation" id="modal-date-consult"
                            value="<?= date('Y-m-d\TH:i') ?>"
                            class="field-input" required/>
+                    <div id="error-date-consult" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">error</span>
+                        <span id="error-date-text"></span>
+                    </div>
+                    <div id="success-date-consult" class="hidden text-xs text-green-600 font-semibold mt-1 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">check_circle</span>
+                        <span>Date valide</span>
+                    </div>
                 </div>
                 <div>
-                    <label class="field-label">Type de consultation</label>
-                    <select name="type_consultation" class="field-input">
+                    <label class="field-label">Type de consultation *</label>
+                    <select name="type_consultation" id="modal-type-consult" class="field-input" required>
+                        <option value="">-- Choisir --</option>
                         <option>Contrôle annuel</option>
                         <option>Bilan Annuel</option>
                         <option>Suivi Spécialisé</option>
@@ -391,18 +408,41 @@ require __DIR__ . '/../layout/topbar.php';
                         <option>Contrôle Post-Op</option>
                         <option>Symptômes Grippaux</option>
                     </select>
+                    <div id="error-type-consult" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">error</span>
+                        <span>Type de consultation requis</span>
+                    </div>
+                    <div id="success-type-consult" class="hidden text-xs text-green-600 font-semibold mt-1 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">check_circle</span>
+                        <span>Type sélectionné</span>
+                    </div>
                 </div>
             </div>
 
             <div>
                 <label class="field-label">Diagnostic</label>
-                <input type="text" name="diagnostic" class="field-input" placeholder="Ex: Hypertension Artérielle"/>
+                <input type="text" name="diagnostic" id="modal-diagnostic" class="field-input" 
+                       placeholder="Ex: Hypertension Artérielle" maxlength="150"/>
+                <div id="error-diagnostic" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">error</span>
+                    <span id="error-diagnostic-text"></span>
+                </div>
+                <div id="info-diagnostic" class="text-xs text-slate-500 mt-1">
+                    <span id="count-diagnostic">0</span>/150 caractères
+                </div>
             </div>
 
             <div>
                 <label class="field-label">Compte-rendu</label>
-                <textarea name="compte_rendu" rows="3" class="field-input resize-none"
-                          placeholder="Observations cliniques..."></textarea>
+                <textarea name="compte_rendu" id="modal-compte-rendu" rows="3" class="field-input resize-none"
+                          placeholder="Observations cliniques..." maxlength="5000"></textarea>
+                <div id="error-compte-rendu" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">error</span>
+                    <span id="error-compte-text"></span>
+                </div>
+                <div id="info-compte-rendu" class="text-xs text-slate-500 mt-1">
+                    <span id="count-compte-rendu">0</span>/5000 caractères
+                </div>
             </div>
 
             <!-- Constantes vitales -->
@@ -414,19 +454,55 @@ require __DIR__ . '/../layout/topbar.php';
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="field-label">Tension artérielle</label>
-                        <input type="text" name="tension_arterielle" class="field-input" placeholder="12/8"/>
+                        <input type="text" name="tension_arterielle" id="modal-tension" class="field-input" 
+                               placeholder="120/80" maxlength="10"/>
+                        <div id="error-tension" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">error</span>
+                            <span id="error-tension-text"></span>
+                        </div>
+                        <div id="success-tension" class="hidden text-xs text-green-600 font-semibold mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">check_circle</span>
+                            <span>Format valide</span>
+                        </div>
                     </div>
                     <div>
                         <label class="field-label">Rythme cardiaque (bpm)</label>
-                        <input type="number" name="rythme_cardiaque" class="field-input" placeholder="72" min="30" max="300"/>
+                        <input type="number" name="rythme_cardiaque" id="modal-rythme" class="field-input" 
+                               placeholder="72" min="30" max="300"/>
+                        <div id="error-rythme" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">error</span>
+                            <span id="error-rythme-text"></span>
+                        </div>
+                        <div id="success-rythme" class="hidden text-xs text-green-600 font-semibold mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">check_circle</span>
+                            <span>Valide (30-300 BPM)</span>
+                        </div>
                     </div>
                     <div>
                         <label class="field-label">Poids (kg)</label>
-                        <input type="number" step="0.1" name="poids" class="field-input" placeholder="75.5"/>
+                        <input type="number" step="0.1" name="poids" id="modal-poids" class="field-input" 
+                               placeholder="75.5"/>
+                        <div id="error-poids" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">error</span>
+                            <span id="error-poids-text"></span>
+                        </div>
+                        <div id="success-poids" class="hidden text-xs text-green-600 font-semibold mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">check_circle</span>
+                            <span>Valide (2-500 kg)</span>
+                        </div>
                     </div>
                     <div>
                         <label class="field-label">Saturation O² (%)</label>
-                        <input type="number" name="saturation_o2" class="field-input" placeholder="98" min="0" max="100"/>
+                        <input type="number" name="saturation_o2" id="modal-saturation" class="field-input" 
+                               placeholder="98" min="0" max="100"/>
+                        <div id="error-saturation" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">error</span>
+                            <span id="error-saturation-text"></span>
+                        </div>
+                        <div id="success-saturation" class="hidden text-xs text-green-600 font-semibold mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">check_circle</span>
+                            <span>Valide (0-100%)</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -510,6 +586,8 @@ require __DIR__ . '/../layout/topbar.php';
 .field-label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#727783;margin-bottom:.3rem;}
 .field-input{display:block;width:100%;background:#f2f4f6;border:1px solid #e0e3e5;border-radius:.5rem;padding:.55rem .85rem;font-size:.875rem;color:#191c1e;outline:none;transition:border-color .15s,box-shadow .15s;}
 .field-input:focus{border-color:#004d99;box-shadow:0 0 0 3px rgba(0,77,153,.12);}
+.field-input:invalid{border-color:#ba1a1a;box-shadow:0 0 0 3px rgba(186,26,26,.1);}
+.field-input.border-error{border-color:#ba1a1a !important;box-shadow:0 0 0 3px rgba(186,26,26,.1);}
 </style>
 
 <script>
@@ -520,10 +598,390 @@ function openConsultModal(mode) {
 function closeModal() {
     document.getElementById('consult-modal').classList.add('modal-hidden');
     document.body.style.overflow = '';
+    // Reset error messages
+    document.getElementById('modal-form-errors').classList.add('hidden');
+    document.getElementById('errors-list').innerHTML = '';
 }
 function closeModalOutside(e) {
     if (e.target === document.getElementById('consult-modal')) closeModal();
 }
+
+// Validation function for consultation form
+function validateConsultationForm(e) {
+    const errors = [];
+
+    // 1. Validate Date
+    const dateInput = document.getElementById('modal-date-consult');
+    const dateValue = dateInput.value.trim();
+    if (!dateValue) {
+        errors.push('La date de consultation est requise');
+    } else {
+        const dt = new Date(dateValue.replace('T', ' '));
+        if (isNaN(dt.getTime())) {
+            errors.push('La date est invalide');
+        } else if (dt > new Date()) {
+            errors.push('La date ne peut pas être dans le futur');
+        }
+    }
+
+    // 2. Validate Type
+    const typeInput = document.getElementById('modal-type-consult');
+    const typeValue = typeInput.value.trim();
+    if (!typeValue) {
+        errors.push('Veuillez sélectionner un type de consultation');
+    }
+
+    // 3. Validate Diagnostic (optional but max 150 chars)
+    const diagnosticInput = document.getElementById('modal-diagnostic');
+    const diagnosticValue = diagnosticInput.value.trim();
+    if (diagnosticValue && diagnosticValue.length > 150) {
+        errors.push('Le diagnostic ne peut pas dépasser 150 caractères');
+    }
+
+    // 4. Validate Compte-rendu (optional but max 5000 chars)
+    const compteRenduInput = document.getElementById('modal-compte-rendu');
+    const compteRenduValue = compteRenduInput.value.trim();
+    if (compteRenduValue && compteRenduValue.length > 5000) {
+        errors.push('Le compte-rendu ne peut pas dépasser 5000 caractères');
+    }
+
+    // 5. Validate Tension Artérielle (optional but format validation)
+    const tensionInput = document.getElementById('modal-tension');
+    const tensionValue = tensionInput.value.trim();
+    if (tensionValue) {
+        if (!/^\d{1,3}\/\d{1,3}$/.test(tensionValue)) {
+            errors.push('Tension artérielle: format attendu XX/YY (ex: 120/80)');
+        } else {
+            const [sys, dia] = tensionValue.split('/').map(Number);
+            if (sys < 60 || sys > 250 || dia < 30 || dia > 150 || sys <= dia) {
+                errors.push('Tension artérielle: valeurs invalides (ex: 120/80)');
+            }
+        }
+    }
+
+    // 6. Validate Rythme Cardiaque (optional but 30-300)
+    const rythmeInput = document.getElementById('modal-rythme');
+    const rythmeValue = rythmeInput.value.trim();
+    if (rythmeValue) {
+        const rate = parseInt(rythmeValue);
+        if (isNaN(rate) || rate < 30 || rate > 300) {
+            errors.push('Rythme cardiaque: doit être entre 30 et 300 BPM');
+        }
+    }
+
+    // 7. Validate Poids (optional but 2-500)
+    const poidsInput = document.getElementById('modal-poids');
+    const poidsValue = poidsInput.value.trim();
+    if (poidsValue) {
+        const weight = parseFloat(poidsValue);
+        if (isNaN(weight) || weight <= 2 || weight >= 500) {
+            errors.push('Poids: doit être entre 2 et 500 kg');
+        }
+    }
+
+    // 8. Validate Saturation O2 (optional but 0-100)
+    const saturationInput = document.getElementById('modal-saturation');
+    const saturationValue = saturationInput.value.trim();
+    if (saturationValue) {
+        const sat = parseInt(saturationValue);
+        if (isNaN(sat) || sat < 0 || sat > 100) {
+            errors.push('Saturation O²: doit être entre 0 et 100%');
+        }
+    }
+
+    // Show errors if any
+    if (errors.length > 0) {
+        e.preventDefault();
+        const errorsList = document.getElementById('errors-list');
+        const errorsDiv = document.getElementById('modal-form-errors');
+        errorsList.innerHTML = errors.map(err => `<li>• ${err}</li>`).join('');
+        errorsDiv.classList.remove('hidden');
+        // Scroll to top of modal to show errors
+        document.querySelector('.modal-box').scrollTop = 0;
+        return false;
+    }
+
+    return true;
+}
+
+// Real-time validation functions
+function validateDateRealtime(input) {
+    const value = input.value.trim();
+    const errorDiv = document.getElementById('error-date-consult');
+    const successDiv = document.getElementById('success-date-consult');
+    const errorText = document.getElementById('error-date-text');
+    
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    input.classList.remove('border-error');
+    
+    if (!value) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'La date est requise';
+        input.classList.add('border-error');
+        return false;
+    }
+    
+    const dt = new Date(value.replace('T', ' '));
+    if (isNaN(dt.getTime())) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'Date invalide';
+        input.classList.add('border-error');
+        return false;
+    }
+    
+    if (dt > new Date()) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'La date ne peut pas être dans le futur';
+        input.classList.add('border-error');
+        return false;
+    }
+    
+    successDiv.classList.remove('hidden');
+    return true;
+}
+
+function validateTypeRealtime(select) {
+    const value = select.value.trim();
+    const errorDiv = document.getElementById('error-type-consult');
+    const successDiv = document.getElementById('success-type-consult');
+    
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    select.classList.remove('border-error');
+    
+    if (!value) {
+        errorDiv.classList.remove('hidden');
+        select.classList.add('border-error');
+        return false;
+    }
+    
+    successDiv.classList.remove('hidden');
+    return true;
+}
+
+function validateDiagnosticRealtime(input) {
+    const value = input.value;
+    const errorDiv = document.getElementById('error-diagnostic');
+    const errorText = document.getElementById('error-diagnostic-text');
+    const countSpan = document.getElementById('count-diagnostic');
+    
+    countSpan.textContent = value.length;
+    errorDiv.classList.add('hidden');
+    input.classList.remove('border-error');
+    
+    if (value.length > 150) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'Dépassement de 150 caractères';
+        input.classList.add('border-error');
+        return false;
+    }
+    
+    return true;
+}
+
+function validateCompteRenduRealtime(textarea) {
+    const value = textarea.value;
+    const errorDiv = document.getElementById('error-compte-rendu');
+    const errorText = document.getElementById('error-compte-text');
+    const countSpan = document.getElementById('count-compte-rendu');
+    
+    countSpan.textContent = value.length;
+    errorDiv.classList.add('hidden');
+    textarea.classList.remove('border-error');
+    
+    if (value.length > 5000) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'Dépassement de 5000 caractères';
+        textarea.classList.add('border-error');
+        return false;
+    }
+    
+    return true;
+}
+
+function validateTensionRealtime(input) {
+    const value = input.value.trim();
+    const errorDiv = document.getElementById('error-tension');
+    const successDiv = document.getElementById('success-tension');
+    const errorText = document.getElementById('error-tension-text');
+    
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    input.classList.remove('border-error');
+    
+    if (!value) return true;
+    
+    if (!/^\d{1,3}\/\d{1,3}$/.test(value)) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'Format: XX/YY (ex: 120/80)';
+        input.classList.add('border-error');
+        return false;
+    }
+    
+    const [sys, dia] = value.split('/').map(Number);
+    if (sys < 60 || sys > 250 || dia < 30 || dia > 150 || sys <= dia) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'Valeurs invalides';
+        input.classList.add('border-error');
+        return false;
+    }
+    
+    successDiv.classList.remove('hidden');
+    return true;
+}
+
+function validateRythmeRealtime(input) {
+    const value = input.value.trim();
+    const errorDiv = document.getElementById('error-rythme');
+    const successDiv = document.getElementById('success-rythme');
+    const errorText = document.getElementById('error-rythme-text');
+    
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    input.classList.remove('border-error');
+    
+    if (!value) return true;
+    
+    const rate = parseInt(value);
+    if (isNaN(rate) || rate < 30 || rate > 300) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'Doit être entre 30 et 300 BPM';
+        input.classList.add('border-error');
+        return false;
+    }
+    
+    successDiv.classList.remove('hidden');
+    return true;
+}
+
+function validatePoidsRealtime(input) {
+    const value = input.value.trim();
+    const errorDiv = document.getElementById('error-poids');
+    const successDiv = document.getElementById('success-poids');
+    const errorText = document.getElementById('error-poids-text');
+    
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    input.classList.remove('border-error');
+    
+    if (!value) return true;
+    
+    const weight = parseFloat(value);
+    if (isNaN(weight) || weight <= 2 || weight >= 500) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'Doit être entre 2 et 500 kg';
+        input.classList.add('border-error');
+        return false;
+    }
+    
+    successDiv.classList.remove('hidden');
+    return true;
+}
+
+function validateSaturationRealtime(input) {
+    const value = input.value.trim();
+    const errorDiv = document.getElementById('error-saturation');
+    const successDiv = document.getElementById('success-saturation');
+    const errorText = document.getElementById('error-saturation-text');
+    
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    input.classList.remove('border-error');
+    
+    if (!value) return true;
+    
+    const sat = parseInt(value);
+    if (isNaN(sat) || sat < 0 || sat > 100) {
+        errorDiv.classList.remove('hidden');
+        errorText.textContent = 'Doit être entre 0 et 100%';
+        input.classList.add('border-error');
+        return false;
+    }
+    
+    successDiv.classList.remove('hidden');
+    return true;
+}
+
+// Validation function for consultation form
+function validateConsultationForm(e) {
+    const errors = [];
+
+    // Validate all fields
+    if (!validateDateRealtime(document.getElementById('modal-date-consult'))) {
+        errors.push('La date de consultation est invalide');
+    }
+    if (!validateTypeRealtime(document.getElementById('modal-type-consult'))) {
+        errors.push('Veuillez sélectionner un type de consultation');
+    }
+    validateDiagnosticRealtime(document.getElementById('modal-diagnostic'));
+    validateCompteRenduRealtime(document.getElementById('modal-compte-rendu'));
+    validateTensionRealtime(document.getElementById('modal-tension'));
+    validateRythmeRealtime(document.getElementById('modal-rythme'));
+    validatePoidsRealtime(document.getElementById('modal-poids'));
+    validateSaturationRealtime(document.getElementById('modal-saturation'));
+
+    // Show errors if any critical fields failed
+    if (errors.length > 0) {
+        e.preventDefault();
+        const errorsList = document.getElementById('errors-list');
+        const errorsDiv = document.getElementById('modal-form-errors');
+        errorsList.innerHTML = errors.map(err => `<li>• ${err}</li>`).join('');
+        errorsDiv.classList.remove('hidden');
+        document.querySelector('.modal-box').scrollTop = 0;
+        return false;
+    }
+
+    return true;
+}
+
+// Setup real-time validation on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('modal-date-consult');
+    if (dateInput) {
+        dateInput.addEventListener('change', function() { validateDateRealtime(this); });
+        dateInput.addEventListener('blur', function() { validateDateRealtime(this); });
+    }
+
+    const typeSelect = document.getElementById('modal-type-consult');
+    if (typeSelect) {
+        typeSelect.addEventListener('change', function() { validateTypeRealtime(this); });
+    }
+
+    const diagnosticInput = document.getElementById('modal-diagnostic');
+    if (diagnosticInput) {
+        diagnosticInput.addEventListener('input', function() { validateDiagnosticRealtime(this); });
+    }
+
+    const compteRenduInput = document.getElementById('modal-compte-rendu');
+    if (compteRenduInput) {
+        compteRenduInput.addEventListener('input', function() { validateCompteRenduRealtime(this); });
+    }
+
+    const tensionInput = document.getElementById('modal-tension');
+    if (tensionInput) {
+        tensionInput.addEventListener('input', function() { validateTensionRealtime(this); });
+        tensionInput.addEventListener('blur', function() { validateTensionRealtime(this); });
+    }
+
+    const rythmeInput = document.getElementById('modal-rythme');
+    if (rythmeInput) {
+        rythmeInput.addEventListener('input', function() { validateRythmeRealtime(this); });
+        rythmeInput.addEventListener('change', function() { validateRythmeRealtime(this); });
+    }
+
+    const poidsInput = document.getElementById('modal-poids');
+    if (poidsInput) {
+        poidsInput.addEventListener('input', function() { validatePoidsRealtime(this); });
+        poidsInput.addEventListener('change', function() { validatePoidsRealtime(this); });
+    }
+
+    const saturationInput = document.getElementById('modal-saturation');
+    if (saturationInput) {
+        saturationInput.addEventListener('input', function() { validateSaturationRealtime(this); });
+        saturationInput.addEventListener('change', function() { validateSaturationRealtime(this); });
+    }
+});
 
 function addAntRow() {
     const rows = document.getElementById('ant-rows');

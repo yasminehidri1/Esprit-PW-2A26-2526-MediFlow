@@ -67,48 +67,6 @@ class AdminController {
         require __DIR__ . '/../views/backoffice/admin/doctors/liste.php';
     }
 
-    // ── Consultations List ────────────────────────────────────────
-
-    public function consultationsList(): void {
-        $perPage    = 10;
-        $page       = max(1, (int)($_GET['p'] ?? 1));
-        $offset     = ($page - 1) * $perPage;
-
-        $consultations = $this->adminModel->getAllConsultations($perPage, $offset);
-        $totalCount    = $this->adminModel->countConsultations();
-        $totalPages    = (int) ceil($totalCount / $perPage);
-
-        $admin      = $this->adminInfo;
-        $adminId    = $this->adminId;
-        $activePage = 'admin';
-
-        $flash = $_SESSION['flash'] ?? null;
-        unset($_SESSION['flash']);
-
-        require __DIR__ . '/../views/backoffice/admin/consultations/liste.php';
-    }
-
-    // ── Prescriptions List ────────────────────────────────────────
-
-    public function prescriptionsList(): void {
-        $perPage    = 10;
-        $page       = max(1, (int)($_GET['p'] ?? 1));
-        $offset     = ($page - 1) * $perPage;
-
-        $prescriptions = $this->adminModel->getAllPrescriptions($perPage, $offset);
-        $totalCount    = $this->adminModel->countPrescriptions();
-        $totalPages    = (int) ceil($totalCount / $perPage);
-
-        $admin      = $this->adminInfo;
-        $adminId    = $this->adminId;
-        $activePage = 'admin';
-
-        $flash = $_SESSION['flash'] ?? null;
-        unset($_SESSION['flash']);
-
-        require __DIR__ . '/../views/backoffice/admin/ordonnances/liste.php';
-    }
-
     // ── Doctor Details & Edit ─────────────────────────────────────
 
     public function editDoctor(): void {
@@ -156,90 +114,77 @@ class AdminController {
         $this->redirect('?page=admin&action=doctors');
     }
 
-    // ── Consultation Details ──────────────────────────────────────
+    // ── Doctor's Patients Management ──────────────────────────────
 
-    public function viewConsultation(): void {
-        $consultationId = (int)($_GET['id'] ?? 0);
-        if ($consultationId === 0) {
-            $this->redirect('?page=admin&action=consultations');
+    public function viewDoctorPatients(): void {
+        $doctorId = (int)($_GET['doctor_id'] ?? 0);
+
+        if ($doctorId <= 0) {
+            $this->redirect('?page=admin&action=doctors');
         }
 
-        $consultation = $this->adminModel->getConsultationDetail($consultationId);
-        if (!$consultation) {
-            $this->redirect('?page=admin&action=consultations');
+        // Get doctor info
+        $doctor = $this->adminModel->getDoctorById($doctorId);
+        if (!$doctor) {
+            $this->redirect('?page=admin&action=doctors');
         }
 
-        $antecedents = json_decode($consultation['antecedents'] ?? '[]', true) ?: [];
-        $allergies = json_decode($consultation['allergies'] ?? '[]', true) ?: [];
+        // Get all patients of this doctor
+        $patients = $this->adminModel->getPatientsByDoctor($doctorId);
 
         $admin      = $this->adminInfo;
         $adminId    = $this->adminId;
         $activePage = 'admin';
+        $flash      = $_SESSION['flash'] ?? null;
+        unset($_SESSION['flash']);
 
-        require __DIR__ . '/../views/backoffice/admin/consultations/view.php';
+        require __DIR__ . '/../views/backoffice/admin/doctors/patients.php';
     }
 
-    public function deleteConsultation(): void {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('?page=admin&action=consultations');
+    // ── Patient Details (AJAX) ────────────────────────────────────
+
+    public function getDoctorPatientDetailsAjax(): void {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $patientId = (int)($_GET['patient_id'] ?? 0);
+        $doctorId = (int)($_GET['doctor_id'] ?? 0);
+
+        if ($patientId <= 0 || $doctorId <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Patient ID and Doctor ID are required']);
+            exit;
         }
 
-        $consultationId = (int)($_POST['id'] ?? 0);
-        if ($consultationId > 0) {
-            $this->adminModel->deleteConsultation($consultationId);
-            $_SESSION['flash'] = ['type' => 'info', 'msg' => 'Consultation supprimée.'];
-        }
-        $this->redirect('?page=admin&action=consultations');
+        // Get patient consultations and prescriptions
+        $consultations = $this->adminModel->getPatientConsultations($patientId, $doctorId);
+        $prescriptions = $this->adminModel->getPatientPrescriptions($patientId, $doctorId);
+
+        echo json_encode([
+            'consultations' => $consultations,
+            'prescriptions' => $prescriptions,
+        ]);
+        exit;
     }
 
-    // ── Prescription Details & Status ─────────────────────────────
+    // ── Doctor's Patients AJAX ────────────────────────────────────
 
-    public function viewPrescription(): void {
-        $prescriptionId = (int)($_GET['id'] ?? 0);
-        if ($prescriptionId === 0) {
-            $this->redirect('?page=admin&action=prescriptions');
+    public function getDoctorPatientsAjax(): void {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $doctorId = (int)($_GET['doctor_id'] ?? 0);
+
+        if ($doctorId <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Doctor ID is required']);
+            exit;
         }
 
-        $prescription = $this->adminModel->getPrescriptionDetail($prescriptionId);
-        if (!$prescription) {
-            $this->redirect('?page=admin&action=prescriptions');
-        }
+        $patients = $this->adminModel->getPatientsByDoctor($doctorId);
 
-        $medicaments = json_decode($prescription['medicaments'] ?? '[]', true) ?: [];
-
-        $admin      = $this->adminInfo;
-        $adminId    = $this->adminId;
-        $activePage = 'admin';
-
-        require __DIR__ . '/../views/backoffice/admin/ordonnances/view.php';
-    }
-
-    public function updatePrescriptionStatus(): void {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('?page=admin&action=prescriptions');
-        }
-
-        $prescriptionId = (int)($_POST['id'] ?? 0);
-        $status = htmlspecialchars(trim($_POST['status'] ?? 'active'));
-
-        if ($prescriptionId > 0) {
-            $this->adminModel->updatePrescriptionStatus($prescriptionId, $status);
-            $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Statut mis à jour.'];
-        }
-        $this->redirect('?page=admin&action=prescriptions');
-    }
-
-    public function deletePrescription(): void {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('?page=admin&action=prescriptions');
-        }
-
-        $prescriptionId = (int)($_POST['id'] ?? 0);
-        if ($prescriptionId > 0) {
-            $this->adminModel->deletePrescription($prescriptionId);
-            $_SESSION['flash'] = ['type' => 'info', 'msg' => 'Ordonnance supprimée.'];
-        }
-        $this->redirect('?page=admin&action=prescriptions');
+        echo json_encode([
+            'patients' => $patients,
+        ]);
+        exit;
     }
 
     // ── Helpers ───────────────────────────────────────────────────

@@ -55,6 +55,18 @@ class PatientModel {
         return $stmt->fetchAll();
     }
 
+    /** Retourne uniquement les médecins (role libelle = 'Medecin'). */
+    public function getAllDoctors(): array {
+        $stmt = $this->db->query("
+            SELECT u.id_PK, u.prenom, u.nom, u.mail, r.libelle AS role_libelle
+            FROM utilisateurs u
+            LEFT JOIN roles r ON r.id_role = u.id_role
+            WHERE r.libelle = 'Medecin'
+            ORDER BY u.nom, u.prenom
+        ");
+        return $stmt->fetchAll();
+    }
+
     public function getPatientDoctors(int $patientId): array {
         $stmt = $this->db->prepare("
             SELECT DISTINCT um.*, r.libelle AS role_libelle,
@@ -98,15 +110,10 @@ class PatientModel {
     }
 
     public function addPrescriptionRequest(int $patientId, int $medicId, string $description): bool {
-        $stmt = $this->db->prepare("
-            INSERT INTO prescription_requests (id_patient, id_medecin, description, date_request, statut)
-            VALUES (:patient_id, :medecin_id, :description, NOW(), 'pending')
-        ");
-        return $stmt->execute([
-            ':patient_id' => $patientId,
-            ':medecin_id' => $medicId,
-            ':description' => $description
-        ]);
+        require_once __DIR__ . '/DemandeOrdonnanceModel.php';
+        $model = new DemandeOrdonnanceModel();
+        $id = $model->createDemande($patientId, $medicId, $description);
+        return $id > 0;
     }
 
     public function addContactMessage(int $patientId, string $sujet, string $message): bool {

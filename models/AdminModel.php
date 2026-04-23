@@ -82,7 +82,7 @@ class AdminModel {
         $sql = "
             SELECT u.id_PK, u.nom, u.prenom, u.mail, u.tel, u.adresse, u.id_role,
                    r.libelle AS role_libelle,
-                   COALESCE(COUNT(c.id_consultation), 0) AS nb_consultations
+                   COALESCE(COUNT(DISTINCT c.id_patient), 0) AS nb_patients
             FROM utilisateurs u
             LEFT JOIN roles r ON r.id_role = u.id_role
             LEFT JOIN consultation c ON c.id_medecin = u.id_PK
@@ -117,13 +117,13 @@ class AdminModel {
         $sql = "
             SELECT u.id_PK, u.nom, u.prenom, u.mail, u.id_role,
                    r.libelle AS role_name,
-                   COALESCE(COUNT(c.id_consultation), 0) AS nb_consultations
+                   COALESCE(COUNT(DISTINCT c.id_patient), 0) AS nb_patients
             FROM utilisateurs u
             LEFT JOIN roles r ON r.id_role = u.id_role
             LEFT JOIN consultation c ON c.id_medecin = u.id_PK
             WHERE u.id_role != 7
             GROUP BY u.id_PK
-            ORDER BY nb_consultations DESC, u.prenom, u.nom
+            ORDER BY nb_patients DESC, u.prenom, u.nom
             LIMIT :lim
         ";
         $stmt = $this->db->prepare($sql);
@@ -363,6 +363,68 @@ class AdminModel {
     public function deletePrescription(int $prescriptionId): bool {
         $stmt = $this->db->prepare("DELETE FROM ordonnance WHERE id_ordonnance = :id");
         return $stmt->execute([':id' => $prescriptionId]);
+    }
+
+    // ── Doctor's Patient Management ───────────────────────────────
+
+    /**
+     * Get all patients treated by a specific doctor.
+     */
+    public function getPatientsByDoctor(int $doctorId): array {
+        $sql = "
+            SELECT DISTINCT
+                   u.id_PK, u.nom, u.prenom, u.mail, u.tel, u.adresse,
+                   COALESCE(COUNT(c.id_consultation), 0) AS nb_consultations,
+                   MAX(c.date_consultation) AS last_consultation
+            FROM utilisateurs u
+            INNER JOIN consultation c ON c.id_patient = u.id_PK
+            WHERE c.id_medecin = :doctor_id AND u.id_role = 7
+            GROUP BY u.id_PK
+            ORDER BY u.prenom, u.nom
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':doctor_id' => $doctorId]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get all consultations of a patient for a specific doctor.
+     */
+    public function getPatientConsultations(int $patientId, int $doctorId): array {
+        $sql = "
+            SELECT c.id_consultation,
+                   c.date_consultation, c.type_consultation, c.diagnostic,
+                   c.compte_rendu, c.tension_arterielle, c.rythme_cardiaque,
+                   c.poids, c.saturation_o2, c.antecedents, c.allergies,
+                   CASE
+                     WHEN c.compte_rendu IS NOT NULL AND c.compte_rendu != '' THEN 'Complétée'
+                     ELSE 'En attente'
+                   END AS statut
+            FROM consultation c
+            WHERE c.id_patient = :patient_id AND c.id_medecin = :doctor_id
+            ORDER BY c.date_consultation DESC
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':patient_id' => $patientId, ':doctor_id' => $doctorId]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get all prescriptions related to a patient's consultations with a specific doctor.
+     */
+    public function getPatientPrescriptions(int $patientId, int $doctorId): array {
+        $sql = "
+            SELECT o.id_ordonnance, o.numero_ordonnance, o.date_emission,
+                   o.medicaments, o.note_pharmacien, o.statut,
+                   c.id_consultation, c.type_consultation, c.date_consultation
+            FROM ordonnance o
+            INNER JOIN consultation c ON c.id_consultation = o.id_consultation
+            WHERE c.id_patient = :patient_id AND c.id_medecin = :doctor_id
+            ORDER BY o.date_emission DESC
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':patient_id' => $patientId, ':doctor_id' => $doctorId]);
+        return $stmt->fetchAll();
     }
 }
 

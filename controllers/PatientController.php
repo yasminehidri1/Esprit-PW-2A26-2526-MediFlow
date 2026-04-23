@@ -66,6 +66,12 @@ class PatientController {
         }
 
         try {
+            $allDoctors = $this->patientModel->getAllDoctors();
+        } catch (Exception $e) {
+            $allDoctors = [];
+        }
+
+        try {
             $vitals = $this->patientModel->getLatestVitals($this->patientId);
         } catch (Exception $e) {
             $vitals = null;

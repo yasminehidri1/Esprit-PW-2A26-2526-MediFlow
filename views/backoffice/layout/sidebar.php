@@ -37,8 +37,29 @@ function sidebarLink(string $label, string $icon, string $page, string $activePa
 
     <!-- Nav Links -->
     <nav class="flex-1 space-y-1">
-        <?= sidebarLink('Mes Patients',  'folder_shared', 'patients',            $activePage) ?>
-        <?= sidebarLink('Ordonnances',   'prescriptions', 'ordonnances_list',    $activePage) ?>
+        <?= sidebarLink('Mes Patients',  'folder_shared', 'patients',         $activePage) ?>
+        <?= sidebarLink('Ordonnances',   'prescriptions', 'ordonnances_list', $activePage) ?>
+        <?php
+        // Badge demandes en attente
+        $pendingCount = 0;
+        if (isset($medecinId)) {
+            require_once __DIR__ . '/../../../models/DemandeOrdonnanceModel.php';
+            $pendingCount = (new DemandeOrdonnanceModel())->countPendingByMedecin((int)$medecinId);
+        }
+        $isActive = ($activePage === 'demandes');
+        $base     = "flex items-center gap-3 px-4 py-3 font-inter text-sm font-medium transition-all";
+        $cls      = $isActive
+            ? "{$base} bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 rounded-lg shadow-sm border-l-4 border-teal-500"
+            : "{$base} text-slate-600 dark:text-slate-400 hover:translate-x-1 hover:bg-white/50 rounded-lg";
+        $fillStyle = $isActive ? "font-variation-settings:'FILL' 1;" : '';
+        echo "<a class=\"{$cls}\" href=\"index.php?page=demandes\">
+                <span class=\"material-symbols-outlined\" style=\"{$fillStyle}\">assignment</span>
+                <span class=\"flex-1\">Demandes d'ordonnance</span>"
+            . ($pendingCount > 0
+                ? "<span class=\"ml-auto bg-amber-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center\">{$pendingCount}</span>"
+                : '')
+            . "</a>";
+        ?>
     </nav>
 
     <!-- Bottom Actions -->

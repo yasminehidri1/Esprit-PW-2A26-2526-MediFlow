@@ -1,0 +1,18 @@
+[
+    {
+        "id_demande": 1,
+        "id_patient": 1,
+        "id_medecin": 2,
+        "description": "wfeeekhgub",
+        "statut": "traitee",
+        "created_at": "2026-04-21 21:34:16"
+    },
+    {
+        "id_demande": 2,
+        "id_patient": 1,
+        "id_medecin": 2,
+        "description": "[NORMALE] hhhhhhhhhh",
+        "statut": "en_attente",
+        "created_at": "2026-04-23 13:54:27"
+    }
+]

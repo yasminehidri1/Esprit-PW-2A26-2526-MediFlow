@@ -308,9 +308,9 @@
                     </div>
                   <?php endif; ?>
                 </div>
-                <button id="btnNouvelleOrdonnance" class="w-full mt-6 py-3 border border-tertiary/20 text-tertiary text-sm font-bold rounded-xl hover:bg-tertiary/5 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                <button id="btndemandeOrdonnance" class="w-full mt-6 py-3 border border-tertiary/20 text-tertiary text-sm font-bold rounded-xl hover:bg-tertiary/5 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                   <span class="material-symbols-outlined text-lg">history_edu</span>
-                  Nouvelle Ordonnance
+                  demande Ordonnance
                 </button>
               </div>
 
@@ -414,40 +414,149 @@
       </div>
     </div>
 
-    <!-- MODAL NOUVELLE ORDONNANCE -->
-    <div id="modalNouvelleOrdonnance" class="hidden fixed inset-0 z-50 overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen px-4 py-6 bg-black/50 backdrop-blur-sm">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl p-8 space-y-6 max-h-96 overflow-y-auto">
-          <div class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-slate-900 pb-4">
-            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Demander une Nouvelle Ordonnance</h3>
-            <button onclick="closeModal('modalNouvelleOrdonnance')" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
-          </div>
-          <form id="formNouvelleOrdonnance" class="space-y-4">
-            <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-2">Sélectionner un Médecin</label>
-              <select id="ord_medecin" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-tertiary focus:border-transparent transition-all" required>
-                <option value="">-- Sélectionner un médecin --</option>
-                <?php if (!empty($doctors)): ?>
-                  <?php foreach ($doctors as $doctor): ?>
-                  <option value="<?php echo htmlspecialchars($doctor['id_PK']); ?>"><?php echo htmlspecialchars($doctor['prenom'] . ' ' . $doctor['nom']); ?></option>
-                  <?php endforeach; ?>
-                <?php endif; ?>
-              </select>
-              <span class="text-xs text-red-500 hidden" id="err_ord_medecin"></span>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-2">Description du Besoin</label>
-              <textarea id="ord_description" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-tertiary focus:border-transparent transition-all" placeholder="Décrivez votre besoin d'ordonnance..." maxlength="500" rows="4"></textarea>
-              <div class="flex justify-between items-center mt-1">
-                <span class="text-xs text-red-500 hidden" id="err_ord_description"></span>
-                <span class="text-xs text-slate-500"><span id="ord_desc_count">0</span>/500</span>
+    <!-- MODAL DEMANDE ORDONNANCE -->
+    <div id="modaldemandeOrdonnance" class="hidden fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen px-4 py-6 bg-black/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+
+          <!-- Header gradient -->
+          <div class="bg-gradient-to-r from-tertiary to-teal-500 px-8 py-6 flex items-center justify-between">
+            <div class="flex items-center gap-3 text-white">
+              <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <span class="material-symbols-outlined">history_edu</span>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold leading-none">Demande d'Ordonnance</h3>
+                <p class="text-teal-100 text-xs mt-0.5">Votre demande sera envoyée au médecin sélectionné</p>
               </div>
             </div>
-            <div class="flex gap-3 pt-4">
-              <button type="button" onclick="closeModal('modalNouvelleOrdonnance')" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-colors">Annuler</button>
-              <button type="submit" class="flex-1 px-4 py-2 bg-tertiary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-colors">Demander</button>
+            <button onclick="closeModal('modaldemandeOrdonnance')" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors">
+              <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+
+          <!-- Form body -->
+          <div class="px-8 py-6">
+
+            <!-- Success state (caché par défaut) -->
+            <div id="ord_success" class="hidden flex-col items-center text-center py-6 gap-4">
+              <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-4xl text-emerald-600" style="font-variation-settings:'FILL' 1">check_circle</span>
+              </div>
+              <div>
+                <p class="text-lg font-bold text-slate-800">Demande envoyée !</p>
+                <p class="text-sm text-slate-500 mt-1">Votre médecin recevra votre demande et vous répondra prochainement.</p>
+              </div>
+              <button onclick="closeModal('modaldemandeOrdonnance')" class="mt-2 px-8 py-2.5 bg-tertiary text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+                Fermer
+              </button>
             </div>
-          </form>
+
+            <!-- Form content -->
+            <form id="formdemandeOrdonnance" class="space-y-5">
+
+              <!-- Sélection médecin -->
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                  Médecin destinataire <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">stethoscope</span>
+                  <select id="ord_medecin"
+                          class="w-full pl-10 pr-10 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all appearance-none bg-white"
+                          required>
+                    <option value="">— Sélectionner un médecin —</option>
+                    <?php $liste = !empty($allDoctors) ? $allDoctors : $doctors; ?>
+                    <?php foreach ($liste as $doctor): ?>
+                    <option value="<?php echo (int)$doctor['id_PK']; ?>">
+                      Dr. <?php echo htmlspecialchars($doctor['prenom'] . ' ' . $doctor['nom']); ?>
+                      <?php if (!empty($doctor['role_libelle'])): ?>
+                        — <?php echo htmlspecialchars($doctor['role_libelle']); ?>
+                      <?php endif; ?>
+                    </option>
+                    <?php endforeach; ?>
+                  </select>
+                  <span id="ord_medecin_icon" class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-lg pointer-events-none text-slate-400"></span>
+                </div>
+                <p id="err_ord_medecin" class="hidden text-xs text-red-500 mt-1 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm">error</span>
+                  <span id="err_ord_medecin_text"></span>
+                </p>
+              </div>
+
+              <!-- Niveau d'urgence -->
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Niveau d'urgence</label>
+                <div class="flex gap-2" id="urgence_chips">
+                  <button type="button" data-value="normale"
+                          class="urgence-chip flex-1 py-2 px-3 rounded-xl border-2 text-xs font-bold transition-all border-emerald-200 text-emerald-700 bg-emerald-50 ring-2 ring-emerald-300">
+                    <span class="material-symbols-outlined text-sm block mx-auto mb-0.5">check_circle</span>
+                    Normale
+                  </button>
+                  <button type="button" data-value="urgent"
+                          class="urgence-chip flex-1 py-2 px-3 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 text-slate-500 bg-white hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50">
+                    <span class="material-symbols-outlined text-sm block mx-auto mb-0.5">schedule</span>
+                    Urgent
+                  </button>
+                  <button type="button" data-value="tres_urgent"
+                          class="urgence-chip flex-1 py-2 px-3 rounded-xl border-2 text-xs font-bold transition-all border-slate-200 text-slate-500 bg-white hover:border-red-300 hover:text-red-600 hover:bg-red-50">
+                    <span class="material-symbols-outlined text-sm block mx-auto mb-0.5">emergency</span>
+                    Très urgent
+                  </button>
+                </div>
+                <input type="hidden" id="ord_urgence" value="normale"/>
+              </div>
+
+              <!-- Description -->
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                  Description du besoin <span class="text-red-500">*</span>
+                  <span class="text-xs font-normal text-slate-400 ml-1">(10 à 500 caractères)</span>
+                </label>
+                <div class="relative">
+                  <textarea id="ord_description"
+                            class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all resize-none"
+                            placeholder="Ex : Renouvellement de mon traitement Amlodipine 5mg, ordonnance expirée depuis le 15 avril..."
+                            maxlength="500" rows="4"></textarea>
+                  <span id="ord_desc_icon" class="material-symbols-outlined absolute right-3 top-3 text-lg text-slate-300"></span>
+                </div>
+
+                <!-- Barre de progression -->
+                <div class="mt-2 space-y-1">
+                  <div class="flex justify-between items-center">
+                    <p id="err_ord_description" class="hidden text-xs text-red-500 flex items-center gap-1">
+                      <span class="material-symbols-outlined text-sm">error</span>
+                      <span id="err_ord_description_text"></span>
+                    </p>
+                    <p id="ok_ord_description" class="hidden text-xs text-emerald-600 flex items-center gap-1">
+                      <span class="material-symbols-outlined text-sm">check_circle</span>
+                      Description valide
+                    </p>
+                    <span class="text-xs font-semibold ml-auto" id="ord_desc_count_label">
+                      <span id="ord_desc_count">0</span><span class="text-slate-400">/500</span>
+                    </span>
+                  </div>
+                  <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div id="ord_desc_bar" class="h-full rounded-full transition-all duration-200 bg-slate-300" style="width:0%"></div>
+                  </div>
+                  <p class="text-[10px] text-slate-400">Minimum requis : <span id="ord_min_indicator" class="font-bold text-slate-500">0/10 caractères</span></p>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('modaldemandeOrdonnance')"
+                        class="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors">
+                  Annuler
+                </button>
+                <button type="submit" id="ord_submit_btn" disabled
+                        class="flex-1 px-4 py-3 bg-tertiary text-white rounded-xl font-semibold text-sm transition-all opacity-40 cursor-not-allowed flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-sm" id="ord_submit_icon">send</span>
+                  <span id="ord_submit_label">Envoyer la demande</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -566,30 +675,97 @@
         }
       });
 
-      document.getElementById('ord_medecin')?.addEventListener('change', (e) => {
-        const err = VALIDATORS.medecin(e.target.value);
-        const errEl = document.getElementById('err_ord_medecin');
-        if (err) {
-          e.target.classList.add('border-red-500', 'ring-red-500');
-          errEl.textContent = err;
-          errEl.classList.remove('hidden');
+      // ── Demande Ordonnance : validation temps réel ──────────────
+
+      function setFieldState(inputEl, iconEl, errWrapEl, errTextEl, okEl, isValid, errMsg) {
+        inputEl.classList.remove('border-slate-200','border-red-400','border-emerald-400');
+        if (isValid === null) {
+          inputEl.classList.add('border-slate-200');
+          if (iconEl) iconEl.textContent = '';
+          if (errWrapEl) errWrapEl.classList.add('hidden');
+          if (okEl) okEl.classList.add('hidden');
+        } else if (isValid) {
+          inputEl.classList.add('border-emerald-400');
+          if (iconEl) { iconEl.textContent = 'check_circle'; iconEl.className = iconEl.className.replace(/text-(red|slate)-\w+/g,'') + ' text-emerald-500'; }
+          if (errWrapEl) errWrapEl.classList.add('hidden');
+          if (okEl) okEl.classList.remove('hidden');
         } else {
-          e.target.classList.remove('border-red-500', 'ring-red-500');
-          e.target.classList.add('border-green-500', 'ring-green-500');
-          errEl.classList.add('hidden');
+          inputEl.classList.add('border-red-400');
+          if (iconEl) { iconEl.textContent = 'cancel'; iconEl.className = iconEl.className.replace(/text-(emerald|slate)-\w+/g,'') + ' text-red-400'; }
+          if (errWrapEl) { errWrapEl.classList.remove('hidden'); if (errTextEl) errTextEl.textContent = errMsg; }
+          if (okEl) okEl.classList.add('hidden');
         }
+      }
+
+      function validateOrdForm() {
+        const medecinOk = !!document.getElementById('ord_medecin').value;
+        const descLen   = document.getElementById('ord_description').value.trim().length;
+        const descOk    = descLen >= 10 && descLen <= 500;
+        const btn       = document.getElementById('ord_submit_btn');
+        if (medecinOk && descOk) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-40','cursor-not-allowed');
+          btn.classList.add('hover:opacity-90','cursor-pointer');
+        } else {
+          btn.disabled = true;
+          btn.classList.add('opacity-40','cursor-not-allowed');
+          btn.classList.remove('hover:opacity-90','cursor-pointer');
+        }
+      }
+
+      document.getElementById('ord_medecin')?.addEventListener('change', (e) => {
+        const isValid = !!e.target.value;
+        setFieldState(
+          e.target,
+          document.getElementById('ord_medecin_icon'),
+          document.getElementById('err_ord_medecin'),
+          document.getElementById('err_ord_medecin_text'),
+          null,
+          isValid ? true : (e.target.value === '' ? null : false),
+          'Veuillez sélectionner un médecin'
+        );
+        validateOrdForm();
       });
 
       document.getElementById('ord_description')?.addEventListener('input', (e) => {
-        document.getElementById('ord_desc_count').textContent = e.target.value.length;
-        const err = e.target.value.length > 0 && e.target.value.length < 10 ? 'Au minimum 10 caractères' : '';
-        const errEl = document.getElementById('err_ord_description');
-        if (err) {
-          errEl.textContent = err;
-          errEl.classList.remove('hidden');
+        const len  = e.target.value.length;
+        const trim = e.target.value.trim().length;
+
+        // Compteur
+        document.getElementById('ord_desc_count').textContent = len;
+        document.getElementById('ord_min_indicator').textContent = Math.min(trim, 10) + '/10 caractères';
+
+        // Barre de progression
+        const bar   = document.getElementById('ord_desc_bar');
+        const pct   = Math.min(len / 500 * 100, 100);
+        bar.style.width = pct + '%';
+        bar.className = bar.className.replace(/bg-\w+-\d+/g, '');
+        if (len === 0)       bar.classList.add('bg-slate-300');
+        else if (pct < 40)   bar.classList.add('bg-emerald-400');
+        else if (pct < 80)   bar.classList.add('bg-amber-400');
+        else                 bar.classList.add('bg-red-400');
+
+        // Couleur du compteur
+        const label = document.getElementById('ord_desc_count_label');
+        label.className = label.className.replace(/text-\w+-\d+/g,'');
+        if (len > 450) label.classList.add('text-red-500');
+        else if (len > 350) label.classList.add('text-amber-500');
+        else label.classList.add('text-slate-600');
+
+        // Validation
+        const errWrap = document.getElementById('err_ord_description');
+        const errText = document.getElementById('err_ord_description_text');
+        const okEl    = document.getElementById('ok_ord_description');
+        const icon    = document.getElementById('ord_desc_icon');
+
+        if (len === 0) {
+          setFieldState(e.target, icon, errWrap, errText, okEl, null, '');
+        } else if (trim < 10) {
+          setFieldState(e.target, icon, errWrap, errText, okEl, false, 'Minimum 10 caractères requis (' + trim + '/10)');
         } else {
-          errEl.classList.add('hidden');
+          setFieldState(e.target, icon, errWrap, errText, okEl, true, '');
         }
+        validateOrdForm();
       });
 
       document.getElementById('contact_sujet')?.addEventListener('input', (e) => {
@@ -632,7 +808,7 @@
 
       // Button listeners
       document.getElementById('btnModifierProfil')?.addEventListener('click', () => openModal('modalModifierProfil'));
-      document.getElementById('btnNouvelleOrdonnance')?.addEventListener('click', () => openModal('modalNouvelleOrdonnance'));
+      document.getElementById('btndemandeOrdonnance')?.addEventListener('click', () => openModal('modaldemandeOrdonnance'));
       document.getElementById('btnContacterEquipe')?.addEventListener('click', () => openModal('modalContacterEquipe'));
 
       // Form submissions
@@ -670,39 +846,97 @@
         }
       });
 
-      document.getElementById('formNouvelleOrdonnance')?.addEventListener('submit', async (e) => {
+      // ── Urgence chips ─────────────────────────────────────────────
+      const chipStyles = {
+        normale:     { active: 'border-emerald-300 text-emerald-700 bg-emerald-50 ring-2 ring-emerald-200', inactive: 'border-slate-200 text-slate-500 bg-white hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50' },
+        urgent:      { active: 'border-amber-300 text-amber-700 bg-amber-50 ring-2 ring-amber-200',         inactive: 'border-slate-200 text-slate-500 bg-white hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50' },
+        tres_urgent: { active: 'border-red-300 text-red-700 bg-red-50 ring-2 ring-red-200',                 inactive: 'border-slate-200 text-slate-500 bg-white hover:border-red-300 hover:text-red-600 hover:bg-red-50' },
+      };
+
+      document.querySelectorAll('.urgence-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const val = chip.dataset.value;
+          document.getElementById('ord_urgence').value = val;
+          document.querySelectorAll('.urgence-chip').forEach(c => {
+            const cv = c.dataset.value;
+            c.className = c.className.replace(/border-\S+|text-\S+|bg-\S+|ring-\S+/g, '').trim();
+            const style = cv === val ? chipStyles[cv].active : chipStyles[cv].inactive;
+            c.className += ' urgence-chip flex-1 py-2 px-3 rounded-xl border-2 text-xs font-bold transition-all ' + style;
+          });
+        });
+      });
+
+      // ── Soumission demande ordonnance ─────────────────────────────
+      document.getElementById('formdemandeOrdonnance')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const medecin_id = document.getElementById('ord_medecin').value;
-        const description = document.getElementById('ord_description').value;
+        const medecin_id  = document.getElementById('ord_medecin').value;
+        const description = document.getElementById('ord_description').value.trim();
+        const urgence     = document.getElementById('ord_urgence').value;
 
-        if (!medecin_id) {
-          alert('Sélectionnez un médecin');
-          return;
-        }
+        // Sécurité double
+        if (!medecin_id || description.length < 10) return;
 
-        if (!description || description.length < 10) {
-          alert('Veuillez décrire votre besoin (minimum 10 caractères)');
-          return;
-        }
+        // État chargement
+        const btn   = document.getElementById('ord_submit_btn');
+        const icon  = document.getElementById('ord_submit_icon');
+        const label = document.getElementById('ord_submit_label');
+        btn.disabled = true;
+        icon.textContent  = 'hourglass_top';
+        label.textContent = 'Envoi en cours…';
 
         try {
           const response = await fetch('index.php?page=patient&action=request-prescription', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ medecin_id, description })
+            body: JSON.stringify({ medecin_id, description: '[' + urgence.toUpperCase() + '] ' + description })
           });
           const result = await response.json();
+
           if (result.success) {
-            alert(result.message);
-            closeModal('modalNouvelleOrdonnance');
-            document.getElementById('formNouvelleOrdonnance').reset();
+            // Afficher l'état succès dans le modal
+            document.getElementById('formdemandeOrdonnance').classList.add('hidden');
+            const successEl = document.getElementById('ord_success');
+            successEl.classList.remove('hidden');
+            successEl.classList.add('flex');
           } else {
-            alert('Erreur: ' + (result.error || 'Une erreur est survenue'));
+            icon.textContent  = 'send';
+            label.textContent = 'Envoyer la demande';
+            btn.disabled = false;
+            alert('Erreur : ' + (result.error || 'Une erreur est survenue'));
           }
         } catch (err) {
+          icon.textContent  = 'send';
+          label.textContent = 'Envoyer la demande';
+          btn.disabled = false;
           alert('Erreur de connexion');
         }
       });
+
+      // Réinitialiser le modal à la fermeture
+      const origCloseModal = window.closeModal;
+      window.closeModal = function(id) {
+        if (id === 'modaldemandeOrdonnance') {
+          document.getElementById('formdemandeOrdonnance').classList.remove('hidden');
+          document.getElementById('ord_success').classList.add('hidden');
+          document.getElementById('ord_success').classList.remove('flex');
+          document.getElementById('formdemandeOrdonnance').reset();
+          document.getElementById('ord_desc_bar').style.width = '0%';
+          document.getElementById('ord_desc_count').textContent = '0';
+          document.getElementById('ord_min_indicator').textContent = '0/10 caractères';
+          document.getElementById('ord_submit_btn').disabled = true;
+          document.getElementById('ord_submit_btn').classList.add('opacity-40','cursor-not-allowed');
+          document.getElementById('ord_submit_icon').textContent = 'send';
+          document.getElementById('ord_submit_label').textContent = 'Envoyer la demande';
+          // Remettre le chip "normale" actif
+          document.getElementById('ord_urgence').value = 'normale';
+          document.querySelectorAll('.urgence-chip').forEach(c => {
+            const cv = c.dataset.value;
+            c.className = 'urgence-chip flex-1 py-2 px-3 rounded-xl border-2 text-xs font-bold transition-all '
+              + (cv === 'normale' ? chipStyles.normale.active : chipStyles[cv].inactive);
+          });
+        }
+        document.getElementById(id).classList.add('hidden');
+      };
 
       document.getElementById('formContacterEquipe')?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -756,7 +990,7 @@
       document.addEventListener('click', (e) => {
         if (e.target.classList.contains('fixed')) {
           if (e.target.id === 'modalModifierProfil') closeModal('modalModifierProfil');
-          if (e.target.id === 'modalNouvelleOrdonnance') closeModal('modalNouvelleOrdonnance');
+          if (e.target.id === 'modaldemandeOrdonnance') closeModal('modaldemandeOrdonnance');
           if (e.target.id === 'modalContacterEquipe') closeModal('modalContacterEquipe');
         }
       });

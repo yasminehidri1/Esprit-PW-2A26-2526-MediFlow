@@ -25,16 +25,6 @@
       <span class="material-symbols-outlined">medical_services</span>
       Doctors
     </a>
-
-    <a class="flex items-center gap-3 px-4 py-3 <?php echo (($_GET['action'] ?? '') === 'consultations') ? 'text-blue-700 dark:text-blue-300 font-bold bg-white dark:bg-slate-900 rounded-lg shadow-sm border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 hover:translate-x-1'; ?> transition-transform duration-200" href="index.php?page=admin&action=consultations">
-      <span class="material-symbols-outlined">event_note</span>
-      Consultations
-    </a>
-
-    <a class="flex items-center gap-3 px-4 py-3 <?php echo (($_GET['action'] ?? '') === 'prescriptions') ? 'text-blue-700 dark:text-blue-300 font-bold bg-white dark:bg-slate-900 rounded-lg shadow-sm border-l-4 border-blue-600' : 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 hover:translate-x-1'; ?> transition-transform duration-200" href="index.php?page=admin&action=prescriptions">
-      <span class="material-symbols-outlined">description</span>
-      Prescriptions
-    </a>
   </nav>
 
   <div class="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800 space-y-1">

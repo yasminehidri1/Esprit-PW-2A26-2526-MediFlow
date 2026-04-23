@@ -46,6 +46,21 @@ match (true) {
         (new AdminController())->doctorsList();
     })(),
 
+    $page === 'admin' && $action === 'doctor_patients' => (function () {
+        require_once __DIR__ . '/controllers/AdminController.php';
+        (new AdminController())->viewDoctorPatients();
+    })(),
+
+    $page === 'admin' && $action === 'get_doctor_patients_ajax' => (function () {
+        require_once __DIR__ . '/controllers/AdminController.php';
+        (new AdminController())->getDoctorPatientsAjax();
+    })(),
+
+    $page === 'admin' && $action === 'doctor_patient_details_ajax' => (function () {
+        require_once __DIR__ . '/controllers/AdminController.php';
+        (new AdminController())->getDoctorPatientDetailsAjax();
+    })(),
+
     $page === 'admin' && $action === 'edit_doctor' => (function () {
         require_once __DIR__ . '/controllers/AdminController.php';
         (new AdminController())->editDoctor();
@@ -54,41 +69,6 @@ match (true) {
     $page === 'admin' && $action === 'delete_doctor' => (function () {
         require_once __DIR__ . '/controllers/AdminController.php';
         (new AdminController())->deleteDoctor();
-    })(),
-
-    $page === 'admin' && $action === 'consultations' => (function () {
-        require_once __DIR__ . '/controllers/AdminController.php';
-        (new AdminController())->consultationsList();
-    })(),
-
-    $page === 'admin' && $action === 'view_consultation' => (function () {
-        require_once __DIR__ . '/controllers/AdminController.php';
-        (new AdminController())->viewConsultation();
-    })(),
-
-    $page === 'admin' && $action === 'delete_consultation' => (function () {
-        require_once __DIR__ . '/controllers/AdminController.php';
-        (new AdminController())->deleteConsultation();
-    })(),
-
-    $page === 'admin' && $action === 'prescriptions' => (function () {
-        require_once __DIR__ . '/controllers/AdminController.php';
-        (new AdminController())->prescriptionsList();
-    })(),
-
-    $page === 'admin' && $action === 'view_prescription' => (function () {
-        require_once __DIR__ . '/controllers/AdminController.php';
-        (new AdminController())->viewPrescription();
-    })(),
-
-    $page === 'admin' && $action === 'update_prescription_status' => (function () {
-        require_once __DIR__ . '/controllers/AdminController.php';
-        (new AdminController())->updatePrescriptionStatus();
-    })(),
-
-    $page === 'admin' && $action === 'delete_prescription' => (function () {
-        require_once __DIR__ . '/controllers/AdminController.php';
-        (new AdminController())->deletePrescription();
     })(),
 
     // ── Patient list ──────────────────────────────────────────
@@ -175,6 +155,17 @@ match (true) {
     $page === 'patient' && $action === 'export-pdf' => (function () {
         require_once __DIR__ . '/controllers/PatientController.php';
         (new PatientController())->exportPDF();
+    })(),
+
+    // ── Demandes d'ordonnance ─────────────────────────────────
+    $page === 'demandes' && ($action === '' || $action === 'list' || $action === 'view') => (function () {
+        require_once __DIR__ . '/controllers/DemandeController.php';
+        (new DemandeController())->listDemandes();
+    })(),
+
+    $page === 'demandes' && $action === 'update_statut' => (function () {
+        require_once __DIR__ . '/controllers/DemandeController.php';
+        (new DemandeController())->updateStatut();
     })(),
 
     // ── Logout ────────────────────────────────────────────────
