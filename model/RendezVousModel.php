@@ -320,5 +320,122 @@ class RendezVousModel
         );
         $stmt->execute([':statut' => $statut, ':id' => $id]);
     }
+
+    // ============================================================
+    //  JOIN — RDV d'un médecin + ses blocages planning sur une semaine
+    //  Retourne les RDV enrichis avec les infos du médecin (utilisateurs)
+    //  Appelé par : planning-patient.php (vue complète d'un médecin)
+    // ============================================================
+    public function getRdvsAvecMedecin($medecin_id, $date_debut, $date_fin)
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                r.*,
+                u.nom       AS medecin_nom,
+                u.prenom    AS medecin_prenom,
+                u.mail      AS medecin_mail
+             FROM rendez_vous r
+             INNER JOIN utilisateurs u ON u.id_PK = r.medecin_id
+             WHERE r.medecin_id = :mid
+               AND r.date_rdv BETWEEN :debut AND :fin
+               AND r.statut != 'annule'
+             ORDER BY r.date_rdv ASC, r.heure_rdv ASC"
+        );
+        $stmt->execute([
+            ':mid'   => $medecin_id,
+            ':debut' => $date_debut,
+            ':fin'   => $date_fin,
+        ]);
+        return $stmt->fetchAll();
+    }
+
+    // ============================================================
+    //  JOIN — Blocages planning d'un médecin sur une semaine
+    //  Enrichis avec les infos du médecin (utilisateurs)
+    //  Appelé par : planning-patient.php
+    // ============================================================
+    public function getPlanningAvecMedecin($medecin_id, $date_debut, $date_fin)
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                p.*,
+                u.nom       AS medecin_nom,
+                u.prenom    AS medecin_prenom
+             FROM planning p
+             INNER JOIN utilisateurs u ON u.id_PK = p.medecin_id
+             WHERE p.medecin_id = :mid
+               AND DATE(p.date_debut) BETWEEN :debut AND :fin
+             ORDER BY p.date_debut ASC"
+        );
+        $stmt->execute([
+            ':mid'   => $medecin_id,
+            ':debut' => $date_debut,
+            ':fin'   => $date_fin,
+        ]);
+        return $stmt->fetchAll();
+    }
+
+    // ============================================================
+    //  JOIN — Vue admin : tous les RDV avec infos médecin + résumé planning
+    //  Retourne chaque RDV avec le nb de blocages du médecin ce jour-là
+    //  Appelé par : admin_dashboard (version enrichie future)
+    // ============================================================
+    public function getRdvsAvecInfosMedecin($filtre_statut = '', $filtre_medecin = 0, $recherche = '')
+    {
+        $conditions = ['1=1'];
+        $params     = [];
+
+        if ($filtre_statut && in_array($filtre_statut, ['en_attente','confirme','annule'])) {
+            $conditions[] = 'r.statut = :statut';
+            $params[':statut'] = $filtre_statut;
+        }
+        if ($filtre_medecin > 0) {
+            $conditions[] = 'r.medecin_id = :mid';
+            $params[':mid'] = $filtre_medecin;
+        }
+        if (!empty($recherche)) {
+            $conditions[] = "(r.patient_nom LIKE :rech OR r.patient_prenom LIKE :rech2 OR r.cin LIKE :rech3)";
+            $params[':rech']  = "%$recherche%";
+            $params[':rech2'] = "%$recherche%";
+            $params[':rech3'] = "%$recherche%";
+        }
+
+        $where = implode(' AND ', $conditions);
+
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                r.*,
+                u.nom    AS medecin_nom,
+                u.prenom AS medecin_prenom,
+                -- Nombre de blocages planning du médecin ce jour-là
+                (SELECT COUNT(*) FROM planning p
+                 WHERE p.medecin_id = r.medecin_id
+                   AND DATE(p.date_debut) = r.date_rdv) AS nb_blocages_jour
+             FROM rendez_vous r
+             INNER JOIN utilisateurs u ON u.id_PK = r.medecin_id
+             WHERE $where
+             ORDER BY r.medecin_id ASC, r.date_rdv ASC, r.heure_rdv ASC"
+        );
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+
+        // Grouper par médecin
+        $grouped = [];
+        foreach ($rows as $row) {
+            $mid = $row['medecin_id'];
+            if (!isset($grouped[$mid])) {
+                $grouped[$mid] = [
+                    'info' => [
+                        'id'     => $mid,
+                        'nom'    => $row['medecin_nom']    ?? 'Médecin #' . $mid,
+                        'prenom' => $row['medecin_prenom'] ?? '',
+                    ],
+                    'rdvs' => [],
+                ];
+            }
+            $grouped[$mid]['rdvs'][] = $row;
+        }
+        return $grouped;
+    }
 }
 ?>

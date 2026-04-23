@@ -7,9 +7,14 @@
 require_once __DIR__ . '/../../../config.php';
 
 // Récupération des infos médecin depuis l'URL
-$medecin_id  = isset($_GET['medecin_id'])  ? intval($_GET['medecin_id'])              : 0;
-$medecin_nom = isset($_GET['nom'])         ? htmlspecialchars(trim($_GET['nom']))     : '';
+$medecin_id  = isset($_GET['medecin_id'])  ? intval($_GET['medecin_id'])                  : 0;
+$medecin_nom = isset($_GET['nom'])         ? htmlspecialchars(trim($_GET['nom']))         : '';
 $medecin_spe = isset($_GET['specialite'])  ? htmlspecialchars(trim($_GET['specialite'])) : '';
+
+// Créneau pré-sélectionné (venant de planning-patient.php)
+$prefill_date  = isset($_GET['date_rdv'])  ? $_GET['date_rdv']  : '';
+$prefill_heure = isset($_GET['heure_rdv']) ? $_GET['heure_rdv'] : '';
+$depuis_planning = ($prefill_date !== '' && $prefill_heure !== '');
 
 // Si pas de médecin → retour annuaire
 if ($medecin_id === 0 || $medecin_nom === '') {
@@ -658,11 +663,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h2>Planification</h2>
           </div>
 
+          <?php if ($depuis_planning): ?>
+          <div style="display:flex;align-items:center;gap:10px;background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:12px 16px;margin-bottom:16px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="font-size:13px;font-weight:600;color:#15803d;">
+              Créneau sélectionné : <strong><?= date('d/m/Y', strtotime($prefill_date)) ?> à <?= htmlspecialchars($prefill_heure) ?></strong>
+              — <a href="planning-patient.php" style="color:#15803d;text-decoration:underline;">Modifier le créneau</a>
+            </span>
+          </div>
+          <?php endif; ?>
+
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Date du rendez-vous</label>
               <div class="input-wrapper">
-                <input class="form-input" type="date" name="date_rdv" required id="dateInput">
+                <input class="form-input" type="date" name="date_rdv" required id="dateInput"
+                       value="<?= htmlspecialchars($prefill_date) ?>"
+                       <?= $depuis_planning ? 'readonly style="background:#f0f4f8;cursor:not-allowed;border-color:#84f5e8;"' : '' ?>>
                 <span class="input-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 </span>
@@ -672,7 +689,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group">
               <label class="form-label">Heure</label>
               <div class="input-wrapper">
-                <input class="form-input" type="time" name="heure_rdv" required id="timeInput">
+                <input class="form-input" type="time" name="heure_rdv" required id="timeInput"
+                       value="<?= htmlspecialchars($prefill_heure) ?>"
+                       <?= $depuis_planning ? 'readonly style="background:#f0f4f8;cursor:not-allowed;border-color:#84f5e8;"' : '' ?>>
                 <span class="input-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </span>
@@ -904,7 +923,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         premierErreur.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-    
 
   });
 

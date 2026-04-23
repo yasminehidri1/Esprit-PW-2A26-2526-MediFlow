@@ -275,5 +275,18 @@ class RendezVousController
         }
         exit;
     }
+
+    // ============================================================
+    //  JOIN — Données planning patient :
+    //  RDV pris + blocages planning, enrichis avec infos médecin
+    //  Appelé par : planning-patient.php
+    // ============================================================
+    public function getPlanningPatientData($medecin_id, $date_debut, $date_fin)
+    {
+        return [
+            'rdvs'    => $this->model->getRdvsAvecMedecin($medecin_id, $date_debut, $date_fin),
+            'blocages' => $this->model->getPlanningAvecMedecin($medecin_id, $date_debut, $date_fin),
+        ];
+    }
 }
 ?>

@@ -1,31 +1,77 @@
 <?php
 // ============================================================
-//  admin_dashboard.php — View (administrateur)
-//  Affiche tous les RDV groupés par médecin
-//  À placer dans : view/backoffice/admin/
+//  admin.php — Vue administrateur
+//  Vue principale : liste des médecins avec nb de consultations
+//  Clic œil : modale avec liste des RDV du médecin
+//  À placer dans : view/backoffice/
 // ============================================================
 
-require_once __DIR__ . '/../../controller/RendezVousController.php';
+require_once __DIR__ . '/../../config.php';
 
-$controller = new RendezVousController();
+$pdo = config::getConnexion();
 
-// Filtres GET
-$filtre_statut  = isset($_GET['statut'])  && in_array($_GET['statut'], ['en_attente','confirme','annule'])
-                  ? $_GET['statut'] : '';
-$filtre_medecin = isset($_GET['medecin']) ? intval($_GET['medecin']) : 0;
-$recherche      = isset($_GET['q'])       ? trim($_GET['q'])         : '';
+// ---- Récupérer tous les médecins (id_role = 2) avec nb de RDV ----
+$stmt = $pdo->query(
+    "SELECT
+        u.id_PK,
+        u.nom,
+        u.prenom,
+        u.mail,
+        u.tel,
+        r.libelle        AS role,
+        COUNT(rv.id)     AS nb_consultations
+     FROM utilisateurs u
+     LEFT JOIN roles r        ON r.id_role    = u.id_role
+     LEFT JOIN rendez_vous rv ON rv.medecin_id = u.id_PK
+     WHERE u.id_role = 2
+     GROUP BY u.id_PK, u.nom, u.prenom, u.mail, u.tel, r.libelle
+     ORDER BY u.nom ASC"
+);
+$medecins = $stmt->fetchAll();
 
-// Données via Controller → Model
-$data         = $controller->getAdminDashboardData($filtre_statut, $filtre_medecin, $recherche);
-$rdvs_grouped = $data['rdvs_grouped'];
-$stats        = $data['stats'];
-$medecins     = $data['medecins'];
+// ---- Stats globales ----
+$stats = $pdo->query(
+    "SELECT
+        COUNT(*)                   AS total,
+        SUM(statut='confirme')     AS nb_confirmes,
+        SUM(statut='en_attente')   AS nb_attente,
+        SUM(statut='annule')       AS nb_annules,
+        COUNT(DISTINCT medecin_id) AS nb_medecins
+     FROM rendez_vous"
+)->fetch();
 
-// Total RDV affiché (après filtres)
-$total_affiche = 0;
-foreach ($rdvs_grouped as $groupe) {
-    $total_affiche += count($groupe['rdvs']);
+// ---- RDV de chaque médecin (pour la modale) ----
+// On les charge tous en PHP et on les passe en JSON au JS
+$stmt2 = $pdo->query(
+    "SELECT rv.*,
+            CONCAT(u.prenom,' ',u.nom) AS medecin_nom_complet
+     FROM rendez_vous rv
+     LEFT JOIN utilisateurs u ON u.id_PK = rv.medecin_id
+     ORDER BY rv.medecin_id ASC, rv.date_rdv ASC, rv.heure_rdv ASC"
+);
+$tous_rdvs = $stmt2->fetchAll();
+
+// Grouper par medecin_id en JSON pour le JS
+$rdvs_par_medecin = [];
+foreach ($tous_rdvs as $rdv) {
+    $mid = $rdv['medecin_id'];
+    if (!isset($rdvs_par_medecin[$mid])) $rdvs_par_medecin[$mid] = [];
+    $rdvs_par_medecin[$mid][] = [
+        'id'       => $rdv['id'],
+        'prenom'   => $rdv['patient_prenom'],
+        'nom'      => $rdv['patient_nom'],
+        'cin'      => $rdv['cin'],
+        'genre'    => $rdv['genre'],
+        'date'     => $rdv['date_rdv'],
+        'heure'    => substr($rdv['heure_rdv'], 0, 5),
+        'statut'   => $rdv['statut'],
+    ];
 }
+
+$nb_medecins = count($medecins);
+
+// Couleurs avatar (rotation)
+$avatar_colors = ['#2563eb','#0d9488','#7c3aed','#db2777','#ea580c','#16a34a','#dc2626'];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -42,7 +88,6 @@ foreach ($rdvs_grouped as $groupe) {
       --primary-dark:  #1565c0;
       --primary-light: #d6e3ff;
       --teal:          #005851;
-      --teal-light:    #84f5e8;
       --teal-bg:       rgba(0,88,81,0.10);
       --amber:         #b45309;
       --amber-bg:      #fef3c7;
@@ -70,17 +115,15 @@ foreach ($rdvs_grouped as $groupe) {
     .brand-logo { width:38px; height:38px; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     .brand-logo svg { width:20px; height:20px; fill:white; }
     .brand-text .name { font-family:'Manrope',sans-serif; font-weight:800; font-size:15px; color:#1e3a6e; display:block; line-height:1.1; }
-    .brand-text .sub { font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-muted); display:block; }
-
-    .sidebar-admin-badge { display:flex; align-items:center; gap:8px; padding:10px; background:linear-gradient(135deg,var(--primary-light),rgba(0,88,81,0.1)); border-radius:var(--r-md); margin-bottom:10px; border:1px solid rgba(0,77,153,0.15); }
-    .admin-icon { width:36px; height:36px; border-radius:var(--r-md); background:linear-gradient(135deg,var(--primary),var(--primary-dark)); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .admin-icon svg { width:18px; height:18px; fill:white; }
+    .brand-text .sub  { font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-muted); display:block; }
+    .sidebar-admin-badge { display:flex; align-items:center; gap:8px; padding:10px; background:linear-gradient(135deg,var(--primary-light),rgba(0,88,81,0.08)); border-radius:var(--r-md); margin-bottom:10px; border:1px solid rgba(0,77,153,0.12); }
+    .admin-icon { width:34px; height:34px; border-radius:var(--r-md); background:linear-gradient(135deg,var(--primary),var(--primary-dark)); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .admin-icon svg { width:16px; height:16px; fill:white; }
     .admin-label { font-family:'Manrope',sans-serif; font-weight:700; font-size:12px; color:var(--primary); display:block; }
     .admin-sub { font-size:10px; color:var(--text-muted); display:block; }
-
     .sidebar-nav { display:flex; flex-direction:column; gap:2px; flex:1; }
-    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--r-md); color:var(--text-muted); font-size:14px; font-weight:500; text-decoration:none; transition:all 0.15s; border-left:3px solid transparent; }
-    .nav-item svg { width:18px; height:18px; flex-shrink:0; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--r-md); color:var(--text-muted); font-size:13px; font-weight:500; text-decoration:none; transition:all 0.15s; border-left:3px solid transparent; }
+    .nav-item svg { width:17px; height:17px; flex-shrink:0; }
     .nav-item:hover { background:rgba(0,77,153,0.05); color:var(--primary); }
     .nav-item.active { background:var(--surface-low); color:var(--primary); font-weight:700; border-left-color:var(--teal); box-shadow:var(--shadow); }
     .sidebar-footer { padding-top:12px; border-top:1px solid var(--border); }
@@ -93,20 +136,13 @@ foreach ($rdvs_grouped as $groupe) {
     .topbar-left { display:flex; align-items:center; gap:12px; }
     .topbar-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:20px; background:linear-gradient(135deg,#1e3a6e,var(--primary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
     .topbar-tag { padding:3px 10px; background:var(--primary-light); color:var(--primary); border-radius:var(--r-full); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; }
-    .topbar-right { display:flex; align-items:center; gap:8px; }
 
-    /* Barre de recherche */
-    .search-bar { display:flex; align-items:center; background:var(--surface-low); border-radius:var(--r-full); padding:7px 14px; gap:7px; width:240px; border:1px solid var(--border); }
-    .search-bar svg { width:15px; height:15px; color:var(--text-muted); flex-shrink:0; }
-    .search-bar input { border:none; background:transparent; outline:none; font-size:13px; color:var(--text); width:100%; font-family:'Inter',sans-serif; }
-    .search-bar input::placeholder { color:#94a3b8; }
-
-    /* ===== CONTENU PAGE ===== */
+    /* ===== CONTENU ===== */
     .page-content { padding:24px 28px; flex:1; }
 
-    /* ===== STATS CARDS ===== */
+    /* ===== STATS ===== */
     .stats-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:28px; }
-    .stat-card { background:var(--surface); border-radius:var(--r-lg); padding:18px 16px; box-shadow:var(--shadow); border:1px solid transparent; transition:all 0.2s; }
+    .stat-card { background:var(--surface); border-radius:var(--r-lg); padding:18px 16px; box-shadow:var(--shadow); transition:all 0.2s; }
     .stat-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-hover); }
     .stat-icon { width:38px; height:38px; border-radius:var(--r-md); display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
     .stat-icon svg { width:19px; height:19px; }
@@ -118,52 +154,84 @@ foreach ($rdvs_grouped as $groupe) {
     .stat-value { font-family:'Manrope',sans-serif; font-size:28px; font-weight:800; line-height:1; margin-bottom:4px; }
     .stat-label { font-size:12px; color:var(--text-muted); font-weight:500; }
 
-    /* ===== FILTRES ===== */
-    .filters-bar { background:var(--surface); border-radius:var(--r-lg); padding:16px 20px; box-shadow:var(--shadow); display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:22px; }
-    .filter-label { font-size:13px; font-weight:600; color:var(--text-muted); white-space:nowrap; }
-    .filter-select { padding:7px 12px; border:1px solid var(--border); border-radius:var(--r-md); font-size:13px; font-family:'Inter',sans-serif; color:var(--text); background:var(--surface-low); outline:none; cursor:pointer; }
-    .filter-select:focus { border-color:var(--primary); }
-    .btn-filter { display:flex; align-items:center; gap:6px; padding:8px 16px; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; border:none; border-radius:var(--r-md); font-family:'Manrope',sans-serif; font-weight:700; font-size:13px; cursor:pointer; transition:all 0.15s; }
-    .btn-filter:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,77,153,0.3); }
-    .btn-filter svg { width:14px; height:14px; }
-    .btn-reset { padding:8px 14px; background:var(--surface-low); border:1px solid var(--border); border-radius:var(--r-md); font-size:13px; color:var(--text-muted); cursor:pointer; font-family:'Inter',sans-serif; transition:background 0.15s; text-decoration:none; display:flex; align-items:center; gap:5px; }
-    .btn-reset:hover { background:var(--border); color:var(--text); }
-    .filter-count { margin-left:auto; font-size:13px; color:var(--text-muted); white-space:nowrap; }
-    .filter-count strong { color:var(--primary); }
+    /* ===== SECTION TITRE ===== */
+    .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .section-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:17px; }
+    .section-count { font-size:13px; color:var(--text-muted); }
+    .section-count strong { color:var(--primary); }
 
-    /* ===== MESSAGES FLASH ===== */
-    .flash { padding:12px 18px; border-radius:var(--r-md); font-size:14px; font-weight:500; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
-    .flash svg { width:16px; height:16px; flex-shrink:0; }
-    .flash.succes { background:var(--green-bg); color:var(--green); }
-    .flash.erreur { background:var(--red-bg);   color:var(--red); }
+    /* ===== TABLE MÉDECINS ===== */
+    .doctors-table-wrap { background:var(--surface); border-radius:var(--r-xl); box-shadow:var(--shadow); overflow:hidden; }
+    .doctors-table { width:100%; border-collapse:collapse; }
+    .doctors-table thead { background:var(--surface-low); border-bottom:1px solid var(--border); }
+    .doctors-table th { padding:12px 20px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); white-space:nowrap; }
+    .doctors-table td { padding:16px 20px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .doctors-table tbody tr:last-child td { border-bottom:none; }
+    .doctors-table tbody tr { transition:background 0.15s; }
+    .doctors-table tbody tr:hover { background:rgba(0,77,153,0.02); }
 
-    /* ===== GROUPE MÉDECIN ===== */
-    .medecin-group { margin-bottom:28px; }
-    .medecin-header { display:flex; align-items:center; gap:14px; padding:14px 20px; background:var(--surface); border-radius:var(--r-lg) var(--r-lg) 0 0; border:1px solid var(--border); border-bottom:2px solid var(--primary); }
-    .medecin-avatar { width:44px; height:44px; border-radius:var(--r-full); background:linear-gradient(135deg,var(--primary),var(--primary-dark)); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:'Manrope',sans-serif; font-weight:800; font-size:16px; color:white; }
-    .medecin-name { font-family:'Manrope',sans-serif; font-weight:800; font-size:16px; color:var(--text); }
-    .medecin-spec { font-size:12px; color:var(--text-muted); margin-top:2px; }
-    .medecin-count { margin-left:auto; display:flex; align-items:center; gap:6px; }
-    .count-badge { padding:4px 12px; border-radius:var(--r-full); font-size:12px; font-weight:700; font-family:'Manrope',sans-serif; }
-    .count-badge.total   { background:var(--primary-light); color:var(--primary); }
-    .count-badge.attente { background:var(--amber-bg);      color:var(--amber); }
+    /* Cellule médecin */
+    .doc-cell { display:flex; align-items:center; gap:14px; }
+    .doc-avatar { width:42px; height:42px; border-radius:var(--r-full); display:flex; align-items:center; justify-content:center; font-family:'Manrope',sans-serif; font-weight:800; font-size:15px; color:white; flex-shrink:0; }
+    .doc-name  { font-weight:700; font-size:14px; }
+    .doc-id    { font-size:11px; color:var(--text-muted); margin-top:1px; }
 
-    /* ===== TABLE ===== */
-    .rdv-table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-top:none; border-radius:0 0 var(--r-lg) var(--r-lg); overflow:hidden; }
+    /* Email / Tel */
+    .cell-email { font-size:13px; color:var(--text-muted); }
+    .cell-tel   { font-size:13px; color:var(--text-muted); }
+
+    /* Role badge */
+    .role-badge { display:inline-block; padding:4px 12px; background:var(--primary-light); color:var(--primary); border-radius:var(--r-full); font-size:12px; font-weight:600; }
+
+    /* Consultations */
+    .consult-num { font-family:'Manrope',sans-serif; font-weight:800; font-size:16px; color:var(--primary); }
+    .consult-num.zero { color:var(--text-muted); font-weight:600; }
+
+    /* Bouton œil */
+    .btn-eye { width:36px; height:36px; border:none; background:transparent; border-radius:var(--r-md); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s; color:var(--text-muted); }
+    .btn-eye:hover { background:var(--primary-light); color:var(--primary); }
+    .btn-eye svg { width:18px; height:18px; }
+
+    /* ===== MODALE RDV ===== */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:300; align-items:flex-start; justify-content:center; padding:40px 16px; backdrop-filter:blur(4px); overflow-y:auto; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:var(--surface); border-radius:var(--r-xl); width:100%; max-width:820px; box-shadow:0 24px 60px rgba(0,0,0,0.2); animation:slideUp 0.22s ease; overflow:hidden; margin:auto; }
+    @keyframes slideUp { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
+    /* Header modale */
+    .modal-head { background:linear-gradient(135deg,#1e3a6e,var(--primary)); padding:22px 28px; display:flex; align-items:center; justify-content:space-between; }
+    .modal-head-left { display:flex; align-items:center; gap:14px; }
+    .modal-avatar { width:46px; height:46px; border-radius:var(--r-full); background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-family:'Manrope',sans-serif; font-weight:800; font-size:17px; color:white; flex-shrink:0; border:2px solid rgba(255,255,255,0.3); }
+    .modal-head-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:17px; color:white; }
+    .modal-head-sub { font-size:12px; color:rgba(255,255,255,0.7); margin-top:2px; }
+    .modal-close { width:32px; height:32px; border:none; background:rgba(255,255,255,0.15); border-radius:var(--r-sm); display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; transition:background 0.15s; }
+    .modal-close:hover { background:rgba(255,255,255,0.3); }
+    .modal-close svg { width:16px; height:16px; }
+
+    /* Corps modale */
+    .modal-body { padding:24px 28px; }
+
+    /* Table RDV dans la modale */
+    .rdv-table { width:100%; border-collapse:collapse; }
     .rdv-table thead { background:var(--surface-low); }
-    .rdv-table th { padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap; }
-    .rdv-table td { padding:13px 16px; font-size:14px; border-bottom:1px solid var(--border); vertical-align:middle; }
-    .rdv-table tr:last-child td { border-bottom:none; }
-    .rdv-table tbody tr { transition:background 0.15s; }
-    .rdv-table tbody tr:hover { background:rgba(0,77,153,0.03); }
+    .rdv-table th { padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); border-bottom:1px solid var(--border); }
+    .rdv-table td { padding:13px 16px; font-size:13px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .rdv-table tbody tr:last-child td { border-bottom:none; }
+    .rdv-table tbody tr:hover { background:rgba(0,77,153,0.02); }
 
-    /* Initiales patient */
-    .patient-cell { display:flex; align-items:center; gap:10px; }
-    .patient-init { width:36px; height:36px; border-radius:var(--r-md); display:flex; align-items:center; justify-content:center; font-family:'Manrope',sans-serif; font-weight:800; font-size:13px; flex-shrink:0; }
-    .patient-init.homme { background:var(--primary-light); color:var(--primary); }
-    .patient-init.femme { background:rgba(124,58,237,0.12); color:#7c3aed; }
-    .patient-name  { font-weight:600; font-size:14px; }
-    .patient-cin   { font-size:11px; color:var(--text-muted); margin-top:1px; }
+    /* Patient cell dans modale */
+    .pat-cell { display:flex; align-items:center; gap:10px; }
+    .pat-init { width:34px; height:34px; border-radius:var(--r-md); display:flex; align-items:center; justify-content:center; font-family:'Manrope',sans-serif; font-weight:800; font-size:12px; flex-shrink:0; }
+    .pat-init.homme { background:var(--primary-light); color:var(--primary); }
+    .pat-init.femme { background:rgba(124,58,237,0.12); color:#7c3aed; }
+    .pat-name { font-weight:600; font-size:13px; }
+    .pat-cin  { font-size:11px; color:var(--text-muted); }
+
+    /* Date / heure dans modale */
+    .date-cell { display:flex; align-items:center; gap:5px; color:var(--text); }
+    .date-cell svg { width:13px; height:13px; color:var(--text-muted); }
+    .heure-cell { display:flex; align-items:center; gap:5px; }
+    .heure-cell svg { width:13px; height:13px; color:var(--text-muted); }
 
     /* Badges statut */
     .badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:var(--r-full); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
@@ -175,35 +243,12 @@ foreach ($rdvs_grouped as $groupe) {
     .badge.annule     { background:var(--red-bg);   color:var(--red); }
     .badge.annule::before     { background:var(--red); }
 
-    /* Date / Heure */
-    .date-cell { display:flex; align-items:center; gap:6px; color:var(--text); font-weight:500; }
-    .date-cell svg { width:14px; height:14px; color:var(--text-muted); flex-shrink:0; }
-    .heure-cell { display:flex; align-items:center; gap:6px; color:var(--text); }
-    .heure-cell svg { width:14px; height:14px; color:var(--text-muted); flex-shrink:0; }
-
     /* Vide */
-    .empty-group { padding:32px; text-align:center; color:var(--text-muted); font-size:14px; background:var(--surface); border:1px solid var(--border); border-top:none; border-radius:0 0 var(--r-lg) var(--r-lg); }
-    .empty-main { padding:60px 20px; text-align:center; background:var(--surface); border-radius:var(--r-xl); box-shadow:var(--shadow); }
-    .empty-main svg { width:56px; height:56px; color:var(--border); margin-bottom:16px; }
-    .empty-main h3 { font-family:'Manrope',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; }
-    .empty-main p  { font-size:14px; color:var(--text-muted); }
+    .empty-rdv { padding:40px; text-align:center; color:var(--text-muted); }
+    .empty-rdv svg { width:40px; height:40px; color:var(--border); margin-bottom:10px; }
 
-    /* ===== TOGGLE GROUPES ===== */
-    .medecin-header { cursor:pointer; user-select:none; }
-    .toggle-icon { width:22px; height:22px; border-radius:var(--r-sm); background:var(--surface-low); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; transition:transform 0.2s; flex-shrink:0; }
-    .toggle-icon svg { width:12px; height:12px; color:var(--text-muted); transition:transform 0.2s; }
-    .medecin-group.collapsed .toggle-icon svg { transform:rotate(-90deg); }
-    .medecin-group.collapsed .rdv-table-wrapper { display:none; }
-
-    /* responsive */
-    @media (max-width:1100px) {
-      .stats-grid { grid-template-columns:repeat(3,1fr); }
-    }
-    @media (max-width:800px) {
-      .sidebar { display:none; }
-      .main { margin-left:0; }
-      .stats-grid { grid-template-columns:repeat(2,1fr); }
-    }
+    @media (max-width:1100px) { .stats-grid { grid-template-columns:repeat(3,1fr); } }
+    @media (max-width:800px)  { .sidebar { display:none; } .main { margin-left:0; } .stats-grid { grid-template-columns:repeat(2,1fr); } }
   </style>
 </head>
 <body>
@@ -219,7 +264,6 @@ foreach ($rdvs_grouped as $groupe) {
       <span class="sub">Pro Platform</span>
     </div>
   </div>
-
   <div class="sidebar-admin-badge">
     <div class="admin-icon">
       <svg viewBox="0 0 24 24"><path d="M12 1l3 6 7 1-5 5 1 7-6-3-6 3 1-7L2 8l7-1z"/></svg>
@@ -229,7 +273,6 @@ foreach ($rdvs_grouped as $groupe) {
       <span class="admin-sub">Accès complet</span>
     </div>
   </div>
-
   <nav class="sidebar-nav">
     <a href="#" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -248,7 +291,6 @@ foreach ($rdvs_grouped as $groupe) {
       Consulter RDV
     </a>
   </nav>
-
   <div class="sidebar-footer">
     <a href="#" class="nav-item" style="color:#ba1a1a;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -265,17 +307,6 @@ foreach ($rdvs_grouped as $groupe) {
     <div class="topbar-left">
       <span class="topbar-title">Tableau de bord</span>
       <span class="topbar-tag">Admin</span>
-    </div>
-    <div class="topbar-right">
-      <!-- Recherche rapide -->
-      <form method="GET" action="admin_dashboard.php" style="display:contents;">
-        <?php if ($filtre_statut):  ?><input type="hidden" name="statut"  value="<?= htmlspecialchars($filtre_statut) ?>"><?php endif; ?>
-        <?php if ($filtre_medecin): ?><input type="hidden" name="medecin" value="<?= $filtre_medecin ?>"><?php endif; ?>
-        <div class="search-bar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="searchLive" name="q" placeholder="Nom, prénom, CIN…" value="<?= htmlspecialchars($recherche) ?>" oninput="filterLive(this.value)">
-        </div>
-      </form>
     </div>
   </div>
 
@@ -315,205 +346,188 @@ foreach ($rdvs_grouped as $groupe) {
         <div class="stat-icon teal">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         </div>
-        <div class="stat-value"><?= intval($stats['nb_medecins'] ?? 0) ?></div>
-        <div class="stat-label">Médecins actifs</div>
+        <div class="stat-value"><?= $nb_medecins ?></div>
+        <div class="stat-label">Médecins</div>
       </div>
     </div>
 
-    <!-- FILTRES -->
-    <form method="GET" action="admin_dashboard.php">
-      <div class="filters-bar">
-        <span class="filter-label">Filtrer par :</span>
+    <!-- SECTION MÉDECINS -->
+    <div class="section-header">
+      <div class="section-title">Liste des Médecins</div>
+      <div class="section-count"><strong><?= $nb_medecins ?></strong> total</div>
+    </div>
 
-        <!-- Filtre statut -->
-        <select name="statut" class="filter-select">
-          <option value="">Tous les statuts</option>
-          <option value="en_attente" <?= $filtre_statut === 'en_attente' ? 'selected' : '' ?>>En attente</option>
-          <option value="confirme"   <?= $filtre_statut === 'confirme'   ? 'selected' : '' ?>>Confirmé</option>
-          <option value="annule"     <?= $filtre_statut === 'annule'     ? 'selected' : '' ?>>Annulé</option>
-        </select>
-
-        <!-- Filtre médecin -->
-        <select name="medecin" class="filter-select">
-          <option value="0">Tous les médecins</option>
-          <?php foreach ($medecins as $m): ?>
-          <option value="<?= $m['id'] ?>" <?= $filtre_medecin === $m['id'] ? 'selected' : '' ?>>
-            Dr. <?= htmlspecialchars($m['prenom'] . ' ' . $m['nom']) ?>
-          </option>
+    <div class="doctors-table-wrap">
+      <table class="doctors-table">
+        <thead>
+          <tr>
+            <th>Médecin</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Spécialité</th>
+            <th>Consultations</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($medecins as $i => $med):
+            $init   = strtoupper(substr($med['prenom'],0,1) . substr($med['nom'],0,1));
+            $color  = $avatar_colors[$i % count($avatar_colors)];
+            $id_fmt = 'DR-' . str_pad($med['id_PK'], 4, '0', STR_PAD_LEFT);
+            $nb     = intval($med['nb_consultations']);
+          ?>
+          <tr>
+            <!-- Médecin -->
+            <td>
+              <div class="doc-cell">
+                <div class="doc-avatar" style="background:<?= $color ?>;"><?= $init ?></div>
+                <div>
+                  <div class="doc-name"><?= htmlspecialchars($med['prenom'] . ' ' . $med['nom']) ?></div>
+                  <div class="doc-id">ID: #<?= $id_fmt ?></div>
+                </div>
+              </div>
+            </td>
+            <!-- Email -->
+            <td class="cell-email"><?= htmlspecialchars($med['mail']) ?></td>
+            <!-- Téléphone -->
+            <td class="cell-tel"><?= htmlspecialchars($med['tel'] ?? '—') ?></td>
+            <!-- Spécialité / Rôle -->
+            <td><span class="role-badge"><?= htmlspecialchars($med['role']) ?></span></td>
+            <!-- Nb consultations -->
+            <td>
+              <span class="consult-num <?= $nb === 0 ? 'zero' : '' ?>"><?= $nb ?></span>
+            </td>
+            <!-- Bouton œil -->
+            <td>
+              <button class="btn-eye"
+                      onclick="ouvrirRdvs(<?= $med['id_PK'] ?>, '<?= htmlspecialchars($med['prenom'].' '.$med['nom'], ENT_QUOTES) ?>', '<?= $color ?>', '<?= $init ?>')"
+                      title="Voir les rendez-vous">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </td>
+          </tr>
           <?php endforeach; ?>
-        </select>
-
-        <!-- Recherche -->
-        <input type="text" name="q" class="filter-select" placeholder="Nom, prénom, CIN…"
-               value="<?= htmlspecialchars($recherche) ?>" style="width:180px;">
-
-        <button type="submit" class="btn-filter">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          Rechercher
-        </button>
-
-        <?php if ($filtre_statut || $filtre_medecin || $recherche): ?>
-        <a href="admin_dashboard.php" class="btn-reset">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          Réinitialiser
-        </a>
-        <?php endif; ?>
-
-        <span class="filter-count"><strong><?= $total_affiche ?></strong> RDV affichés</span>
-      </div>
-    </form>
-
-    <!-- ===== LISTE PAR MÉDECIN ===== -->
-    <?php if (empty($rdvs_grouped)): ?>
-
-      <div class="empty-main">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <h3>Aucun rendez-vous trouvé</h3>
-        <p>Essayez de modifier vos filtres de recherche.</p>
-      </div>
-
-    <?php else: ?>
-
-      <?php foreach ($rdvs_grouped as $mid => $groupe):
-        $info     = $groupe['info'];
-        $rdvs     = $groupe['rdvs'];
-        $nb_total = count($rdvs);
-        $nb_att   = count(array_filter($rdvs, fn($r) => $r['statut'] === 'en_attente'));
-
-        // Initiales du médecin
-        $init_med = strtoupper(
-            substr($info['prenom'] ?? '', 0, 1) .
-            substr($info['nom']    ?? '', 0, 1)
-        ) ?: '#';
-      ?>
-
-      <div class="medecin-group" id="group-<?= $mid ?>">
-
-        <!-- En-tête médecin (cliquable pour replier) -->
-        <div class="medecin-header" onclick="toggleGroupe(<?= $mid ?>)">
-          <div class="medecin-avatar"><?= $init_med ?></div>
-          <div>
-            <div class="medecin-name">Dr. <?= htmlspecialchars($info['prenom'] . ' ' . $info['nom']) ?></div>
-          </div>
-          <div class="medecin-count">
-            <span class="count-badge total"><?= $nb_total ?> RDV</span>
-            <?php if ($nb_att > 0): ?>
-            <span class="count-badge attente"><?= $nb_att ?> en attente</span>
-            <?php endif; ?>
-          </div>
-          <div class="toggle-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-        </div>
-
-        <!-- Table des RDV -->
-        <div class="rdv-table-wrapper">
-          <?php if (empty($rdvs)): ?>
-            <div class="empty-group">Aucun rendez-vous pour ce médecin.</div>
-          <?php else: ?>
-          <table class="rdv-table">
-            <thead>
-              <tr>
-                <th>Patient</th>
-                <th>Genre</th>
-                <th>Date</th>
-                <th>Heure</th>
-                <th>Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($rdvs as $rdv):
-                $initiales = strtoupper(
-                    substr($rdv['patient_prenom'] ?? '', 0, 1) .
-                    substr($rdv['patient_nom']    ?? '', 0, 1)
-                );
-                $genre_class = ($rdv['genre'] ?? '') === 'femme' ? 'femme' : 'homme';
-
-                // Formatage date
-                $date_fr = '—';
-                if (!empty($rdv['date_rdv'])) {
-                    $jours_fr = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
-                    $mois_fr  = ['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-                    $ts       = strtotime($rdv['date_rdv']);
-                    $date_fr  = $jours_fr[date('N',$ts)-1] . ' ' . date('d',$ts) . ' ' . $mois_fr[(int)date('m',$ts)] . ' ' . date('Y',$ts);
-                }
-
-                $heure_fr  = !empty($rdv['heure_rdv'])  ? date('H:i', strtotime($rdv['heure_rdv'])) : '—';
-
-                $badge_labels = ['en_attente'=>'En attente','confirme'=>'Confirmé','annule'=>'Annulé'];
-                $badge_label  = $badge_labels[$rdv['statut']] ?? $rdv['statut'];
-
-              ?>
-              <tr class="rdv-row" data-patient="<?= strtolower($rdv['patient_prenom'].' '.$rdv['patient_nom'].' '.$rdv['cin']) ?>">
-                <!-- Patient -->
-                <td>
-                  <div class="patient-cell">
-                    <div class="patient-init <?= $genre_class ?>"><?= $initiales ?></div>
-                    <div>
-                      <div class="patient-name"><?= htmlspecialchars($rdv['patient_prenom'] . ' ' . $rdv['patient_nom']) ?></div>
-                      <div class="patient-cin">CIN : <?= htmlspecialchars($rdv['cin']) ?></div>
-                    </div>
-                  </div>
-                </td>
-                <!-- Genre -->
-                <td style="color:var(--text-muted);font-size:13px;"><?= ucfirst($rdv['genre'] ?? '—') ?></td>
-                <!-- Date -->
-                <td>
-                  <div class="date-cell">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    <?= $date_fr ?>
-                  </div>
-                </td>
-                <!-- Heure -->
-                <td>
-                  <div class="heure-cell">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    <?= $heure_fr ?>
-                  </div>
-                </td>
-                <!-- Badge statut -->
-                <td>
-                  <span class="badge <?= htmlspecialchars($rdv['statut']) ?>"><?= $badge_label ?></span>
-                </td>
-              </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-          <?php endif; ?>
-        </div><!-- /rdv-table-wrapper -->
-
-      </div><!-- /medecin-group -->
-
-      <?php endforeach; ?>
-
-    <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
 
   </div><!-- /page-content -->
 </div><!-- /main -->
 
+<!-- ===== MODALE LISTE RDV ===== -->
+<div class="modal-overlay" id="modalRdv">
+  <div class="modal-box">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-avatar" id="modalInit">--</div>
+        <div>
+          <div class="modal-head-title" id="modalNom">—</div>
+          <div class="modal-head-sub" id="modalSubtitle">Rendez-vous</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="fermerModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body" id="modalBody">
+      <!-- Rempli dynamiquement par JS -->
+    </div>
+
+  </div>
+</div>
+
+<!-- Données RDV en JSON pour le JS -->
 <script>
-// ---- Replier / déplier un groupe médecin ----
-function toggleGroupe(mid) {
-  const groupe = document.getElementById('group-' + mid);
-  if (groupe) groupe.classList.toggle('collapsed');
+const rdvsData = <?= json_encode($rdvs_par_medecin) ?>;
+
+const moisFr = ['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+const joursFr = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return joursFr[d.getDay()] + ' ' + String(d.getDate()).padStart(2,'0') + ' ' + moisFr[d.getMonth()+1] + ' ' + d.getFullYear();
 }
 
-// ---- Recherche live côté client ----
-function filterLive(q) {
-  q = q.toLowerCase();
-  document.querySelectorAll('.rdv-row').forEach(row => {
-    row.style.display = row.dataset.patient.includes(q) ? '' : 'none';
-  });
-  // Masquer les groupes entièrement vides après filtre
-  document.querySelectorAll('.medecin-group').forEach(groupe => {
-    const visible = groupe.querySelectorAll('.rdv-row:not([style*="none"])').length;
-    groupe.style.display = visible === 0 ? 'none' : '';
-  });
+function badgeHtml(statut) {
+  const labels = { en_attente:'En attente', confirme:'Confirmé', annule:'Annulé' };
+  return `<span class="badge ${statut}">${labels[statut] || statut}</span>`;
 }
 
-// Synchroniser la searchbar topbar avec filterLive
-document.getElementById('searchLive').addEventListener('input', function() {
-  filterLive(this.value);
+function ouvrirRdvs(mid, nom, color, init) {
+  document.getElementById('modalInit').textContent  = init;
+  document.getElementById('modalInit').style.background = color;
+  document.getElementById('modalNom').textContent   = 'Dr. ' + nom;
+
+  const rdvs = rdvsData[mid] || [];
+  document.getElementById('modalSubtitle').textContent =
+    rdvs.length + ' rendez-vous au total';
+
+  const body = document.getElementById('modalBody');
+
+  if (rdvs.length === 0) {
+    body.innerHTML = `
+      <div class="empty-rdv">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <p>Aucun rendez-vous pour ce médecin.</p>
+      </div>`;
+  } else {
+    let rows = rdvs.map(r => {
+      const init2 = (r.prenom[0] + r.nom[0]).toUpperCase();
+      const genreClass = r.genre === 'femme' ? 'femme' : 'homme';
+      return `
+        <tr>
+          <td>
+            <div class="pat-cell">
+              <div class="pat-init ${genreClass}">${init2}</div>
+              <div>
+                <div class="pat-name">${r.prenom} ${r.nom}</div>
+                <div class="pat-cin">CIN : ${r.cin}</div>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:13px;color:var(--text-muted);">${r.genre.charAt(0).toUpperCase()+r.genre.slice(1)}</td>
+          <td>
+            <div class="date-cell">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${formatDate(r.date)}
+            </div>
+          </td>
+          <td>
+            <div class="heure-cell">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${r.heure}
+            </div>
+          </td>
+          <td>${badgeHtml(r.statut)}</td>
+        </tr>`;
+    }).join('');
+
+    body.innerHTML = `
+      <table class="rdv-table">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Genre</th>
+            <th>Date</th>
+            <th>Heure</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  document.getElementById('modalRdv').classList.add('open');
+}
+
+function fermerModal() {
+  document.getElementById('modalRdv').classList.remove('open');
+}
+
+document.getElementById('modalRdv').addEventListener('click', function(e) {
+  if (e.target === this) fermerModal();
 });
 </script>
 </body>

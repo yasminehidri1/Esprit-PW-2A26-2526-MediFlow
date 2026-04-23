@@ -1,9 +1,9 @@
 <?php
-// ============================================================
+
 //  traitement-rdv.php — View (patient)
 //  Ce fichier ne fait PLUS de SQL directement
 //  Il appelle le Controller qui appelle le Model
-// ============================================================
+
 
 require_once __DIR__ . '/../../../controller/RendezVousController.php';
 
