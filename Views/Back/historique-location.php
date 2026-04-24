@@ -47,7 +47,7 @@ $today = date('Y-m-d');
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800;900&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/Mediflow/assets/css/style.css"/>
+  <link rel="stylesheet" href="/integration/assets/css/style.css"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#004d99","primary-fixed":"#d6e3ff","primary-container":"#1565c0","surface":"#f7f9fb","outline":"#727783","on-surface":"#191c1e"},fontFamily:{headline:["Manrope"],body:["Inter"]}}}}</script>
   <style>
@@ -248,21 +248,21 @@ $today = date('Y-m-d');
     <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Clinical Sanctuary</p>
   </div>
   <nav class="flex-1 flex flex-col space-y-2 px-4">
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-[#004d99] pl-4 py-3 rounded-xl transition-all duration-300" href="/Mediflow/dashboard">
+    <a class="flex items-center space-x-3 text-slate-500 hover:text-[#004d99] pl-4 py-3 rounded-xl transition-all duration-300" href="/integration/dashboard">
       <span class="material-symbols-outlined">dashboard</span><span class="font-medium">Dashboard</span>
     </a>
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-[#004d99] pl-4 py-3 rounded-xl transition-all duration-300" href="/Mediflow/equipements">
+    <a class="flex items-center space-x-3 text-slate-500 hover:text-[#004d99] pl-4 py-3 rounded-xl transition-all duration-300" href="/integration/equipements">
       <span class="material-symbols-outlined">medical_services</span><span class="font-medium">Gestion des équipements</span>
     </a>
-    <a class="flex items-center space-x-3 font-bold pl-4 py-3 rounded-xl" style="color:#004d99;background:linear-gradient(to right,#d6e3ff,rgba(214,227,255,.5));" href="/Mediflow/historique-location">
+    <a class="flex items-center space-x-3 font-bold pl-4 py-3 rounded-xl" style="color:#004d99;background:linear-gradient(to right,#d6e3ff,rgba(214,227,255,.5));" href="/integration/historique-location">
       <span class="material-symbols-outlined">history</span><span>Historique location</span>
     </a>
   </nav>
   <div class="px-4 border-t border-[#727783] pt-6 flex flex-col space-y-3">
-    <a href="/Mediflow/profile" class="flex items-center space-x-3 text-slate-500 hover:text-[#004d99] pl-4 py-3 rounded-xl transition-all duration-300">
+    <a href="/integration/profile" class="flex items-center space-x-3 text-slate-500 hover:text-[#004d99] pl-4 py-3 rounded-xl transition-all duration-300">
       <span class="material-symbols-outlined">account_circle</span><span class="font-medium">Mon profil</span>
     </a>
-    <a href="/Mediflow/logout" class="logout-btn">
+    <a href="/integration/logout" class="logout-btn">
       <span class="material-symbols-outlined logout-icon">logout</span><span>Déconnexion</span>
     </a>
   </div>
@@ -531,7 +531,7 @@ $today = date('Y-m-d');
 
 <div class="toast-container" style="position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:9999;"></div>
 <script>
-  const API_RES = '/Mediflow/equipment/api/reservations';
+  const API_RES = '/integration/equipment/api/reservations';
 
   /* ── Replier / Déplier un bloc patient ── */
   function toggleBloc(id) {

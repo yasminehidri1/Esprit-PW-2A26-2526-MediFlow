@@ -14,7 +14,7 @@
 <header class="site-nav-header">
     <nav class="site-nav">
         <div class="site-nav-inner">
-            <a href="/Mediflow/" class="site-brand" aria-label="MediFlow home">
+            <a href="/integration/" class="site-brand" aria-label="MediFlow home">
                 <img src="assets/images/logo.png" alt="MediFlow" class="site-logo" onerror="this.style.display='none'" />
                 <span class="site-brand-text">Medi<span class="brand-flow">Flow</span></span>
             </a>

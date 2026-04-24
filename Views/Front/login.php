@@ -6,7 +6,7 @@
 		<!-- Logo & Title -->
 		<div class="login-header" style="animation: fadeInDown 0.6s ease-out;">
 			<div class="login-logo-wrapper">
-				<a href="/Mediflow/" class="login-logo-link">
+				<a href="/integration/" class="login-logo-link">
 					<img src="assets/images/logo.png" alt="MediFlow" class="login-logo-image" onerror="this.style.display='none'" />
 					<span class="login-logo-text">Medi<span class="login-logo-accent">Flow</span></span>
 				</a>
@@ -93,7 +93,7 @@
 		<!-- Sign Up Section -->
 		<div class="login-divider"></div>
 		<p class="login-signup-prompt">
-			Pas encore de compte? <a href="/Mediflow/register" class="login-signup-link">S'inscrire</a>
+			Pas encore de compte? <a href="/integration/register" class="login-signup-link">S'inscrire</a>
 		</p>
 	</div>
 </section>

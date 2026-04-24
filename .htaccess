@@ -2,7 +2,7 @@
     RewriteEngine On
     
     # Set the base directory
-    RewriteBase /Mediflow/
+    RewriteBase /integration/
     
     # Don't rewrite if the request is for an existing file or directory
     RewriteCond %{REQUEST_FILENAME} !-f

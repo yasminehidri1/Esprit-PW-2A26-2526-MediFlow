@@ -17,7 +17,7 @@ function getBadgeLbl($s){ return ['en_cours'=>'En cours','termine'=>'Terminé','
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/Mediflow/assets/css/style.css"/>
+  <link rel="stylesheet" href="/integration/assets/css/style.css"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>
     tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#004d99","primary-fixed":"#d6e3ff","primary-container":"#1565c0","surface":"#f7f9fb","surface-container-low":"#f2f4f6","surface-dim":"#d8dadc","outline":"#727783","on-surface":"#191c1e","on-surface-variant":"#424752"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},fontFamily:{headline:["Manrope"],body:["Inter"]}}}}
@@ -84,22 +84,22 @@ function getBadgeLbl($s){ return ['en_cours'=>'En cours','termine'=>'Terminé','
     <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Soins de santé</p>
   </div>
   <nav class="flex-1 flex flex-col space-y-2 px-4">
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/Mediflow/dashboard">
+    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/integration/dashboard">
       <span class="material-symbols-outlined">dashboard</span><span class="font-medium">Dashboard</span>
     </a>
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/Mediflow/catalogue">
+    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/integration/catalogue">
       <span class="material-symbols-outlined">medical_services</span><span class="font-medium">Location d'équipements</span>
     </a>
     <!-- active -->
-    <a class="flex items-center space-x-3 text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 pl-4 py-3 rounded-xl transition-all duration-300 shadow-sm font-bold" href="/Mediflow/mes-reservations">
+    <a class="flex items-center space-x-3 text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 pl-4 py-3 rounded-xl transition-all duration-300 shadow-sm font-bold" href="/integration/mes-reservations">
       <span class="material-symbols-outlined">shopping_cart</span><span class="font-semibold">Mes réservations</span>
     </a>
   </nav>
   <div class="px-4 border-t border-outline pt-6 flex flex-col space-y-3">
-    <a href="/Mediflow/profile" class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300">
+    <a href="/integration/profile" class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300">
       <span class="material-symbols-outlined">account_circle</span><span class="font-medium">Mon profil</span>
     </a>
-    <a href="/Mediflow/logout" class="logout-btn">
+    <a href="/integration/logout" class="logout-btn">
       <span class="material-symbols-outlined logout-icon">logout</span><span>Déconnexion</span>
     </a>
   </div>
@@ -116,7 +116,7 @@ function getBadgeLbl($s){ return ['en_cours'=>'En cours','termine'=>'Terminé','
       <?php endif; ?>
     </div>
     <div class="flex items-center gap-4">
-      <a href="/Mediflow/catalogue" class="flex items-center gap-2 text-sm font-semibold text-primary bg-primary-fixed/60 hover:bg-primary-fixed px-4 py-2 rounded-full transition-all duration-300">
+      <a href="/integration/catalogue" class="flex items-center gap-2 text-sm font-semibold text-primary bg-primary-fixed/60 hover:bg-primary-fixed px-4 py-2 rounded-full transition-all duration-300">
         <span class="material-symbols-outlined text-base">add</span> Nouvelle réservation
       </a>
       <div class="flex items-center gap-3 pl-4 border-l border-outline/20">
@@ -137,7 +137,7 @@ function getBadgeLbl($s){ return ['en_cours'=>'En cours','termine'=>'Terminé','
         <span class="material-symbols-outlined">shopping_cart</span>
         <p class="font-bold text-xl text-slate-700 mb-2">Aucune réservation</p>
         <p class="text-sm mb-6">Vous n'avez aucune réservation en cours.</p>
-        <a href="/Mediflow/catalogue" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm">
+        <a href="/integration/catalogue" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm">
           <span class="material-symbols-outlined text-base">medical_services</span> Parcourir le catalogue
         </a>
       </div>
@@ -233,7 +233,7 @@ function getBadgeLbl($s){ return ['en_cours'=>'En cours','termine'=>'Terminé','
 
 <div class="toast-container"></div>
 <script>
-const API_RES='/Mediflow/equipment/api/reservations';
+const API_RES='/integration/equipment/api/reservations';
 
 function showToast(msg,type='info'){const c=document.querySelector('.toast-container');const t=document.createElement('div');t.className='toast '+type;const icons={success:'check_circle',error:'error',info:'info'};t.innerHTML=`<span class="material-symbols-outlined">${icons[type]||'info'}</span><span>${msg}</span>`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3500);}
 

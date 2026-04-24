@@ -13,7 +13,7 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="/Mediflow/assets/css/style.css">
+    <link rel="stylesheet" href="/integration/assets/css/style.css">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -95,18 +95,18 @@
     </div>
     
     <nav class="flex-1 flex flex-col space-y-2 px-4">
-        <a href="/Mediflow/admin/users" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
+        <a href="/integration/admin/users" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
             <span class="material-symbols-outlined">people</span>
             <span class="font-medium">Utilisateurs</span>
         </a>
-        <a href="/Mediflow/dashboard" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
+        <a href="/integration/dashboard" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
             <span class="material-symbols-outlined">dashboard</span>
             <span class="font-medium">Dashboard</span>
         </a>
     </nav>
 
     <div class="px-8 border-t border-outline pt-4">
-        <a href="/Mediflow/logout" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-error">
+        <a href="/integration/logout" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-error">
             <span class="material-symbols-outlined">logout</span>
             <span class="font-medium text-sm">Déconnexion</span>
         </a>
@@ -119,7 +119,7 @@
     <header class="bg-white dark:bg-slate-800 border-b border-outline shadow-sm">
         <div class="flex items-center justify-between px-8 py-4">
             <div class="flex items-center gap-4">
-                <a href="/Mediflow/admin" class="text-primary hover:text-primary-container transition-all duration-300 hover:scale-110 transform p-2">
+                <a href="/integration/admin" class="text-primary hover:text-primary-container transition-all duration-300 hover:scale-110 transform p-2">
                     <span class="material-symbols-outlined">arrow_back</span>
                 </a>
                 <div>
@@ -146,7 +146,7 @@
 
             <!-- Form -->
             <div class="max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-outline/30 animate-scale-in">
-                <form method="POST" action="/Mediflow/admin?action=update" class="space-y-6">
+                <form method="POST" action="/integration/admin?action=update" class="space-y-6">
                     <input type="hidden" name="id" value="<?php echo $user['id_PK']; ?>">
 
                     <!-- Nom & Prénom Row -->
@@ -249,7 +249,7 @@
                         <button type="submit" class="flex-1 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-4 rounded-xl hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 font-semibold flex items-center justify-center gap-2 btn-submit shadow-lg hover:shadow-2xl">
                             <span class="material-symbols-outlined">check_circle</span> Mettre à jour
                         </button>
-                        <a href="/Mediflow/admin" class="flex-1 bg-surface-container hover:bg-surface-container-high text-on-surface px-6 py-4 rounded-xl transition-all duration-300 font-semibold text-center flex items-center justify-center gap-2 btn-cancel border border-outline/20 hover:border-outline/40">
+                        <a href="/integration/admin" class="flex-1 bg-surface-container hover:bg-surface-container-high text-on-surface px-6 py-4 rounded-xl transition-all duration-300 font-semibold text-center flex items-center justify-center gap-2 btn-cancel border border-outline/20 hover:border-outline/40">
                             <span class="material-symbols-outlined">close</span> Annuler
                         </a>
                     </div>
@@ -259,6 +259,6 @@
     </main>
 </div>
 
-<script src="/Mediflow/assets/js/form-validation.js"></script>
+<script src="/integration/assets/js/form-validation.js"></script>
 </body>
 </html>

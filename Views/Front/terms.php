@@ -16,7 +16,7 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="/Mediflow/assets/css/style.css">
+    <link rel="stylesheet" href="/integration/assets/css/style.css">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <style>
         .terms-container {
@@ -202,7 +202,7 @@
                     </div>
 
                     <div class="mt-12 pt-8 border-t border-surface-variant">
-                        <a href="/Mediflow/register" class="inline-flex items-center space-x-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-container transition-colors">
+                        <a href="/integration/register" class="inline-flex items-center space-x-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-container transition-colors">
                             <span class="material-symbols-outlined text-sm">arrow_back</span>
                             <span>Retour à l'Inscription</span>
                         </a>

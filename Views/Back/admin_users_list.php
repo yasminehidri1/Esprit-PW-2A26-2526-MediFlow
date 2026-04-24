@@ -13,7 +13,7 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="/Mediflow/assets/css/style.css">
+    <link rel="stylesheet" href="/integration/assets/css/style.css">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -230,7 +230,7 @@
         }
 
         /* Reset button hover */
-        a[href="/Mediflow/admin"]:hover {
+        a[href="/integration/admin"]:hover {
             transform: scale(1.05);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
@@ -272,18 +272,18 @@
     </div>
     
     <nav class="flex-1 flex flex-col space-y-2 px-4">
-        <a href="/Mediflow/admin/users" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
+        <a href="/integration/admin/users" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
             <span class="material-symbols-outlined">people</span>
             <span class="font-medium">Utilisateurs</span>
         </a>
-        <a href="/Mediflow/dashboard" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
+        <a href="/integration/dashboard" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition">
             <span class="material-symbols-outlined">dashboard</span>
             <span class="font-medium">Dashboard</span>
         </a>
     </nav>
 
     <div class="px-8 border-t border-outline pt-4">
-        <a href="/Mediflow/logout" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-error">
+        <a href="/integration/logout" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-error">
             <span class="material-symbols-outlined">logout</span>
             <span class="font-medium text-sm">Déconnexion</span>
         </a>
@@ -299,7 +299,7 @@
                 <h2 class="text-4xl font-black bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent">Gestion des Utilisateurs</h2>
                 <p class="text-on-surface-variant text-sm mt-2">Administrez tous les utilisateurs du système</p>
             </div>
-            <a href="/Mediflow/admin?action=create" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #004d99 0%, #1565c0 100%); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 77, 153, 0.3); border: none; cursor: pointer;">
+            <a href="/integration/admin?action=create" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #004d99 0%, #1565c0 100%); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 77, 153, 0.3); border: none; cursor: pointer;">
                 <span class="material-symbols-outlined">add_circle</span>
                 <span>Ajouter Utilisateur</span>
             </a>
@@ -326,7 +326,7 @@
 
             <!-- Search & Filter Form -->
             <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafb 100%); border: 1px solid rgba(0, 77, 153, 0.08); border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                <form method="GET" action="/Mediflow/admin" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+                <form method="GET" action="/integration/admin" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
                     <!-- Search -->
                     <div style="flex: 1; min-width: 220px;">
                         <label style="display: block; font-size: 12px; font-weight: 700; color: #191c1e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Rechercher</label>
@@ -349,7 +349,7 @@
                     
                     <!-- Buttons -->
                     <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #004d99 0%, #1565c0 100%); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 77, 153, 0.2);">Chercher</button>
-                    <a href="/Mediflow/admin" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; transition: all 0.3s ease;">Réinitialiser</a>
+                    <a href="/integration/admin" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; transition: all 0.3s ease;">Réinitialiser</a>
                 </form>
             </div>
 
@@ -373,10 +373,10 @@
                                 <td style="padding: 16px 24px; font-size: 14px; color: #191c1e;"><?php echo htmlspecialchars($user['tel'] ?? '-'); ?></td>
                                 <td style="padding: 16px 24px; font-size: 14px;"><span style="background: linear-gradient(135deg, #d6e3ff 0%, #c0d5ff 100%); color: #004d99; font-weight: 800; padding: 8px 14px; border-radius: 20px; font-size: 12px; display: inline-block; border: 1px solid rgba(0, 77, 153, 0.2); box-shadow: 0 2px 8px rgba(0, 77, 153, 0.1); text-transform: uppercase; letter-spacing: 0.3px;"><?php echo htmlspecialchars($user['role_name'] ?? 'N/A'); ?></span></td>
                                 <td style="padding: 16px 24px; text-align: center;">
-                                    <a href="/Mediflow/admin?action=edit&id=<?php echo $user['id_PK']; ?>" title="Modifier" style="color: #004d99; text-decoration: none; margin-right: 12px; display: inline-block; padding: 8px; border-radius: 8px; transition: all 0.3s ease; background: rgba(0, 77, 153, 0.05);">
+                                    <a href="/integration/admin?action=edit&id=<?php echo $user['id_PK']; ?>" title="Modifier" style="color: #004d99; text-decoration: none; margin-right: 12px; display: inline-block; padding: 8px; border-radius: 8px; transition: all 0.3s ease; background: rgba(0, 77, 153, 0.05);">
                                         <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
                                     </a>
-                                    <a href="/Mediflow/admin?action=delete&id=<?php echo $user['id_PK']; ?>" title="Supprimer" style="color: #ba1a1a; text-decoration: none; display: inline-block; padding: 8px; border-radius: 8px; transition: all 0.3s ease; background: rgba(186, 26, 26, 0.05);" onclick="return confirm('Êtes-vous sûr?');">
+                                    <a href="/integration/admin?action=delete&id=<?php echo $user['id_PK']; ?>" title="Supprimer" style="color: #ba1a1a; text-decoration: none; display: inline-block; padding: 8px; border-radius: 8px; transition: all 0.3s ease; background: rgba(186, 26, 26, 0.05);" onclick="return confirm('Êtes-vous sûr?');">
                                         <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
                                     </a>
                                 </td>
@@ -414,7 +414,7 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="/Mediflow/assets/css/style.css">
+    <link rel="stylesheet" href="/integration/assets/css/style.css">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -795,18 +795,18 @@
     </div>
     
     <nav class="flex-1 flex flex-col space-y-2 px-4">
-        <a href="/Mediflow/admin" class="flex items-center space-x-3 text-slate-700 dark:text-slate-300 hover:text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 bg-opacity-40 pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1 shadow-sm hover:shadow-md">
+        <a href="/integration/admin" class="flex items-center space-x-3 text-slate-700 dark:text-slate-300 hover:text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 bg-opacity-40 pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1 shadow-sm hover:shadow-md">
             <span class="material-symbols-outlined">people</span>
             <span class="font-medium">Utilisateurs</span>
         </a>
-        <a href="/Mediflow/dashboard" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition-all duration-300 transform hover:translate-x-1 rounded-xl">
+        <a href="/integration/dashboard" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 group transition-all duration-300 transform hover:translate-x-1 rounded-xl">
             <span class="material-symbols-outlined">dashboard</span>
             <span class="font-medium">Dashboard</span>
         </a>
     </nav>
 
     <div class="px-4 border-t border-outline pt-6">
-        <a href="/Mediflow/logout" class="logout-btn">
+        <a href="/integration/logout" class="logout-btn">
             <span class="material-symbols-outlined logout-icon">logout</span>
             <span>Déconnexion</span>
         </a>
@@ -823,7 +823,7 @@
                 <p class="text-on-surface-variant text-sm font-medium">Administrez tous les utilisateurs du système • Total: <span class="font-bold text-primary"><?php echo count($data['users'] ?? []); ?></span> utilisateurs</p>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="/Mediflow/admin?action=create" class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 font-semibold text-sm flex items-center gap-2 action-btn shadow-lg hover:from-primary-container hover:to-primary">
+                <a href="/integration/admin?action=create" class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 font-semibold text-sm flex items-center gap-2 action-btn shadow-lg hover:from-primary-container hover:to-primary">
                     <span class="material-symbols-outlined text-lg">add_circle</span> Ajouter Utilisateur
                 </a>
             </div>
@@ -856,7 +856,7 @@
 
             <!-- Search and Filter Controls -->
             <div class="mb-6 bg-white rounded-xl shadow-lg p-6 border border-outline/30" style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(242,244,246,0.95) 100%);">
-                <form method="GET" action="/Mediflow/admin" class="flex flex-wrap gap-4 items-end">
+                <form method="GET" action="/integration/admin" class="flex flex-wrap gap-4 items-end">
                     <!-- Search Input -->
                     <div class="flex-1 min-w-[250px]">
                         <label class="block text-sm font-semibold text-on-surface mb-2 flex items-center gap-2">
@@ -905,7 +905,7 @@
                         </button>
                         <?php if (!empty($data['search']) || !empty($data['roleFilter'])): ?>
                             <a 
-                                href="/Mediflow/admin"
+                                href="/integration/admin"
                                 class="bg-gradient-to-r from-surface-container to-surface-container-high text-on-surface px-6 py-3 rounded-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 font-semibold text-sm flex items-center gap-2 action-btn shadow-lg"
                                 style="border: 1px solid var(--outline); text-decoration: none; display: inline-flex;"
                             >
@@ -951,7 +951,7 @@
                                 <td style="padding: 18px 24px; font-size: 14px; color: #424752; vertical-align: middle; font-weight: 500;"><?php echo htmlspecialchars($user['mail']); ?></td>
                                 <td style="padding: 18px 24px; font-size: 14px; color: #191c1e; vertical-align: middle; font-weight: 500;"><?php echo htmlspecialchars($user['tel'] ?? '-'); ?></td>
                                 <td style="padding: 18px 24px; font-size: 14px; vertical-align: middle;"><span style="background: linear-gradient(135deg, #d6e3ff 0%, #c0d5ff 100%); color: #004d99; font-weight: 800; padding: 10px 16px; border-radius: 20px; font-size: 12px; display: inline-block; white-space: nowrap; border: 1.5px solid rgba(0, 77, 153, 0.25); box-shadow: 0 4px 12px rgba(0, 77, 153, 0.12); text-transform: uppercase; letter-spacing: 0.4px;"><?php echo htmlspecialchars($user['role_name'] ?? 'N/A'); ?></span></td>
-                                <td style="padding: 18px 24px; font-size: 14px; vertical-align: middle; text-align: center;"><a href="/Mediflow/admin?action=edit&id=<?php echo $user['id_PK']; ?>" style="color: #004d99; background: linear-gradient(135deg, rgba(0, 77, 153, 0.08), rgba(21, 101, 192, 0.06)); width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; text-decoration: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; border: 1px solid rgba(0, 77, 153, 0.1); font-size: 20px; margin-right: 10px; box-shadow: 0 2px 8px rgba(0, 77, 153, 0.06);" title="Modifier" onmouseover="this.style.backgroundColor='rgba(0, 77, 153, 0.15)'; this.style.transform='scale(1.15) rotate(-5deg)'; this.style.boxShadow='0 8px 20px rgba(0, 77, 153, 0.2)'" onmouseout="this.style.backgroundColor='rgba(0, 77, 153, 0.08)'; this.style.transform='scale(1)'; this.style.boxShadow='0 2px 8px rgba(0, 77, 153, 0.06)'"><span class="material-symbols-outlined">edit</span></a><a href="/Mediflow/admin?action=delete&id=<?php echo $user['id_PK']; ?>" style="color: #ba1a1a; background: linear-gradient(135deg, rgba(186, 26, 26, 0.08), rgba(212, 47, 47, 0.06)); width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; text-decoration: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; border: 1px solid rgba(186, 26, 26, 0.1); font-size: 20px; box-shadow: 0 2px 8px rgba(186, 26, 26, 0.06);" title="Supprimer" onmouseover="this.style.backgroundColor='rgba(186, 26, 26, 0.15)'; this.style.transform='scale(1.15) rotate(5deg)'; this.style.boxShadow='0 8px 20px rgba(186, 26, 26, 0.2)'" onmouseout="this.style.backgroundColor='rgba(186, 26, 26, 0.08)'; this.style.transform='scale(1)'; this.style.boxShadow='0 2px 8px rgba(186, 26, 26, 0.06)'" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?');"><span class="material-symbols-outlined">delete</span></a></td>
+                                <td style="padding: 18px 24px; font-size: 14px; vertical-align: middle; text-align: center;"><a href="/integration/admin?action=edit&id=<?php echo $user['id_PK']; ?>" style="color: #004d99; background: linear-gradient(135deg, rgba(0, 77, 153, 0.08), rgba(21, 101, 192, 0.06)); width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; text-decoration: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; border: 1px solid rgba(0, 77, 153, 0.1); font-size: 20px; margin-right: 10px; box-shadow: 0 2px 8px rgba(0, 77, 153, 0.06);" title="Modifier" onmouseover="this.style.backgroundColor='rgba(0, 77, 153, 0.15)'; this.style.transform='scale(1.15) rotate(-5deg)'; this.style.boxShadow='0 8px 20px rgba(0, 77, 153, 0.2)'" onmouseout="this.style.backgroundColor='rgba(0, 77, 153, 0.08)'; this.style.transform='scale(1)'; this.style.boxShadow='0 2px 8px rgba(0, 77, 153, 0.06)'"><span class="material-symbols-outlined">edit</span></a><a href="/integration/admin?action=delete&id=<?php echo $user['id_PK']; ?>" style="color: #ba1a1a; background: linear-gradient(135deg, rgba(186, 26, 26, 0.08), rgba(212, 47, 47, 0.06)); width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; text-decoration: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; border: 1px solid rgba(186, 26, 26, 0.1); font-size: 20px; box-shadow: 0 2px 8px rgba(186, 26, 26, 0.06);" title="Supprimer" onmouseover="this.style.backgroundColor='rgba(186, 26, 26, 0.15)'; this.style.transform='scale(1.15) rotate(5deg)'; this.style.boxShadow='0 8px 20px rgba(186, 26, 26, 0.2)'" onmouseout="this.style.backgroundColor='rgba(186, 26, 26, 0.08)'; this.style.transform='scale(1)'; this.style.boxShadow='0 2px 8px rgba(186, 26, 26, 0.06)'" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?');"><span class="material-symbols-outlined">delete</span></a></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>

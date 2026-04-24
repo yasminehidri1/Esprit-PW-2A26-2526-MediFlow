@@ -1,11 +1,12 @@
 <?php
 /**
  * MediFlow Application Router
- * 
- * Core application class that handles HTTP request routing
- * 
- * @package MediFlow
- * @version 1.0.0
+ *
+ * Core application class that handles HTTP request routing.
+ * Base path: /integration/
+ *
+ * @package MediFlow\Core
+ * @version 2.0.0
  */
 
 namespace Core;
@@ -14,119 +15,203 @@ class App
 {
     /**
      * Run the application and route the request
-     * 
+     *
      * @return void
      */
     public function run(): void
     {
         $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-        
-        // Remove /Mediflow prefix if present
-        $path = preg_replace('#^/Mediflow#', '', $path);
+
+        // Remove /integration prefix if present
+        $path = preg_replace('#^/integration#', '', $path);
         $path = $path ?: '/';
 
-        // Route to appropriate controller
-        if (preg_match('#/login(?:/|$)#', $path)) {
-            $controller = new \Controllers\AuthController();
-            $controller->login();
+        // ── Auth ────────────────────────────────────────────────────────────
+        if (preg_match('#^/login(?:/|$)#', $path)) {
+            (new \Controllers\AuthController())->login();
             return;
         }
 
-        if (preg_match('#/register(?:/|$)#', $path)) {
-            $controller = new \Controllers\AuthController();
-            $controller->register();
+        if (preg_match('#^/register(?:/|$)#', $path)) {
+            (new \Controllers\AuthController())->register();
             return;
         }
 
-        if (preg_match('#/terms(?:/|$)#', $path)) {
-            $controller = new \Controllers\LandingController();
-            $controller->terms();
+        if (preg_match('#^/terms(?:/|$)#', $path)) {
+            (new \Controllers\LandingController())->terms();
             return;
         }
 
-        if (preg_match('#/dashboard(?:/|$)#', $path)) {
-            $controller = new \Controllers\DashboardController();
-            $controller->index();
+        // ── Logout ──────────────────────────────────────────────────────────
+        if (preg_match('#^/logout(?:/|$)#', $path)) {
+            session_start();
+            session_destroy();
+            header('Location: /integration/login');
+            exit;
+        }
+
+        // ── User Dashboard / Profile ────────────────────────────────────────
+        if (preg_match('#^/dashboard/api/users(?:/|$)#', $path)) {
+            (new \Controllers\DashboardController())->getUsers();
             return;
         }
 
-        if (preg_match('#/dashboard/api/users(?:/|$)#', $path)) {
-            $controller = new \Controllers\DashboardController();
-            $controller->getUsers();
+        if (preg_match('#^/dashboard/api/stats(?:/|$)#', $path)) {
+            (new \Controllers\DashboardController())->getStats();
             return;
         }
 
-        if (preg_match('#/dashboard/api/stats(?:/|$)#', $path)) {
-            $controller = new \Controllers\DashboardController();
-            $controller->getStats();
+        if (preg_match('#^/profile/update(?:/|$)#', $path)) {
+            (new \Controllers\DashboardController())->updateProfile();
             return;
         }
 
-        if (preg_match('#/profile/update(?:/|$)#', $path)) {
-            $controller = new \Controllers\DashboardController();
-            $controller->updateProfile();
+        if (preg_match('#^/profile(?:/|$)#', $path)) {
+            (new \Controllers\DashboardController())->profile();
             return;
         }
 
-        if (preg_match('#/profile(?:/|$)#', $path)) {
-            $controller = new \Controllers\DashboardController();
-            $controller->profile();
+        if (preg_match('#^/dashboard(?:/|$)#', $path)) {
+            (new \Controllers\DashboardController())->index();
             return;
         }
 
-        // Admin user management (all CRUD in one controller)
-        if (preg_match('#/admin(?:/|$)#', $path)) {
-            $controller = new \Controllers\AdminController();
-            $controller->handle();
+        // ── Admin user management ───────────────────────────────────────────
+        if (preg_match('#^/admin(?:/|$)#', $path)) {
+            (new \Controllers\AdminController())->handle();
             return;
         }
 
-        // ── Equipment rental module (Patient-facing) ──
-        if (preg_match('#/equipment/api/reservations(?:/|$)#', $path)) {
-            $controller = new \Controllers\PatientEquipmentController();
-            $controller->reservationApi();
+        // ── Equipment rental module — APIs ──────────────────────────────────
+        if (preg_match('#^/equipment/api/reservations(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->reservationApi();
             return;
         }
 
-        if (preg_match('#/equipment/api/equipements(?:/|$)#', $path)) {
-            $controller = new \Controllers\PatientEquipmentController();
-            $controller->equipementApi();
+        if (preg_match('#^/equipment/api/equipements(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->equipementApi();
             return;
         }
 
-        // ── Equipment manager backoffice ──
-        if (preg_match('#/historique-location(?:/|$)#', $path)) {
-            $controller = new \Controllers\PatientEquipmentController();
-            $controller->historiqueLocation();
+        // ── Equipment rental module — Views ─────────────────────────────────
+        if (preg_match('#^/historique-location(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->historiqueLocation();
             return;
         }
 
-        if (preg_match('#/equipements(?:/|$)#', $path)) {
-            $controller = new \Controllers\PatientEquipmentController();
-            $controller->gestionEquipements();
+        if (preg_match('#^/equipements(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->gestionEquipements();
             return;
         }
 
-        if (preg_match('#/mes-reservations(?:/|$)#', $path)) {
-            $controller = new \Controllers\PatientEquipmentController();
-            $controller->mesReservations();
+        if (preg_match('#^/mes-reservations(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->mesReservations();
             return;
         }
 
-        if (preg_match('#/reservation(?:/|$)#', $path)) {
-            $controller = new \Controllers\PatientEquipmentController();
-            $controller->reservation();
+        if (preg_match('#^/reservation(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->reservation();
             return;
         }
 
-        if (preg_match('#/catalogue(?:/|$)#', $path)) {
-            $controller = new \Controllers\PatientEquipmentController();
-            $controller->catalogue();
+        if (preg_match('#^/catalogue(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->catalogue();
             return;
         }
 
-        // Default: Landing page
-        $controller = new \Controllers\LandingController();
-        $controller->index();
+        // ── Magazine module — Back Office ────────────────────────────────────
+        if (preg_match('#^/magazine/admin/comment/approve(?:/|$)#', $path)) {
+            (new \Controllers\CommentController())->approveComment();
+            return;
+        }
+
+        if (preg_match('#^/magazine/admin/comment/reject(?:/|$)#', $path)) {
+            (new \Controllers\CommentController())->rejectComment();
+            return;
+        }
+
+        if (preg_match('#^/magazine/admin/comment/delete(?:/|$)#', $path)) {
+            (new \Controllers\CommentController())->deleteComment();
+            return;
+        }
+
+        if (preg_match('#^/magazine/admin/comments(?:/|$)#', $path)) {
+            (new \Controllers\CommentController())->viewPostComments();
+            return;
+        }
+
+        if (preg_match('#^/magazine/admin/articles(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->listArticles();
+            return;
+        }
+
+        if (preg_match('#^/magazine/admin/article-form(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->showForm();
+            return;
+        }
+
+        if (preg_match('#^/magazine/admin/save(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->saveArticle();
+            return;
+        }
+
+        if (preg_match('#^/magazine/admin/delete(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->deleteArticle();
+            return;
+        }
+
+        if (preg_match('#^/magazine/admin(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->dashboard();
+            return;
+        }
+
+        // ── Magazine module — Front Office ───────────────────────────────────
+        if (preg_match('#^/magazine/comment/add-ajax(?:/|$)#', $path)) {
+            (new \Controllers\CommentController())->addCommentAjax();
+            return;
+        }
+
+        if (preg_match('#^/magazine/comment/add(?:/|$)#', $path)) {
+            (new \Controllers\CommentController())->addComment();
+            return;
+        }
+
+        if (preg_match('#^/magazine/comment/edit(?:/|$)#', $path)) {
+            (new \Controllers\CommentController())->editComment();
+            return;
+        }
+
+        if (preg_match('#^/magazine/comment/delete(?:/|$)#', $path)) {
+            (new \Controllers\CommentController())->deleteOwnComment();
+            return;
+        }
+
+        if (preg_match('#^/magazine/article(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->viewArticle();
+            return;
+        }
+
+        if (preg_match('#^/magazine/category(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->category();
+            return;
+        }
+
+        if (preg_match('#^/magazine/like(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->likeArticle();
+            return;
+        }
+
+        if (preg_match('#^/magazine/search(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->searchArticles();
+            return;
+        }
+
+        if (preg_match('#^/magazine(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->home();
+            return;
+        }
+
+        // ── Default: Landing page ────────────────────────────────────────────
+        (new \Controllers\LandingController())->index();
     }
 }

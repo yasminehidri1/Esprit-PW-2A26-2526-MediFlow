@@ -143,13 +143,13 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
 <section class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10">
   <div class="flex justify-between items-center mb-6">
     <h3 class="text-xl font-bold">Mes dernières réservations</h3>
-    <a href="/Mediflow/mes-reservations" class="text-sm font-bold text-primary hover:underline">Voir tout →</a>
+    <a href="/integration/mes-reservations" class="text-sm font-bold text-primary hover:underline">Voir tout →</a>
   </div>
   <?php if (empty($data['latestRes'])): ?>
     <div class="text-center py-14">
       <span class="material-symbols-outlined text-5xl text-slate-300 block mb-3">shopping_cart</span>
       <p class="font-semibold text-on-surface-variant">Aucune réservation pour l'instant.</p>
-      <a href="/Mediflow/catalogue" class="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm">
+      <a href="/integration/catalogue" class="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm">
         <span class="material-symbols-outlined text-base">medical_services</span> Parcourir le catalogue
       </a>
     </div>
@@ -178,14 +178,14 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
 
 <!-- Quick actions -->
 <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <a href="/Mediflow/catalogue" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl shadow-lg transition-all">
+  <a href="/integration/catalogue" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl shadow-lg transition-all">
     <span class="material-symbols-outlined text-4xl opacity-80">medical_services</span>
     <div>
       <p class="font-black text-lg">Catalogue d'équipements</p>
       <p class="text-sm opacity-80">Réserver du matériel médical</p>
     </div>
   </a>
-  <a href="/Mediflow/mes-reservations" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl shadow-lg transition-all">
+  <a href="/integration/mes-reservations" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl shadow-lg transition-all">
     <span class="material-symbols-outlined text-4xl opacity-80">receipt_long</span>
     <div>
       <p class="font-black text-lg">Mes réservations</p>
@@ -221,14 +221,14 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
 
 <!-- Quick actions -->
 <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <a href="/Mediflow/equipements" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl shadow-lg">
+  <a href="/integration/equipements" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl shadow-lg">
     <span class="material-symbols-outlined text-4xl opacity-80">medical_services</span>
     <div>
       <p class="font-black text-lg">Gérer les équipements</p>
       <p class="text-sm opacity-80">Ajouter, modifier, supprimer</p>
     </div>
   </a>
-  <a href="/Mediflow/historique-location" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl shadow-lg">
+  <a href="/integration/historique-location" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl shadow-lg">
     <span class="material-symbols-outlined text-4xl opacity-80">history</span>
     <div>
       <p class="font-black text-lg">Historique des locations</p>
@@ -241,7 +241,7 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
 <section class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10">
   <div class="flex justify-between items-center mb-6">
     <h3 class="text-xl font-bold">Équipements récents</h3>
-    <a href="/Mediflow/equipements" class="text-sm font-bold text-primary hover:underline">Voir tout →</a>
+    <a href="/integration/equipements" class="text-sm font-bold text-primary hover:underline">Voir tout →</a>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <?php foreach (($data['latestEq']??[]) as $eq):
@@ -259,6 +259,85 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
     </div>
     <?php endforeach; ?>
   </div>
+</section>
+
+<?php elseif ($role === 'Magazine'): ?>
+<!-- ═══════════════ MAGAZINE EDITOR ═══════════════ -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <?php
+  $ps = $data['postStats'] ?? [];
+  $cs = $data['commentStats'] ?? [];
+  $mCards = [
+    ['label'=>'Articles totaux',   'val'=>$ps['total_articles']??0, 'icon'=>'article',      'color'=>'#004d99', 'bg'=>'#eff6ff'],
+    ['label'=>'Publiés',           'val'=>$ps['published']??0,      'icon'=>'check_circle',  'color'=>'#16a34a', 'bg'=>'#f0fdf4'],
+    ['label'=>'Brouillons',        'val'=>$ps['drafts']??0,         'icon'=>'edit_note',     'color'=>'#d97706', 'bg'=>'#fffbeb'],
+    ['label'=>'Vues totales',      'val'=>$ps['total_views']??0,    'icon'=>'visibility',    'color'=>'#004d99', 'bg'=>'#eff6ff'],
+    ['label'=>'Likes totaux',      'val'=>$ps['total_likes']??0,    'icon'=>'favorite',      'color'=>'#dc2626', 'bg'=>'#fff5f5'],
+    ['label'=>'Commentaires en attente','val'=>$cs['pending']??0,   'icon'=>'pending',       'color'=>'#7c3aed', 'bg'=>'#f5f3ff'],
+  ];
+  foreach ($mCards as $c): ?>
+  <div class="hover-lift p-6 rounded-2xl shadow-sm border border-outline/10" style="background:<?= $c['bg'] ?>">
+    <div class="flex justify-between items-start">
+      <div>
+        <p class="text-sm font-semibold" style="color:<?= $c['color'] ?>;opacity:.75"><?= $c['label'] ?></p>
+        <h3 class="text-4xl font-black mt-2" style="color:<?= $c['color'] ?>"><?= $c['val'] ?></h3>
+      </div>
+      <span class="material-symbols-outlined text-3xl" style="color:<?= $c['color'] ?>;opacity:.4"><?= $c['icon'] ?></span>
+    </div>
+  </div>
+  <?php endforeach; ?>
+</section>
+
+<!-- Quick actions -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <a href="/integration/magazine/admin" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl shadow-lg">
+    <span class="material-symbols-outlined text-4xl opacity-80">newspaper</span>
+    <div>
+      <p class="font-black text-lg">Tableau de bord Magazine</p>
+      <p class="text-sm opacity-80">Gérer les articles et commentaires</p>
+    </div>
+  </a>
+  <a href="/integration/magazine/admin/article-form" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl shadow-lg">
+    <span class="material-symbols-outlined text-4xl opacity-80">edit_note</span>
+    <div>
+      <p class="font-black text-lg">Nouvel article</p>
+      <p class="text-sm opacity-80">Rédiger et publier</p>
+    </div>
+  </a>
+</section>
+
+<!-- Recent articles -->
+<section class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10">
+  <div class="flex justify-between items-center mb-6">
+    <h3 class="text-xl font-bold">Articles récents</h3>
+    <a href="/integration/magazine/admin/articles" class="text-sm font-bold text-primary hover:underline">Voir tout →</a>
+  </div>
+  <?php if (empty($data['recentPosts'])): ?>
+    <div class="text-center py-14">
+      <span class="material-symbols-outlined text-5xl text-slate-300 block mb-3">article</span>
+      <p class="font-semibold text-on-surface-variant">Aucun article publié pour l'instant.</p>
+      <a href="/integration/magazine/admin/article-form" class="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm">
+        <span class="material-symbols-outlined text-base">add</span> Créer un article
+      </a>
+    </div>
+  <?php else: ?>
+  <div class="space-y-4">
+    <?php foreach (($data['recentPosts']??[]) as $post): ?>
+    <div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline/5 hover:border-primary/20 transition-all">
+      <div class="flex items-center gap-4">
+        <div class="w-11 h-11 rounded-xl bg-primary-fixed flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-primary">article</span>
+        </div>
+        <div>
+          <p class="font-bold text-sm"><?= htmlspecialchars($post['titre']??'') ?></p>
+          <p class="text-xs text-on-surface-variant"><?= htmlspecialchars($post['categorie']??'') ?> · <?= $post['views_count']??0 ?> vues</p>
+        </div>
+      </div>
+      <a href="/integration/magazine/admin/article-form?id=<?= $post['id'] ?>" class="text-primary hover:underline text-xs font-bold">Modifier</a>
+    </div>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
 </section>
 
 <?php else: ?>

@@ -6,7 +6,7 @@
 		<!-- Logo & Title -->
 		<div class="register-header" style="animation: fadeInDown 0.6s ease-out;">
 			<div class="register-logo-wrapper">
-				<a href="/Mediflow/" class="register-logo-link">
+				<a href="/integration/" class="register-logo-link">
 					<img src="assets/images/logo.png" alt="MediFlow" class="register-logo-image" onerror="this.style.display='none'" />
 					<span class="register-logo-text">Medi<span class="register-logo-accent">Flow</span></span>
 				</a>
@@ -143,7 +143,7 @@
 					<div class="form-group">
 						<label class="form-checkbox">
 							<input type="checkbox" name="terms" id="terms" required />
-							J'accepte les <a href="/Mediflow/terms" target="_blank" class="terms-link" style="color: #004d99; font-weight: 600; text-decoration: underline; cursor: pointer;">Conditions d'Utilisation</a> et la politique de confidentialité
+							J'accepte les <a href="/integration/terms" target="_blank" class="terms-link" style="color: #004d99; font-weight: 600; text-decoration: underline; cursor: pointer;">Conditions d'Utilisation</a> et la politique de confidentialité
 						</label>
 						<span class="form-error" id="errorTerms"></span>
 					</div>
@@ -171,9 +171,9 @@
 		<!-- Bottom Links -->
 		<div class="register-footer-links" style="animation: fadeIn 0.8s ease-out 0.3s both;">
 			<p class="register-signin-link">
-				Vous avez déjà un compte? <a href="/Mediflow/login" class="link-primary">Se connecter</a>
+				Vous avez déjà un compte? <a href="/integration/login" class="link-primary">Se connecter</a>
 			</p>
-			<a href="/Mediflow/" class="footer-link">← Retour à l'accueil</a>
+			<a href="/integration/" class="footer-link">← Retour à l'accueil</a>
 		</div>
 	</div>
 </section>

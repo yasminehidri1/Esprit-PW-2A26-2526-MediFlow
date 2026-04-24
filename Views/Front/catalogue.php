@@ -18,12 +18,12 @@ function getImageUrl($eq): string {
     foreach ($bases as $base) {
         foreach ($exts as $ext) {
             if (file_exists($base . $eq['reference'] . '.' . $ext)) {
-                return '/Mediflow/assets/images/equipements/' . $eq['reference'] . '.' . $ext;
+                return '/integration/assets/images/equipements/' . $eq['reference'] . '.' . $ext;
             }
         }
     }
     if (!empty($eq['image'])) {
-        return '/Mediflow/assets/images/equipements/' . htmlspecialchars($eq['image']);
+        return '/integration/assets/images/equipements/' . htmlspecialchars($eq['image']);
     }
     return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="160"><rect fill="%23f3f4f6" width="200" height="160"/><text fill="%239ca3af" font-family="sans-serif" font-size="13" x="50%" y="50%" text-anchor="middle" dy=".3em">No image</text></svg>';
 }
@@ -41,7 +41,7 @@ $user = $data['currentUser'] ?? ($_SESSION['user'] ?? []);
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/Mediflow/assets/css/style.css"/>
+  <link rel="stylesheet" href="/integration/assets/css/style.css"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script id="tailwind-config">
     tailwind.config = {
@@ -126,30 +126,30 @@ $user = $data['currentUser'] ?? ($_SESSION['user'] ?? []);
   </div>
   <nav class="flex-1 flex flex-col space-y-2 px-4">
     <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-       href="/Mediflow/dashboard">
+       href="/integration/dashboard">
       <span class="material-symbols-outlined">dashboard</span>
       <span class="font-medium">Dashboard</span>
     </a>
 
     <!-- Rental Equipment — active -->
     <a class="flex items-center space-x-3 text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1 shadow-sm font-bold"
-       href="/Mediflow/catalogue">
+       href="/integration/catalogue">
       <span class="material-symbols-outlined">medical_services</span>
       <span class="font-semibold">Location d'équipements</span>
     </a>
 
     <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-       href="/Mediflow/mes-reservations">
+       href="/integration/mes-reservations">
       <span class="material-symbols-outlined">shopping_cart</span>
       <span class="font-medium">Mes réservations</span>
     </a>
   </nav>
   <div class="px-4 border-t border-outline pt-6 flex flex-col space-y-3">
-    <a href="/Mediflow/profile" class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1">
+    <a href="/integration/profile" class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1">
       <span class="material-symbols-outlined">account_circle</span>
       <span class="font-medium">Mon profil</span>
     </a>
-    <a href="/Mediflow/logout" class="logout-btn">
+    <a href="/integration/logout" class="logout-btn">
       <span class="material-symbols-outlined logout-icon">logout</span>
       <span>Déconnexion</span>
     </a>
@@ -166,7 +166,7 @@ $user = $data['currentUser'] ?? ($_SESSION['user'] ?? []);
       <h2 class="text-lg font-bold text-on-surface">Catalogue des Équipements</h2>
     </div>
     <div class="flex items-center space-x-4">
-      <a href="/Mediflow/mes-reservations"
+      <a href="/integration/mes-reservations"
          class="flex items-center gap-2 text-sm font-semibold text-primary bg-primary-fixed/60 hover:bg-primary-fixed px-4 py-2 rounded-full transition-all duration-300">
         <span class="material-symbols-outlined text-base">shopping_cart</span>
         Mes Réservations
@@ -229,7 +229,7 @@ $user = $data['currentUser'] ?? ($_SESSION['user'] ?? []);
 
             $imgUrl = getImageUrl($eq);
             $prixDT = number_format((float)$eq['prix_jour'], 3, ',', '.');
-            $urlRes = '/Mediflow/reservation?id=' . (int)$eq['id'];
+            $urlRes = '/integration/reservation?id=' . (int)$eq['id'];
           ?>
 
           <div class="product-card" data-category="<?= $catFilter ?>" data-id="<?= $eq['id'] ?>">

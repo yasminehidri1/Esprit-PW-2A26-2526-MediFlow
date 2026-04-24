@@ -18,7 +18,7 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="/Mediflow/assets/css/style.css">
+    <link rel="stylesheet" href="/integration/assets/css/style.css">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
         tailwind.config = {
@@ -98,7 +98,7 @@
         <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Clinical Sanctuary</p>
     </div>
     <nav class="flex-1 flex flex-col space-y-2 px-4">
-        <a class="flex items-center space-x-3 text-slate-700 dark:text-slate-300 hover:text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 bg-opacity-40 pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1 shadow-sm hover:shadow-md" href="/Mediflow/dashboard">
+        <a class="flex items-center space-x-3 text-slate-700 dark:text-slate-300 hover:text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 bg-opacity-40 pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1 shadow-sm hover:shadow-md" href="/integration/dashboard">
             <span class="material-symbols-outlined">dashboard</span>
             <span class="font-medium">Dashboard</span>
         </a>
@@ -107,55 +107,86 @@
             <?php $role = $_SESSION['user']['role']; ?>
 
             <?php if ($role === 'Admin'): ?>
-                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/Mediflow/admin">
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/admin">
                     <span class="material-symbols-outlined">people</span>
                     <span class="font-medium">User Management</span>
                 </a>
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/magazine/admin">
+                    <span class="material-symbols-outlined">newspaper</span>
+                    <span class="font-medium">Magazine Admin</span>
+                </a>
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/magazine">
+                    <span class="material-symbols-outlined">open_in_new</span>
+                    <span class="font-medium">Voir le magazine</span>
+                </a>
             <?php elseif ($role === 'Medecin'): ?>
-                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/Mediflow/medical">
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/medical">
                     <span class="material-symbols-outlined">description</span>
                     <span class="font-medium">Dossier Medical</span>
                 </a>
             <?php elseif ($role === 'Rendez-vous'): ?>
-                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/Mediflow/appointments">
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/appointments">
                     <span class="material-symbols-outlined">calendar_today</span>
                     <span class="font-medium">Rendez-vous</span>
                 </a>
             <?php elseif ($role === 'Stock medicament'): ?>
-                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/Mediflow/stock">
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/stock">
                     <span class="material-symbols-outlined">inventory_2</span>
                     <span class="font-medium">Stock Medicament</span>
                 </a>
 
             <?php elseif ($role === 'Equipment'): ?>
-                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/Mediflow/equipements">
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/equipements">
                     <span class="material-symbols-outlined">medical_services</span>
                     <span class="font-medium">Gestion des équipements</span>
                 </a>
-                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/Mediflow/historique-location">
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/historique-location">
                     <span class="material-symbols-outlined">history</span>
                     <span class="font-medium">Historique location</span>
                 </a>
 
             <?php elseif ($role === 'Patient'): ?>
-                <!-- Patient: browse catalogue + view own reservations -->
-                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/Mediflow/catalogue">
+                <!-- Patient: browse catalogue + view own reservations + read magazine -->
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/catalogue">
                     <span class="material-symbols-outlined">medical_services</span>
                     <span class="font-medium">Location d'équipements</span>
                 </a>
-                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/Mediflow/mes-reservations">
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/mes-reservations">
                     <span class="material-symbols-outlined">shopping_cart</span>
                     <span class="font-medium">Mes réservations</span>
+                </a>
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/magazine">
+                    <span class="material-symbols-outlined">newspaper</span>
+                    <span class="font-medium">Magazine médical</span>
+                </a>
+
+            <?php elseif ($role === 'Magazine'): ?>
+                <!-- Magazine editor -->
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/magazine/admin">
+                    <span class="material-symbols-outlined">newspaper</span>
+                    <span class="font-medium">Magazine Admin</span>
+                </a>
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/magazine/admin/articles">
+                    <span class="material-symbols-outlined">article</span>
+                    <span class="font-medium">Articles</span>
+                </a>
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/magazine/admin/comments">
+                    <span class="material-symbols-outlined">forum</span>
+                    <span class="font-medium">Commentaires</span>
+                </a>
+                <a class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 transition-all duration-300 transform hover:translate-x-1 rounded-xl" href="/integration/magazine">
+                    <span class="material-symbols-outlined">open_in_new</span>
+                    <span class="font-medium">Voir le magazine</span>
                 </a>
             <?php endif; ?>
         <?php endif; ?>
     </nav>
     <div class="px-4 border-t border-outline pt-6 flex flex-col space-y-3">
-        <a href="/Mediflow/profile" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1">
+        <a href="/integration/profile" class="flex items-center space-x-3 text-slate-500 dark:text-slate-400 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1">
             <span class="material-symbols-outlined">account_circle</span>
             <span class="font-medium">My Profile</span>
         </a>
-        <a href="/Mediflow/logout" class="logout-btn">
+        <a href="/integration/logout" class="logout-btn">
             <span class="material-symbols-outlined logout-icon">logout</span>
             <span>Logout</span>
         </a>
@@ -172,11 +203,14 @@
                 <input class="pl-10 pr-4 py-2 bg-surface-container-low border border-outline/20 rounded-full text-sm w-64 focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300" placeholder="Search users..." type="text"/>
             </div>
             <nav class="hidden md:flex space-x-6">
-                <a class="text-primary font-bold border-b-2 border-primary pb-1 transition-all duration-300" href="/Mediflow/dashboard">Dashboard</a>
-                <a class="text-slate-500 hover:text-primary transition-colors duration-300 font-medium" href="/Mediflow/dashboard?tab=users">Utilisateurs</a>
-                <a class="text-slate-500 hover:text-primary transition-colors duration-300 font-medium" href="/Mediflow/dashboard?tab=reports">Rapports</a>
+                <a class="text-primary font-bold border-b-2 border-primary pb-1 transition-all duration-300" href="/integration/dashboard">Dashboard</a>
+                <a class="text-slate-500 hover:text-primary transition-colors duration-300 font-medium" href="/integration/dashboard?tab=users">Utilisateurs</a>
+                <a class="text-slate-500 hover:text-primary transition-colors duration-300 font-medium" href="/integration/dashboard?tab=reports">Rapports</a>
                 <?php if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'Admin'): ?>
-                    <a class="text-slate-500 hover:text-error transition-colors duration-300 font-bold" href="/Mediflow/admin">User Management</a>
+                    <a class="text-slate-500 hover:text-error transition-colors duration-300 font-bold" href="/integration/admin">User Management</a>
+                    <a class="text-slate-500 hover:text-primary transition-colors duration-300 font-medium" href="/integration/magazine/admin">Magazine</a>
+                <?php elseif (isset($_SESSION['user'])): ?>
+                    <a class="text-slate-500 hover:text-primary transition-colors duration-300 font-medium" href="/integration/magazine">Magazine</a>
                 <?php endif; ?>
             </nav>
         </div>
@@ -191,7 +225,7 @@
                 </button>
             </div>
             <div class="flex items-center space-x-3 pl-6 border-l border-outline/20">
-                <a href="/Mediflow/profile" class="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
+                <a href="/integration/profile" class="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
                     <div class="text-right">
                         <p class="text-sm font-bold text-on-surface">
                             <?php echo isset($data['currentUser']) ? htmlspecialchars($data['currentUser']['prenom'] . ' ' . $data['currentUser']['nom']) : 'Admin'; ?>

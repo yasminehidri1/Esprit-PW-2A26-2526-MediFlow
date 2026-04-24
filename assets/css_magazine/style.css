@@ -1,0 +1,124 @@
+/* ============================================================
+   MediFlow Magazine — Shared Front Office Styles
+   Matching frontOffice.html design system (Manrope + Inter + MD3 palette)
+   ============================================================ */
+
+/* ---- Core Animations ---- */
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes heartBeat {
+    0%  { transform: scale(1); }
+    15% { transform: scale(1.35); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.15); }
+    60% { transform: scale(1); }
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ---- Utility Classes ---- */
+.animate-slideIn  { animation: slideIn 0.35s ease-out both; }
+.animate-slideUp  { animation: slideUp 0.45s ease-out both; }
+.animate-fadeIn   { animation: fadeIn  0.25s ease-out both; }
+.animate-heartBeat { animation: heartBeat 0.5s ease-out; }
+
+/* ---- Like button filled state ---- */
+.like-btn.liked .like-icon,
+.like-btn.liked .material-symbols-outlined.like-icon {
+    font-variation-settings: 'FILL' 1;
+    color: #ef4444;
+}
+
+/* ---- Line clamp utilities ---- */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ---- Prose article content ---- */
+.prose-article p           { margin-bottom: 1.4em; }
+.prose-article strong      { font-weight: 700; color: #191c1e; }
+.prose-article a           { color: #004d99; text-decoration: underline; text-underline-offset: 3px; }
+.prose-article a:hover     { color: #1565c0; }
+
+/* ---- Stagger card entrance ---- */
+.stagger-item { opacity: 0; animation: slideUp 0.45s ease-out both; }
+.stagger-item:nth-child(1) { animation-delay: 0.05s; }
+.stagger-item:nth-child(2) { animation-delay: 0.12s; }
+.stagger-item:nth-child(3) { animation-delay: 0.19s; }
+.stagger-item:nth-child(4) { animation-delay: 0.26s; }
+.stagger-item:nth-child(5) { animation-delay: 0.33s; }
+.stagger-item:nth-child(6) { animation-delay: 0.40s; }
+
+/* ---- Flash / toast notifications ---- */
+.toast-notification {
+    animation: slideIn 0.35s ease-out both;
+}
+#toast-container {
+    position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+    display: flex; flex-direction: column; gap: 8px;
+    pointer-events: none;
+}
+#toast-container .toast {
+    pointer-events: all;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #191c1e;
+    background: #ffffff;
+    box-shadow: 0 8px 32px rgba(0, 77, 153, 0.15);
+    border-left: 4px solid #004d99;
+    animation: slideUp 0.3s ease-out both;
+}
+#toast-container .toast.toast-success { border-left-color: #005851; }
+#toast-container .toast.toast-error   { border-left-color: #ba1a1a; }
+
+/* ---- Spinner ---- */
+.spinner {
+    width: 20px; height: 20px;
+    border: 2px solid #e0e3e5;
+    border-top-color: #004d99;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+}
+
+/* ---- Mobile bottom nav: push content up ---- */
+@media (max-width: 1023px) {
+    body { padding-bottom: 64px; }
+}
+
+/* ---- Custom scrollbar ---- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c2c6d4; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #727783; }
+
+/* ---- Text selection ---- */
+::selection { background: #d6e3ff; color: #001b3d; }
+
+/* ---- Smooth scroll ---- */
+html { scroll-behavior: smooth; }
+
+/* ---- Focus ring ---- */
+*:focus-visible { outline: 2px solid #004d99; outline-offset: 2px; border-radius: 4px; }

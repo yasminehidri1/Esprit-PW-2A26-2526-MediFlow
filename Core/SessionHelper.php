@@ -42,7 +42,7 @@ trait SessionHelper
     protected function requireAuth(): void
     {
         if (!$this->isAuthenticated()) {
-            header('Location: /Mediflow/login');
+            header('Location: /integration/login');
             exit;
         }
     }

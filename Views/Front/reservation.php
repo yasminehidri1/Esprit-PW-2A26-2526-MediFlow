@@ -15,7 +15,7 @@ $prixDTFmt = number_format($prixDT, 3, ',', '.');
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/Mediflow/assets/css/style.css"/>
+  <link rel="stylesheet" href="/integration/assets/css/style.css"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>
     tailwind.config = {
@@ -93,21 +93,21 @@ $prixDTFmt = number_format($prixDT, 3, ',', '.');
     <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Soins de santé</p>
   </div>
   <nav class="flex-1 flex flex-col space-y-2 px-4">
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/Mediflow/dashboard">
+    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/integration/dashboard">
       <span class="material-symbols-outlined">dashboard</span><span class="font-medium">Dashboard</span>
     </a>
-    <a class="flex items-center space-x-3 text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 pl-4 py-3 rounded-xl transition-all duration-300 shadow-sm font-bold" href="/Mediflow/catalogue">
+    <a class="flex items-center space-x-3 text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 pl-4 py-3 rounded-xl transition-all duration-300 shadow-sm font-bold" href="/integration/catalogue">
       <span class="material-symbols-outlined">medical_services</span><span class="font-semibold">Location d'équipements</span>
     </a>
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/Mediflow/mes-reservations">
+    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/integration/mes-reservations">
       <span class="material-symbols-outlined">shopping_cart</span><span class="font-medium">Mes réservations</span>
     </a>
   </nav>
   <div class="px-4 border-t border-outline pt-6 flex flex-col space-y-3">
-    <a href="/Mediflow/profile" class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300">
+    <a href="/integration/profile" class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300">
       <span class="material-symbols-outlined">account_circle</span><span class="font-medium">Mon profil</span>
     </a>
-    <a href="/Mediflow/logout" class="logout-btn">
+    <a href="/integration/logout" class="logout-btn">
       <span class="material-symbols-outlined logout-icon">logout</span><span>Déconnexion</span>
     </a>
   </div>
@@ -117,7 +117,7 @@ $prixDTFmt = number_format($prixDT, 3, ',', '.');
 <main class="ml-64 min-h-screen bg-gradient-to-br from-surface via-surface-container-low to-surface-dim overflow-y-auto">
   <header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-gradient-to-r from-white/80 to-primary-fixed/10 backdrop-blur-xl flex items-center justify-between px-8 z-40 shadow-xl border-b border-outline/20">
     <div class="flex items-center space-x-3">
-      <a href="/Mediflow/catalogue" class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-medium">
+      <a href="/integration/catalogue" class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-medium">
         <span class="material-symbols-outlined text-base">arrow_back</span> Catalogue
       </a>
       <span class="text-slate-300">/</span>
@@ -139,7 +139,7 @@ $prixDTFmt = number_format($prixDT, 3, ',', '.');
         </div>
         <h2 class="text-xl font-bold mb-2">Équipement introuvable</h2>
         <p class="text-slate-500 mb-6"><?= htmlspecialchars($erreur) ?></p>
-        <a href="/Mediflow/catalogue" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold">
+        <a href="/integration/catalogue" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold">
           <span class="material-symbols-outlined text-base">arrow_back</span> Retour au catalogue
         </a>
       </div>
@@ -276,7 +276,7 @@ $prixDTFmt = number_format($prixDT, 3, ',', '.');
 
 <div class="toast-container"></div>
 <script>
-const API_RES = '/Mediflow/equipment/api/reservations';
+const API_RES = '/integration/equipment/api/reservations';
 const prixDT  = <?= $prixDT ?>;
 
 function nbJours(d1,d2){if(!d1||!d2)return 0;return Math.ceil((new Date(d2)-new Date(d1))/86400000);}
@@ -355,7 +355,7 @@ document.getElementById('btn-confirm')?.addEventListener('click',async function(
   try{
     const res=await fetch(API_RES,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const json=await res.json();
-    if(json.success){showToast('Réservation confirmée avec succès !','success');setTimeout(()=>window.location.href='/Mediflow/mes-reservations',1800);}
+    if(json.success){showToast('Réservation confirmée avec succès !','success');setTimeout(()=>window.location.href='/integration/mes-reservations',1800);}
     else{showToast('Erreur : '+(json.message||'Inconnue'),'error');enCours=false;btn.disabled=false;btn.textContent='Confirmer la réservation';}
   }catch(e){showToast('Erreur réseau.','error');enCours=false;btn.disabled=false;btn.textContent='Confirmer la réservation';}
 });
