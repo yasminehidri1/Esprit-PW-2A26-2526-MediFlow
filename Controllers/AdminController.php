@@ -89,7 +89,8 @@ class AdminController
             
             unset($_SESSION['message'], $_SESSION['error']);
             
-            include __DIR__ . '/../Views/Back/admin_users_list.php';
+            $currentView = 'admin_users_list';
+            include __DIR__ . '/../Views/Back/layout.php';
         } catch (\Exception $e) {
             $_SESSION['error'] = 'Erreur lors du chargement des utilisateurs.';
             $this->list();
@@ -112,7 +113,8 @@ class AdminController
         $error = $_SESSION['error'] ?? null;
         unset($_SESSION['error']);
         
-        include __DIR__ . '/../Views/Back/admin_users_create.php';
+        $currentView = 'admin_users_create';
+        include __DIR__ . '/../Views/Back/layout.php';
     }
 
     /**
@@ -193,7 +195,8 @@ class AdminController
         $error = $_SESSION['error'] ?? null;
         unset($_SESSION['error']);
         
-        include __DIR__ . '/../Views/Back/admin_users_edit.php';
+        $currentView = 'admin_users_edit';
+        include __DIR__ . '/../Views/Back/layout.php';
     }
 
     /**

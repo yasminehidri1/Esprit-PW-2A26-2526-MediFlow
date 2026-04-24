@@ -292,7 +292,13 @@ class DashboardController
     private function renderView(string $view, array $data = []): void
     {
         extract($data);
-        include __DIR__ . '/../Views/' . $view . '.php';
+        // Back-office views must go through the unified layout shell
+        if (str_starts_with($view, 'Back/')) {
+            $currentView = substr($view, 5); // strip 'Back/' prefix
+            include __DIR__ . '/../Views/Back/layout.php';
+        } else {
+            include __DIR__ . '/../Views/' . $view . '.php';
+        }
     }
 
     /**

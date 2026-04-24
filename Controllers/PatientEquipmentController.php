@@ -105,7 +105,8 @@ class PatientEquipmentController
             'pageTitle'   => 'Gestion des Équipements',
         ];
 
-        include __DIR__ . '/../Views/Back/equipements.php';
+        $currentView = 'equipements';
+        include __DIR__ . '/../Views/Back/layout.php';
     }
 
     /** Equipment manager — rental history view */
@@ -129,7 +130,8 @@ class PatientEquipmentController
             'pageTitle'    => 'Historique de Location',
         ];
 
-        include __DIR__ . '/../Views/Back/historique-location.php';
+        $currentView = 'historique-location';
+        include __DIR__ . '/../Views/Back/layout.php';
     }
 
     /* ────────────────────────────────────────────
