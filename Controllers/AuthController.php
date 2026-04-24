@@ -66,7 +66,7 @@ class AuthController
 
             // Set session and redirect
             $this->setSession($user, $username);
-            header('Location: /Mediflow/dashboard');
+            header('Location: /integration/dashboard');
             exit;
         } catch (\PDOException $e) {
             return ['Erreur de connexion à la base de données.'];
@@ -200,7 +200,7 @@ class AuthController
             }
 
             $_SESSION['success_message'] = 'Inscription réussie! Vous êtes enregistré en tant que patient. Vous pouvez maintenant vous connecter.';
-            header('Location: /Mediflow/login');
+            header('Location: /integration/login');
             exit;
         } catch (\PDOException $e) {
             return ['Erreur lors de l\'inscription: ' . $e->getMessage()];

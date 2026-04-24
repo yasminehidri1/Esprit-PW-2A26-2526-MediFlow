@@ -123,7 +123,7 @@ class AdminController
     private function store(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /Mediflow/admin');
+            header('Location: /integration/admin');
             exit;
         }
 
@@ -144,7 +144,7 @@ class AdminController
 
         if (!empty($errors)) {
             $_SESSION['error'] = implode('<br>', $errors);
-            header('Location: /Mediflow/admin?action=create');
+            header('Location: /integration/admin?action=create');
             exit;
         }
 
@@ -161,10 +161,10 @@ class AdminController
 
         if ($this->userModel->createUser($userData)) {
             $_SESSION['message'] = 'Utilisateur créé avec succès.';
-            header('Location: /Mediflow/admin');
+            header('Location: /integration/admin');
         } else {
             $_SESSION['error'] = 'Erreur lors de la création de l\'utilisateur.';
-            header('Location: /Mediflow/admin?action=create');
+            header('Location: /integration/admin?action=create');
         }
         exit;
     }
@@ -185,7 +185,7 @@ class AdminController
         
         if ($userId <= 0 || !$user = $this->userModel->getUserById($userId)) {
             $_SESSION['error'] = 'Utilisateur non trouvé.';
-            header('Location: /Mediflow/admin');
+            header('Location: /integration/admin');
             exit;
         }
 
@@ -204,7 +204,7 @@ class AdminController
     private function update(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /Mediflow/admin');
+            header('Location: /integration/admin');
             exit;
         }
 
@@ -212,7 +212,7 @@ class AdminController
         
         if ($userId <= 0) {
             $_SESSION['error'] = 'Utilisateur invalide.';
-            header('Location: /Mediflow/admin');
+            header('Location: /integration/admin');
             exit;
         }
 
@@ -234,7 +234,7 @@ class AdminController
 
         if (!empty($errors)) {
             $_SESSION['error'] = implode('<br>', $errors);
-            header("Location: /Mediflow/admin?action=edit&id=$userId");
+            header("Location: /integration/admin?action=edit&id=$userId");
             exit;
         }
 
@@ -254,10 +254,10 @@ class AdminController
 
         if ($this->userModel->updateUser($userId, $userData)) {
             $_SESSION['message'] = 'Utilisateur mis à jour avec succès.';
-            header('Location: /Mediflow/admin');
+            header('Location: /integration/admin');
         } else {
             $_SESSION['error'] = 'Erreur lors de la mise à jour de l\'utilisateur.';
-            header("Location: /Mediflow/admin?action=edit&id=$userId");
+            header("Location: /integration/admin?action=edit&id=$userId");
         }
         exit;
     }
@@ -273,7 +273,7 @@ class AdminController
 
         if ($userId <= 0) {
             $_SESSION['error'] = 'Utilisateur invalide.';
-            header('Location: /Mediflow/admin');
+            header('Location: /integration/admin');
             exit;
         }
 
@@ -283,7 +283,7 @@ class AdminController
             $_SESSION['error'] = 'Erreur lors de la suppression de l\'utilisateur.';
         }
 
-        header('Location: /Mediflow/admin');
+        header('Location: /integration/admin');
         exit;
     }
 

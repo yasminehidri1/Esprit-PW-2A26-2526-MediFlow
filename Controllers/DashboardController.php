@@ -84,6 +84,19 @@ class DashboardController
             $data['resEnCours']  = count(array_filter($allRes, fn($r) => ($r['statut']??'') === 'en_cours'));
             $data['latestEq']    = array_slice(array_reverse($allEq), 0, 4);
 
+        } elseif ($role === 'Magazine') {
+            // Magazine editor sees article + comment stats
+            require_once __DIR__ . '/../Models/Post.php';
+            require_once __DIR__ . '/../Models/Comment.php';
+            $postModel    = new \Post();
+            $commentModel = new \Comment();
+            $postStats    = $postModel->getStats();
+            $commentStats = $commentModel->getStats();
+
+            $data['postStats']    = $postStats;
+            $data['commentStats'] = $commentStats;
+            $data['recentPosts']  = $postModel->getRecent(5);
+
         } else {
             // Other roles — generic placeholder until their module is built
             $data['stats'] = [];
@@ -161,7 +174,7 @@ class DashboardController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             error_log('Not a POST request, redirecting');
-            header('Location: /Mediflow/profile');
+            header('Location: /integration/profile');
             exit;
         }
 
@@ -247,8 +260,8 @@ class DashboardController
                 $_SESSION['user']['tel'] = $tel;
                 $_SESSION['user']['adresse'] = $adresse;
 
-                error_log('Session updated. Redirecting to /Mediflow/profile?success=1');
-                header('Location: /Mediflow/profile?success=1');
+                error_log('Session updated. Redirecting to /integration/profile?success=1');
+                header('Location: /integration/profile?success=1');
                 exit;
             } else {
                 error_log('Update failed!');
