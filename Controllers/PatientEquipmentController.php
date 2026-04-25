@@ -38,7 +38,8 @@ class PatientEquipmentController
             'pageTitle'   => 'Equipment Catalogue',
         ];
 
-        include __DIR__ . '/../Views/Front/catalogue.php';
+        $currentView = '../Front/catalogue';
+        include __DIR__ . '/../Views/Back/layout.php';
     }
 
     /** Single-equipment reservation form */
@@ -60,7 +61,8 @@ class PatientEquipmentController
             'pageTitle'   => $eq ? 'Réserver — ' . htmlspecialchars($eq['nom']) : 'Réservation',
         ];
 
-        include __DIR__ . '/../Views/Front/reservation.php';
+        $currentView = '../Front/reservation';
+        include __DIR__ . '/../Views/Back/layout.php';
     }
 
     /** Patient's own reservation history */
@@ -86,7 +88,8 @@ class PatientEquipmentController
             'pageTitle'    => 'Mes Réservations',
         ];
 
-        include __DIR__ . '/../Views/Front/mes-reservations.php';
+        $currentView = '../Front/mes-reservations';
+        include __DIR__ . '/../Views/Back/layout.php';
     }
 
     /** Equipment manager — backoffice CRUD view */

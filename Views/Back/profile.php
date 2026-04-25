@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * User Profile Page — works for ALL roles
  * $currentUser, $errors, $success injected by DashboardController
@@ -15,11 +15,223 @@ $backUrl = match($role) {
     default            => '/integration/dashboard',
 };
 ?>
-  <!-- Content -->
-  <div class="pb-12 px-10 max-w-2xl">
+<style>
+/* ── Profile page ── */
+.profile-wrap { max-width: 700px; }
 
-    <h2 class="text-3xl font-extrabold bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent mb-1">Mon Profil</h2>
-    <p class="text-on-surface-variant mb-8 font-medium">Mettez à jour vos informations personnelles et votre mot de passe.</p>
+.profile-hero {
+    background: linear-gradient(135deg, #004d99 0%, #1565c0 60%, #005851 100%);
+    border-radius: 20px;
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: #fff;
+    margin-bottom: 28px;
+}
+.profile-avatar-big {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Manrope', sans-serif;
+    font-size: 28px; font-weight: 900;
+    border: 3px solid rgba(255,255,255,.4);
+    flex-shrink: 0;
+}
+.profile-hero-info h2 { font-family: 'Manrope', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.profile-hero-info p  { font-size: 13px; opacity: .8; }
+.profile-hero-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,.15);
+    border: 1.5px solid rgba(255,255,255,.3);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+/* ── Cards ── */
+.card {
+    background: #fff;
+    border: 1px solid #e8eaf0;
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f3f4f6;
+}
+.card-title .material-symbols-outlined { font-size: 18px; }
+
+/* ── Form elements ── */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+@media(max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+.form-group { margin-bottom: 16px; }
+.form-group:last-child { margin-bottom: 0; }
+
+.form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+.form-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: #f9fafb;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    color: #111827;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    box-sizing: border-box;
+}
+.form-input:focus {
+    border-color: #004d99;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0,77,153,.10);
+}
+
+/* ── Password toggle ── */
+.pwd-toggle {
+    position: relative;
+}
+.pwd-toggle button {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+}
+.pwd-toggle button:hover { color: #004d99; }
+.pwd-toggle .form-input { padding-right: 44px; }
+
+/* ── Meta chips ── */
+.meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    background: #f0f5ff;
+    border: 1px solid #c7d7f9;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #004d99;
+}
+.meta-chip .material-symbols-outlined { font-size: 14px; }
+
+/* ── Alerts ── */
+.alert-ok {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #15803d;
+}
+.alert-ok .material-symbols-outlined { font-size: 20px; }
+.alert-err {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #dc2626;
+}
+.alert-err ul { margin: 0; padding-left: 16px; }
+.alert-err li { margin-bottom: 2px; }
+
+/* ── Action buttons ── */
+.btn-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 24px;
+    background: #004d99;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+}
+.btn-save:hover { background: #00357a; transform: translateY(-1px); }
+.btn-save .material-symbols-outlined { font-size: 18px; }
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    background: #f3f4f6;
+    color: #374151;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    text-decoration: none;
+    transition: background .15s;
+}
+.btn-back:hover { background: #e5e7eb; }
+.btn-back .material-symbols-outlined { font-size: 18px; }
+</style>
+
+  <!-- Content -->
+  <div class="profile-wrap">
+
+
+    <!-- Profile hero banner -->
+    <div class="profile-hero">
+      <div class="profile-avatar-big"><?= strtoupper(substr($user['prenom'] ?? 'U', 0, 1)) ?></div>
+      <div class="profile-hero-info">
+        <h2><?= htmlspecialchars(trim(($user['prenom'] ?? '') . ' ' . ($user['nom'] ?? ''))) ?></h2>
+        <p><?= htmlspecialchars($user['mail'] ?? '') ?></p>
+      </div>
+      <span class="profile-hero-badge"><?= htmlspecialchars($user['role_name'] ?? $role) ?></span>
+    </div>
 
     <!-- Success -->
     <?php if (isset($_GET['success']) && $_GET['success'] == '1'): ?>
@@ -127,7 +339,6 @@ $backUrl = match($role) {
 
     </form>
   </div>
-</main>
 
 <script>
 function togglePwd(inputId, iconId) {

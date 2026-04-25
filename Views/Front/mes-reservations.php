@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // $data injected by PatientEquipmentController::mesReservations()
 $reservations = $data['reservations'] ?? [];
 $user         = $data['currentUser']  ?? ($_SESSION['user'] ?? []);
@@ -8,7 +8,6 @@ function fmtDate($d){ return $d ? (new DateTime($d))->format('d/m/Y') : '—'; }
 function getBadgeCls($s){ return ['en_cours'=>'encours','termine'=>'termine','en_retard'=>'retard'][$s]??'encours'; }
 function getBadgeLbl($s){ return ['en_cours'=>'En cours','termine'=>'Terminé','en_retard'=>'En retard'][$s]??'—'; }
 ?>
-<!DOCTYPE html>
 <html lang="fr" class="light">
 <head>
   <meta charset="utf-8"/>
@@ -75,59 +74,6 @@ function getBadgeLbl($s){ return ['en_cours'=>'En cours','termine'=>'Terminé','
     @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
   </style>
 </head>
-<body class="bg-surface text-on-surface overflow-hidden">
-
-<!-- SIDEBAR -->
-<aside class="h-screen w-64 fixed left-0 top-0 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col py-8 space-y-6 z-50 border-r border-outline shadow-xl">
-  <div class="px-8">
-    <h1 class="text-2xl font-black tracking-tight bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent">MediFlow</h1>
-    <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Soins de santé</p>
-  </div>
-  <nav class="flex-1 flex flex-col space-y-2 px-4">
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/integration/dashboard">
-      <span class="material-symbols-outlined">dashboard</span><span class="font-medium">Dashboard</span>
-    </a>
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1" href="/integration/catalogue">
-      <span class="material-symbols-outlined">medical_services</span><span class="font-medium">Location d'équipements</span>
-    </a>
-    <!-- active -->
-    <a class="flex items-center space-x-3 text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 pl-4 py-3 rounded-xl transition-all duration-300 shadow-sm font-bold" href="/integration/mes-reservations">
-      <span class="material-symbols-outlined">shopping_cart</span><span class="font-semibold">Mes réservations</span>
-    </a>
-  </nav>
-  <div class="px-4 border-t border-outline pt-6 flex flex-col space-y-3">
-    <a href="/integration/profile" class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300">
-      <span class="material-symbols-outlined">account_circle</span><span class="font-medium">Mon profil</span>
-    </a>
-    <a href="/integration/logout" class="logout-btn">
-      <span class="material-symbols-outlined logout-icon">logout</span><span>Déconnexion</span>
-    </a>
-  </div>
-</aside>
-
-<!-- MAIN -->
-<main class="ml-64 min-h-screen bg-gradient-to-br from-surface via-surface-container-low to-surface-dim overflow-y-auto">
-  <header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-gradient-to-r from-white/80 to-primary-fixed/10 backdrop-blur-xl flex items-center justify-between px-8 z-40 shadow-xl border-b border-outline/20">
-    <div class="flex items-center gap-3">
-      <span class="material-symbols-outlined text-primary">shopping_cart</span>
-      <h2 class="text-lg font-bold text-on-surface">Mes Réservations</h2>
-      <?php if ($total > 0): ?>
-        <span class="bg-primary text-white text-xs font-bold px-2.5 py-0.5 rounded-full"><?= $total ?> en cours</span>
-      <?php endif; ?>
-    </div>
-    <div class="flex items-center gap-4">
-      <a href="/integration/catalogue" class="flex items-center gap-2 text-sm font-semibold text-primary bg-primary-fixed/60 hover:bg-primary-fixed px-4 py-2 rounded-full transition-all duration-300">
-        <span class="material-symbols-outlined text-base">add</span> Nouvelle réservation
-      </a>
-      <div class="flex items-center gap-3 pl-4 border-l border-outline/20">
-        <p class="text-sm font-bold"><?= htmlspecialchars(($user['prenom']??'').(' ').($user['nom']??'')) ?></p>
-        <div class="w-9 h-9 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-sm">
-          <?= strtoupper(substr($user['prenom']??'P',0,1)) ?>
-        </div>
-      </div>
-    </div>
-  </header>
-
   <div class="pt-24 pb-12 px-10">
     <h2 class="text-3xl font-extrabold bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent mb-1">Mes Réservations</h2>
     <p class="text-on-surface-variant mb-8 font-medium"><?= count($reservations) ?> réservation(s) au total</p>
@@ -295,5 +241,3 @@ async function supprimerResa(id,nom){
   }catch(e){showToast('Erreur réseau.','error');}
 }
 </script>
-</body>
-</html>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Equipment Catalogue — Patient View
  * @package MediFlow\Views\Front
@@ -30,59 +30,6 @@ function getImageUrl($eq): string {
 
 $user = $data['currentUser'] ?? ($_SESSION['user'] ?? []);
 ?>
-<!DOCTYPE html>
-<html lang="fr" class="light">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Catalogue des équipements — MediFlow</title>
-  <meta name="description" content="Browse and reserve certified medical equipment for home care."/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/integration/assets/css/style.css"/>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script id="tailwind-config">
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            "background": "#f7f9fb",
-            "surface-container-high": "#e6e8ea",
-            "on-error": "#ffffff",
-            "surface-dim": "#d8dadc",
-            "surface-container-lowest": "#ffffff",
-            "error": "#ba1a1a",
-            "primary-fixed": "#d6e3ff",
-            "on-surface-variant": "#424752",
-            "inverse-surface": "#2d3133",
-            "surface-container-highest": "#e0e3e5",
-            "primary": "#004d99",
-            "surface-bright": "#f7f9fb",
-            "outline": "#727783",
-            "surface-variant": "#e0e3e5",
-            "primary-container": "#1565c0",
-            "secondary": "#4a5f83",
-            "tertiary-container": "#00736a",
-            "primary-fixed-dim": "#a9c7ff",
-            "outline-variant": "#c2c6d4",
-            "surface": "#f7f9fb",
-            "on-primary": "#ffffff",
-            "on-surface": "#191c1e",
-            "tertiary": "#005851",
-            "secondary-container": "#c0d5ff",
-            "on-background": "#191c1e",
-            "surface-container": "#eceef0",
-            "surface-container-low": "#f2f4f6"
-          },
-          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
-          fontFamily: { headline: ["Manrope"], body: ["Inter"], label: ["Inter"] }
-        }
-      }
-    }
-  </script>
   <style>
     /* ── Product grid ── */
     .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
@@ -115,77 +62,6 @@ $user = $data['currentUser'] ?? ($_SESSION['user'] ?? []);
     .bento-banner .btn-offers:hover { background:rgba(255,255,255,.3); }
     .banner-icon .material-symbols-outlined { font-size:72px; opacity:.25; }
   </style>
-</head>
-<body class="bg-surface text-on-surface overflow-hidden">
-
-<!-- ══ SIDEBAR ══ -->
-<aside class="h-screen w-64 fixed left-0 top-0 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col py-8 space-y-6 z-50 border-r border-outline shadow-xl">
-  <div class="px-8">
-    <h1 class="text-2xl font-black tracking-tight bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent">MediFlow</h1>
-    <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Soins de santé</p>
-  </div>
-  <nav class="flex-1 flex flex-col space-y-2 px-4">
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-       href="/integration/dashboard">
-      <span class="material-symbols-outlined">dashboard</span>
-      <span class="font-medium">Dashboard</span>
-    </a>
-
-    <!-- Rental Equipment — active -->
-    <a class="flex items-center space-x-3 text-primary bg-gradient-to-r from-primary-fixed to-primary-fixed/50 pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1 shadow-sm font-bold"
-       href="/integration/catalogue">
-      <span class="material-symbols-outlined">medical_services</span>
-      <span class="font-semibold">Location d'équipements</span>
-    </a>
-
-    <a class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-       href="/integration/mes-reservations">
-      <span class="material-symbols-outlined">shopping_cart</span>
-      <span class="font-medium">Mes réservations</span>
-    </a>
-  </nav>
-  <div class="px-4 border-t border-outline pt-6 flex flex-col space-y-3">
-    <a href="/integration/profile" class="flex items-center space-x-3 text-slate-500 hover:text-primary pl-4 py-3 rounded-xl transition-all duration-300 transform hover:translate-x-1">
-      <span class="material-symbols-outlined">account_circle</span>
-      <span class="font-medium">Mon profil</span>
-    </a>
-    <a href="/integration/logout" class="logout-btn">
-      <span class="material-symbols-outlined logout-icon">logout</span>
-      <span>Déconnexion</span>
-    </a>
-  </div>
-</aside>
-
-<!-- ══ MAIN WRAPPER ══ -->
-<main class="ml-64 min-h-screen bg-gradient-to-br from-surface via-surface-container-low to-surface-dim">
-
-  <!-- TopBar -->
-  <header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-gradient-to-r from-white/80 to-primary-fixed/10 backdrop-blur-xl flex items-center justify-between px-8 z-40 shadow-xl border-b border-outline/20">
-    <div class="flex items-center space-x-4">
-      <span class="material-symbols-outlined text-primary">medical_services</span>
-      <h2 class="text-lg font-bold text-on-surface">Catalogue des Équipements</h2>
-    </div>
-    <div class="flex items-center space-x-4">
-      <a href="/integration/mes-reservations"
-         class="flex items-center gap-2 text-sm font-semibold text-primary bg-primary-fixed/60 hover:bg-primary-fixed px-4 py-2 rounded-full transition-all duration-300">
-        <span class="material-symbols-outlined text-base">shopping_cart</span>
-        Mes Réservations
-      </a>
-      <div class="flex items-center space-x-3 pl-4 border-l border-outline/20">
-        <div class="text-right">
-          <p class="text-sm font-bold text-on-surface">
-            <?php echo htmlspecialchars(($user['prenom'] ?? '') . ' ' . ($user['nom'] ?? '')); ?>
-          </p>
-          <p class="text-xs text-slate-500"><?php echo htmlspecialchars($user['role_name'] ?? $user['role'] ?? 'Patient'); ?></p>
-        </div>
-        <div class="w-9 h-9 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-sm">
-          <?php echo strtoupper(substr($user['prenom'] ?? 'P', 0, 1)); ?>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Content -->
   <div class="pt-24 pb-12 px-10 space-y-8">
 
     <!-- Page header -->
@@ -297,6 +173,3 @@ document.querySelectorAll('.btn-filter').forEach(btn => {
     });
   });
 });
-</script>
-</body>
-</html>

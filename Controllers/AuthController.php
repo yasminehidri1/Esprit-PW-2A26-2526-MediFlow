@@ -330,9 +330,15 @@ class AuthController
     {
         extract($data);
         $errors = $data['errors'] ?? [];
-        
-        include __DIR__ . '/../Views/layout/header.php';
-        include __DIR__ . '/../Views/' . $view . '.php';
-        include __DIR__ . '/../Views/layout/footer.php';
+
+        // Login and register are full standalone pages — no header/footer wrapper needed
+        $standaloneViews = ['Front/login', 'Front/register'];
+        if (in_array($view, $standaloneViews)) {
+            include __DIR__ . '/../Views/' . $view . '.php';
+        } else {
+            include __DIR__ . '/../Views/layout/header.php';
+            include __DIR__ . '/../Views/' . $view . '.php';
+            include __DIR__ . '/../Views/layout/footer.php';
+        }
     }
 }

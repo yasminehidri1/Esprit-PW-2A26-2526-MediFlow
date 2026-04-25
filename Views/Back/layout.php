@@ -383,16 +383,25 @@ function groupOpen(string $prefix, string $currentPath): string {
     <div class="flex-1 p-8 space-y-8">
         <?php
         if (isset($currentView)) {
-            /* Magazine back-office views (articles, dashboard_magazine, etc.) */
-            $magPath = __DIR__ . '/' . $currentView . '.php';
-            if (file_exists($magPath)) {
-                include $magPath;
+            /* Check for Front/ views (patient: catalogue, mes-reservations, reservation) */
+            if (str_starts_with($currentView, '../Front/')) {
+                $frontPath = __DIR__ . '/' . $currentView . '.php';
+                if (file_exists($frontPath)) {
+                    include $frontPath;
+                } else {
+                    echo '<p class="text-red-500">Front view not found: ' . htmlspecialchars($currentView) . '</p>';
+                }
             } else {
-                echo '<p class="text-error">View not found: ' . htmlspecialchars($currentView) . '</p>';
+                /* Back-office views (articles, dashboard_magazine, equipements, etc.) */
+                $magPath = __DIR__ . '/' . $currentView . '.php';
+                if (file_exists($magPath)) {
+                    include $magPath;
+                } else {
+                    echo '<p class="text-red-500">View not found: ' . htmlspecialchars($currentView) . '</p>';
+                }
             }
         } else {
             /* User module: DashboardController sets $data, no $currentView */
-            /* Ensure $data is defined so dashboard_kpi.php doesn't error */
             if (!isset($data)) $data = [];
             include __DIR__ . '/dashboard_kpi.php';
         }

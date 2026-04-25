@@ -1,199 +1,300 @@
-<section class="register-container">
-	<!-- Decorative pattern overlay -->
-	<div class="register-bg-pattern"></div>
-	
-	<div class="register-content">
-		<!-- Logo & Title -->
-		<div class="register-header" style="animation: fadeInDown 0.6s ease-out;">
-			<div class="register-logo-wrapper">
-				<a href="/integration/" class="register-logo-link">
-					<img src="assets/images/logo.png" alt="MediFlow" class="register-logo-image" onerror="this.style.display='none'" />
-					<span class="register-logo-text">Medi<span class="register-logo-accent">Flow</span></span>
-				</a>
-			</div>
-			<h1 class="register-main-title">Créer un compte</h1>
-			<p class="register-main-subtitle">Rejoignez MediFlow et accédez à nos services</p>
-		</div>
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Inscription — MediFlow</title>
+    <meta name="description" content="Créez votre compte MediFlow gratuitement."/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#004d99", "primary-container": "#1565c0",
+                    "primary-fixed": "#d6e3ff", "surface": "#f7f9fb",
+                    "tertiary": "#005851", "error": "#ba1a1a",
+                }
+            }
+        }
+    };
+    </script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        h1,h2,h3 { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
 
-		<!-- Registration Card -->
-		<div class="register-card" style="animation: slideUp 0.8s ease-out 0.1s both;">
-			<!-- Registration Form (Patients Only) -->
-			<div id="step2" class="register-step active" style="display: block; opacity: 1;">
-				<h2 class="step-title">Créer votre compte Patient</h2>
-				<p class="step-subtitle">Rejoignez MediFlow en tant que patient</p>
+        .auth-page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+        }
+        @media(max-width: 900px) { .auth-page { grid-template-columns: 1fr; } }
 
-				<!-- Server-side Error Alerts -->
-				<?php if (!empty($errors)): ?>
-					<div class="register-alert-error" style="display: block; margin-bottom: 20px;">
-						<span class="alert-icon">⚠️</span>
-						<div class="alert-content">
-							<p><?php echo implode('<br>', array_map('htmlspecialchars', $errors)); ?></p>
-						</div>
-					</div>
-				<?php endif; ?>
+        /* Left panel */
+        .auth-left {
+            background: linear-gradient(145deg, #004d99 0%, #1565c0 40%, #005851 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 48px;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-left::before { content:''; position:absolute; width:400px; height:400px; background:rgba(255,255,255,.06); border-radius:50%; top:-100px; left:-100px; }
+        .auth-left::after  { content:''; position:absolute; width:300px; height:300px; background:rgba(255,255,255,.05); border-radius:50%; bottom:-80px; right:-80px; }
+        .auth-left-content { position:relative; z-index:1; text-align:center; max-width:340px; }
+        .auth-left-logo { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:40px; }
+        .auth-left-logo-icon { width:52px; height:52px; background:rgba(255,255,255,.2); border-radius:16px; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,.3); }
+        .auth-left-logo-text { font-family:'Manrope',sans-serif; font-size:28px; font-weight:900; letter-spacing:-0.5px; }
+        .auth-left h1 { font-family:'Manrope',sans-serif; font-size:30px; font-weight:900; line-height:1.2; margin-bottom:14px; }
+        .auth-left p  { font-size:14px; opacity:.8; line-height:1.6; }
+        .auth-feature { display:flex; align-items:center; gap:12px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:12px; padding:12px 16px; margin-top:12px; text-align:left; }
+        .auth-feature .material-symbols-outlined { font-size:18px; flex-shrink:0; color:#84f5e8; }
+        .auth-feature-text { font-size:12.5px; font-weight:600; }
 
-				<!-- Client-side Error Alerts -->
-				<div id="registerErrors" class="register-alert-error" style="display: none;"></div>
+        /* Right panel */
+        .auth-right { background:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:48px 48px; overflow-y:auto; }
+        @media(max-width:900px) { .auth-left{display:none;} .auth-right{padding:32px 20px;} }
+        .auth-form-wrap { width:100%; max-width:460px; }
 
-				<!-- Registration Form -->
-				<form id="registerForm" class="register-form" method="POST" novalidate>
-					<!-- First Name -->
-					<div class="form-group">
-						<label for="firstName" class="form-label">Prénom</label>
-						<div class="form-input-group">
-							<span class="form-input-icon">👤</span>
-							<input 
-								id="firstName" 
-								name="firstName" 
-								type="text" 
-								class="form-input" 
-								placeholder="Jean"
-								required
-							/>
-						</div>
-						<span class="form-error" id="errorFirstName"></span>
-					</div>
+        .auth-title { font-family:'Manrope',sans-serif; font-size:26px; font-weight:900; color:#111827; margin-bottom:4px; }
+        .auth-subtitle { font-size:13px; color:#6b7280; margin-bottom:24px; }
 
-					<!-- Last Name -->
-					<div class="form-group">
-						<label for="lastName" class="form-label">Nom</label>
-						<div class="form-input-group">
-							<span class="form-input-icon">👤</span>
-							<input 
-								id="lastName" 
-								name="lastName" 
-								type="text" 
-								class="form-input" 
-								placeholder="Dupont"
-								required
-							/>
-						</div>
-						<span class="form-error" id="errorLastName"></span>
-					</div>
+        /* Two column grid for name fields */
+        .field-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        @media(max-width:500px) { .field-row { grid-template-columns:1fr; } }
 
-					<!-- Email -->
-					<div class="form-group">
-						<label for="registerEmail" class="form-label">Email</label>
-						<div class="form-input-group">
-							<span class="form-input-icon">✉️</span>
-							<input 
-								id="registerEmail" 
-								name="email" 
-								type="email" 
-								class="form-input" 
-								placeholder="vous@exemple.com"
-								required
-							/>
-						</div>
-						<span class="form-error" id="errorEmail"></span>
-					</div>
+        .field-group { margin-bottom:14px; }
+        .field-label { display:block; font-size:11px; font-weight:700; color:#374151; margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
+        .field-wrap { position:relative; display:flex; align-items:center; }
+        .field-icon { position:absolute; left:13px; color:#9ca3af; display:flex; align-items:center; pointer-events:none; }
+        .field-icon .material-symbols-outlined { font-size:17px; }
+        .field-input {
+            width:100%;
+            padding:11px 13px 11px 42px;
+            background:#f9fafb;
+            border:1.5px solid #e5e7eb;
+            border-radius:11px;
+            font-size:13.5px;
+            font-family:'Inter',sans-serif;
+            color:#111827;
+            outline:none;
+            transition:border-color .15s,box-shadow .15s,background .15s;
+            box-sizing:border-box;
+        }
+        .field-input:focus { border-color:#004d99; background:#fff; box-shadow:0 0 0 3px rgba(0,77,153,.10); }
+        .field-input::placeholder { color:#d1d5db; }
+        .field-hint { font-size:11.5px; color:#9ca3af; margin-top:4px; }
+        .field-toggle-btn { position:absolute; right:12px; background:none; border:none; cursor:pointer; color:#9ca3af; padding:3px; display:flex; align-items:center; }
+        .field-toggle-btn:hover { color:#004d99; }
+        .field-toggle-btn .material-symbols-outlined { font-size:17px; }
 
-					<!-- Phone (optional for patient, required for personnel) -->
-					<div class="form-group">
-						<label for="phone" class="form-label">Téléphone <span id="phoneRequired"></span></label>
-						<div class="form-input-group">
-							<span class="form-input-icon">📱</span>
-							<input 
-								id="phone" 
-								name="phone" 
-								type="tel" 
-								class="form-input" 
-								placeholder="+33 6 XX XX XX XX"
-							/>
-						</div>
-						<span class="form-error" id="errorPhone"></span>
-					</div>
+        /* Checkbox row — FIXED: proper inline alignment */
+        .checkbox-row { display:flex; align-items:flex-start; gap:10px; margin-bottom:16px; }
+        .checkbox-row input[type="checkbox"] { width:17px; height:17px; flex-shrink:0; accent-color:#004d99; cursor:pointer; margin-top:2px; }
+        .checkbox-row label { font-size:12.5px; color:#374151; cursor:pointer; line-height:1.5; }
+        .checkbox-row a { color:#004d99; font-weight:700; text-decoration:none; }
+        .checkbox-row a:hover { text-decoration:underline; }
 
-					<!-- Password -->
-					<div class="form-group">
-						<label for="registerPassword" class="form-label">Mot de passe</label>
-						<div class="form-input-group">
-							<span class="form-input-icon">🔐</span>
-							<input 
-								id="registerPassword" 
-								name="password" 
-								type="password" 
-								class="form-input" 
-								placeholder="••••••••"
-								required
-							/>
-						</div>
-						<span class="form-error" id="errorPassword"></span>
-						<small class="form-hint">Minimum 8 caractères avec majuscules et chiffres</small>
-					</div>
+        /* Submit button */
+        .btn-submit {
+            width:100%;
+            padding:13px;
+            background:linear-gradient(135deg,#004d99,#1565c0);
+            color:#fff;
+            border:none;
+            border-radius:12px;
+            font-size:14px;
+            font-weight:700;
+            font-family:'Inter',sans-serif;
+            cursor:pointer;
+            transition:opacity .15s,transform .1s;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+        }
+        .btn-submit:hover { opacity:.92; transform:translateY(-1px); }
 
-					<!-- Confirm Password -->
-					<div class="form-group">
-						<label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
-						<div class="form-input-group">
-							<span class="form-input-icon">🔐</span>
-							<input 
-								id="confirmPassword" 
-								name="confirmPassword" 
-								type="password" 
-								class="form-input" 
-								placeholder="••••••••"
-								required
-							/>
-						</div>
-						<span class="form-error" id="errorConfirmPassword"></span>
-					</div>
+        /* Error alert */
+        .auth-alert-error {
+            display:flex; align-items:flex-start; gap:10px;
+            background:#fef2f2; border:1px solid #fecaca; border-radius:10px;
+            padding:12px 16px; margin-bottom:18px; font-size:13px; color:#dc2626;
+        }
+        .auth-alert-error .material-symbols-outlined { font-size:18px; flex-shrink:0; margin-top:1px; }
 
-					<!-- Terms Agreement -->
-					<div class="form-group">
-						<label class="form-checkbox">
-							<input type="checkbox" name="terms" id="terms" required />
-							J'accepte les <a href="/integration/terms" target="_blank" class="terms-link" style="color: #004d99; font-weight: 600; text-decoration: underline; cursor: pointer;">Conditions d'Utilisation</a> et la politique de confidentialité
-						</label>
-						<span class="form-error" id="errorTerms"></span>
-					</div>
+        /* reCAPTCHA wrapper to constrain width */
+        .recaptcha-wrap { margin-bottom:16px; transform:scale(0.95); transform-origin:left center; }
+        @media(max-width:380px){ .recaptcha-wrap { transform:scale(0.8); } }
 
-				<!-- reCAPTCHA v2 -->
-			<?php 
-				if (!class_exists('config')) {
-					require_once __DIR__ . '/../../config.php';
-				}
-				$siteKey = \config::getRecaptchaSiteKey();
-			?>
-			<div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($siteKey); ?>" style="margin: 20px 0;"></div>
+        .auth-divider { display:flex; align-items:center; gap:12px; margin:20px 0; }
+        .auth-divider::before,.auth-divider::after { content:''; flex:1; height:1px; background:#e5e7eb; }
+        .auth-divider span { font-size:11px; color:#9ca3af; font-weight:600; }
+        .auth-footer { text-align:center; font-size:13px; color:#6b7280; }
+        .auth-footer a { color:#004d99; font-weight:700; text-decoration:none; }
+        .auth-footer a:hover { text-decoration:underline; }
+    </style>
+</head>
+<body class="bg-surface">
 
-				<!-- Action Buttons -->
-				<div class="register-form-actions">
-					<button type="submit" class="register-btn-submit" style="width: 100%;">
-						S'inscrire en tant que Patient
-						<span class="btn-arrow">→</span>
-					</button>
-				</div>
-			</form>
-			</div>
-		</div>
+<div class="auth-page">
+    <!-- Left Panel -->
+    <div class="auth-left">
+        <div class="auth-left-content">
+            <div class="auth-left-logo">
+                <div class="auth-left-logo-icon">
+                    <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1">local_hospital</span>
+                </div>
+                <span class="auth-left-logo-text">Medi<span style="color:#84f5e8;">Flow</span></span>
+            </div>
+            <h1>Rejoignez MediFlow</h1>
+            <p>Créez votre compte en moins d'une minute et accédez à tous nos services de santé connectée.</p>
 
-		<!-- Bottom Links -->
-		<div class="register-footer-links" style="animation: fadeIn 0.8s ease-out 0.3s both;">
-			<p class="register-signin-link">
-				Vous avez déjà un compte? <a href="/integration/login" class="link-primary">Se connecter</a>
-			</p>
-			<a href="/integration/" class="footer-link">← Retour à l'accueil</a>
-		</div>
-	</div>
-</section>
+            <div class="auth-feature">
+                <span class="material-symbols-outlined">medical_services</span>
+                <span class="auth-feature-text">Location d'équipements médicaux certifiés</span>
+            </div>
+            <div class="auth-feature">
+                <span class="material-symbols-outlined">newspaper</span>
+                <span class="auth-feature-text">Magazine médical avec articles d'experts</span>
+            </div>
+            <div class="auth-feature">
+                <span class="material-symbols-outlined">shield</span>
+                <span class="auth-feature-text">Compte sécurisé, données confidentielles</span>
+            </div>
+        </div>
+    </div>
 
-<!-- Google reCAPTCHA v2 Script -->
+    <!-- Right Panel — Registration Form -->
+    <div class="auth-right">
+        <div class="auth-form-wrap">
+            <h2 class="auth-title">Créer un compte Patient</h2>
+            <p class="auth-subtitle">Rejoignez la communauté MediFlow — c'est gratuit</p>
+
+            <?php if (!empty($errors)): ?>
+            <div class="auth-alert-error">
+                <span class="material-symbols-outlined">error</span>
+                <div><?= implode('<br>', array_map('htmlspecialchars', $errors)) ?></div>
+            </div>
+            <?php endif; ?>
+
+            <div id="registerErrors" class="auth-alert-error" style="display:none;"></div>
+
+            <form id="registerForm" method="POST" novalidate>
+                <!-- Name row -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label" for="firstName">Prénom</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><span class="material-symbols-outlined">person</span></span>
+                            <input class="field-input" type="text" id="firstName" name="firstName" placeholder="Jean" required/>
+                        </div>
+                        <span class="field-hint" id="errorFirstName" style="color:#dc2626;display:none;"></span>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="lastName">Nom</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><span class="material-symbols-outlined">person</span></span>
+                            <input class="field-input" type="text" id="lastName" name="lastName" placeholder="Dupont" required/>
+                        </div>
+                        <span class="field-hint" id="errorLastName" style="color:#dc2626;display:none;"></span>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="field-group">
+                    <label class="field-label" for="registerEmail">Adresse e-mail</label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><span class="material-symbols-outlined">mail</span></span>
+                        <input class="field-input" type="email" id="registerEmail" name="email" placeholder="vous@exemple.com" required/>
+                    </div>
+                    <span class="field-hint" id="errorEmail" style="color:#dc2626;display:none;"></span>
+                </div>
+
+                <!-- Phone -->
+                <div class="field-group">
+                    <label class="field-label" for="phone">Téléphone <span style="color:#9ca3af;font-weight:400;">(optionnel)</span></label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><span class="material-symbols-outlined">phone</span></span>
+                        <input class="field-input" type="tel" id="phone" name="phone" placeholder="+216 XX XXX XXX"/>
+                    </div>
+                    <span class="field-hint" id="errorPhone" style="color:#dc2626;display:none;"></span>
+                </div>
+
+                <!-- Password -->
+                <div class="field-group">
+                    <label class="field-label" for="registerPassword">Mot de passe</label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><span class="material-symbols-outlined">lock</span></span>
+                        <input class="field-input" type="password" id="registerPassword" name="password"
+                               placeholder="••••••••" required style="padding-right:42px;"/>
+                        <button type="button" class="field-toggle-btn" onclick="togglePwd('registerPassword','eye-pass')">
+                            <span class="material-symbols-outlined" id="eye-pass">visibility</span>
+                        </button>
+                    </div>
+                    <p class="field-hint">Minimum 8 caractères avec majuscules et chiffres</p>
+                    <span class="field-hint" id="errorPassword" style="color:#dc2626;display:none;"></span>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="field-group">
+                    <label class="field-label" for="confirmPassword">Confirmer le mot de passe</label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><span class="material-symbols-outlined">lock</span></span>
+                        <input class="field-input" type="password" id="confirmPassword" name="confirmPassword"
+                               placeholder="••••••••" required style="padding-right:42px;"/>
+                        <button type="button" class="field-toggle-btn" onclick="togglePwd('confirmPassword','eye-conf')">
+                            <span class="material-symbols-outlined" id="eye-conf">visibility</span>
+                        </button>
+                    </div>
+                    <span class="field-hint" id="errorConfirmPassword" style="color:#dc2626;display:none;"></span>
+                </div>
+
+                <!-- Terms — FIXED checkbox layout -->
+                <div class="checkbox-row">
+                    <input type="checkbox" id="terms" name="terms" required/>
+                    <label for="terms">
+                        J'accepte les <a href="/integration/terms" target="_blank">Conditions d'Utilisation</a> et la politique de confidentialité
+                    </label>
+                </div>
+                <span class="field-hint" id="errorTerms" style="color:#dc2626;display:none;margin-bottom:12px;display:none;"></span>
+
+                <!-- reCAPTCHA -->
+                <?php
+                if (!class_exists('config')) require_once __DIR__ . '/../../config.php';
+                $siteKey = \config::getRecaptchaSiteKey();
+                ?>
+                <div class="recaptcha-wrap">
+                    <div class="g-recaptcha" data-sitekey="<?= htmlspecialchars($siteKey) ?>"></div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <span class="material-symbols-outlined" style="font-size:18px;">how_to_reg</span>
+                    S'inscrire en tant que Patient
+                </button>
+            </form>
+
+            <div class="auth-divider"><span>déjà inscrit ?</span></div>
+            <p class="auth-footer"><a href="/integration/login">← Se connecter à mon compte</a></p>
+        </div>
+    </div>
+</div>
+
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script src="assets/js/register.js"></script>
-
 <script>
-	/**
-	 * Handle registration form submission
-	 */
-	document.addEventListener('DOMContentLoaded', function() {
-		const registerForm = document.getElementById('registerForm');
-		
-		if (registerForm) {
-			registerForm.addEventListener('submit', function(e) {
-				// For reCAPTCHA v2, the API automatically handles the token
-				// No need to manually check anything
-			});
-		}
-	});
+function togglePwd(inputId, iconId) {
+    const inp = document.getElementById(inputId);
+    const eye = document.getElementById(iconId);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    eye.textContent = inp.type === 'password' ? 'visibility' : 'visibility_off';
+}
 </script>
+</body>
+</html>
