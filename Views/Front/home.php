@@ -150,9 +150,9 @@ $catBadge = [
           <!-- Footer row -->
           <div class="flex items-center justify-between border-t border-surface-container pt-4">
             <div class="flex items-center gap-4 text-slate-400">
-              <button class="like-btn flex items-center gap-1.5 hover:text-red-500 cursor-pointer transition-colors"
+              <button class="like-btn flex items-center gap-1.5 cursor-pointer transition-colors <?= !empty($post['user_has_liked']) ? 'text-red-500' : 'hover:text-red-500' ?>"
                       data-post-id="<?= $post['id'] ?>">
-                <span class="material-symbols-outlined text-[20px] like-icon">favorite</span>
+                <span class="material-symbols-outlined text-[20px] like-icon" <?= !empty($post['user_has_liked']) ? 'style="font-variation-settings: \'FILL\' 1;"' : '' ?>>favorite</span>
                 <span class="text-xs font-bold like-count"><?= fmt((int)$post['likes_count']) ?></span>
               </button>
               <a href="/integration/magazine/article?id=<?= $post['id'] ?>#comments"

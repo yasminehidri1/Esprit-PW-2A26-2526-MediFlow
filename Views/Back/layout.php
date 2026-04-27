@@ -262,7 +262,7 @@ function groupOpen(string $prefix, string $currentPath): string {
 
         <!-- Magazine for Patient -->
         <a href="/integration/magazine"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary">
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 <?= sidebarLink('/integration/magazine', $currentPath) ?>">
             <span class="material-symbols-outlined text-xl">newspaper</span>
             <span>Medical Magazine</span>
         </a>

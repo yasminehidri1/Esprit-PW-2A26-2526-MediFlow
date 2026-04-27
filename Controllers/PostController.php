@@ -195,16 +195,21 @@ class PostController
         $popularPosts    = $this->postModel->getMostLiked(5);
         $mostViewedPosts = $this->postModel->getMostViewed(5);
 
+        $userId = $_SESSION['user']['id'] ?? null;
+
         if ($featuredPost) {
             $featuredPost['comment_count'] = $this->commentModel->countByPost($featuredPost['id']);
+            $featuredPost['user_has_liked'] = $userId ? $this->postModel->hasLiked($featuredPost['id'], $userId) : false;
         }
 
         foreach ($recentPosts as &$post) {
             $post['comment_count'] = $this->commentModel->countByPost($post['id']);
+            $post['user_has_liked'] = $userId ? $this->postModel->hasLiked($post['id'], $userId) : false;
         }
 
+        $GLOBALS['magazineSubView'] = 'home';
         $currentView = 'home';
-        include __DIR__ . '/../Views/Front/layout.php';
+        $this->renderMagazineView(get_defined_vars());
     }
 
     /**
@@ -249,8 +254,9 @@ class PostController
             $rp['comment_count'] = $this->commentModel->countByPost($rp['id']);
         }
 
+        $GLOBALS['magazineSubView'] = 'article';
         $currentView = 'article';
-        include __DIR__ . '/../Views/Front/layout.php';
+        $this->renderMagazineView(get_defined_vars());
     }
 
     /**
@@ -262,9 +268,10 @@ class PostController
         $page        = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
         $result      = $this->postModel->getByCategory($categorie, $page, 9);
         $categories  = $this->postModel->getCategories();
+        $GLOBALS['magazineSubView'] = 'category';
         $currentView = 'category';
 
-        include __DIR__ . '/../Views/Front/layout.php';
+        $this->renderMagazineView(get_defined_vars());
     }
 
     /**
@@ -316,6 +323,28 @@ class PostController
     // =========================================================
     // HELPERS
     // =========================================================
+
+    /**
+     * Render a magazine front-office view.
+     * — If the visitor is a logged-in Patient, wrap it in Back/layout.php so
+     *   the unified sidebar stays visible (magazine_patient.php is the content partial).
+     * — Otherwise use the standalone Front/layout.php (full editorial page).
+     */
+    private function renderMagazineView(array $data = []): void
+    {
+        extract($data); // Make all passed variables available to the included views
+
+        $role = $_SESSION['user']['role'] ?? '';
+        if ($role === 'Patient') {
+            // The calling method already set $GLOBALS['magazineSubView'] ('home'|'article'|'category').
+            // Back/layout.php will include magazine_patient.php which reads that global.
+            $currentView = '../Front/magazine_patient';
+            include __DIR__ . '/../Views/Back/layout.php';
+        } else {
+            // Public / Admin / Magazine: use standalone editorial layout
+            include __DIR__ . '/../Views/Front/layout.php';
+        }
+    }
 
     /**
      * Require that the user has Magazine or Admin role for back-office actions
