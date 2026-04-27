@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script src="assets/js/cart.js"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -158,12 +159,13 @@
                                     </div>
                                 </div>
 
-                                <!-- View Details Link -->
-                                <div class="mt-3">
-                                    <p class="text-primary text-xs font-semibold cursor-pointer group-hover:underline flex items-center gap-1">
-                                        Voir détails
-                                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                                    </p>
+                                <!-- Action Buttons -->
+                                <div class="flex gap-2 mt-3">
+                                    <!-- Voir Détails -->
+                                    <button onclick="event.stopPropagation(); window.location.href='?action=front&controller=products&method=view&id=<?php echo $produit['id']; ?>'" class="w-full bg-slate-200 text-slate-700 font-bold py-2 px-2 rounded-lg hover:bg-slate-300 active:bg-slate-400 transition-all flex items-center justify-center gap-1" title="Voir détails" type="button">
+                                        <span class="material-symbols-outlined text-base">info</span>
+                                        <span class="text-xs hidden sm:inline">Détails</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -180,6 +182,29 @@
 
         </div>
     </main>
+
+    <!-- Shopping Cart Scripts -->
+    <script>
+        // Initialiser le panier au chargement
+        let cart = new ShoppingCart();
+
+        // Fonction pour ajouter un produit au panier
+        function addProductToCart(productId, productName, productPrice, productAchat, productCategorie, productImage = '') {
+            cart.addToCart({
+                id: productId,
+                nom: productName,
+                prix_unitaire: productPrice,
+                prix_achat: productAchat,
+                categorie: productCategorie,
+                image: productImage
+            });
+        }
+
+        // Initialiser le compte du panier au chargement de la page
+        window.addEventListener('load', function() {
+            cart.updateCartCount();
+        });
+    </script>
 
 </body>
 </html>

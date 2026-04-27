@@ -143,5 +143,54 @@ class OrderController {
 
         require_once 'views/Back/order_view.php';
     }
+
+    /**
+     * Valide ou annule une commande
+     * Accepte POST
+     */
+    public function validate() {
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new Exception("Méthode non autorisée");
+            }
+
+            $orderId = isset($_POST['order_id']) ? intval($_POST['order_id']) : null;
+            $action = isset($_POST['action']) ? $_POST['action'] : null;
+
+            if (!$orderId || !$action) {
+                throw new Exception("Données manquantes");
+            }
+
+            // Valider l'action
+            if (!in_array($action, ['valider', 'annuler'])) {
+                throw new Exception("Action invalide");
+            }
+
+            // Déterminer le nouveau statut
+            $newStatus = ($action === 'valider') ? 'validée' : 'annulée';
+
+            // Vérifier que la commande existe et est en attente
+            $commande = $this->orderModel->getOrderWithLines($orderId);
+            if (!$commande) {
+                throw new Exception("Commande non trouvée");
+            }
+
+            if ($commande['statut'] !== 'en_attente') {
+                throw new Exception("Seules les commandes en attente peuvent être modifiées");
+            }
+
+            // Mettre à jour le statut
+            $this->orderModel->updateOrderStatus($orderId, $newStatus);
+
+            $_SESSION['success'] = [$action === 'valider' ? 'Commande validée avec succès' : 'Commande annulée'];
+            
+            header('Location: ?action=orders&method=view&id=' . $orderId);
+            exit;
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            header('Location: ?action=orders&method=list');
+            exit;
+        }
+    }
 }
 ?>

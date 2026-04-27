@@ -1,10 +1,9 @@
 <!DOCTYPE html><html class="light" lang="fr"><head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>MediFlow | Stock Management</title>
+<title>MediFlow | Gestion Produits - Fournisseur</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <script id="tailwind-config">
         tailwind.config = {
@@ -83,34 +82,28 @@
     </style>
 </head>
 <body class="bg-surface text-on-surface">
-<!-- SideNavBar (Authority: Shared Components JSON) -->
+<!-- SideNavBar -->
 <aside class="h-screen w-64 fixed left-0 top-0 bg-slate-50 dark:bg-slate-900 flex flex-col py-6 z-50">
 <div class="px-6 mb-10">
-<h1 class="text-xl font-bold text-blue-800 dark:text-blue-300 font-['Manrope']" style="">MediFlow</h1>
-<p class="text-xs text-slate-500 font-medium tracking-wider uppercase mt-1" style="">Stock Management</p>
+<h1 class="text-xl font-bold text-blue-800 dark:text-blue-300 font-['Manrope']">MediFlow</h1>
+<p class="text-xs text-slate-500 font-medium tracking-wider uppercase mt-1">Fournisseur</p>
 </div>
 <nav class="flex-1 space-y-1">
-<!-- Active Tab: Produits -->
-<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 rounded-l-none border-l-4 border-teal-600 font-['Manrope'] font-bold text-sm tracking-tight transition-colors" href="?action=products&method=list" style="">
-<span class="material-symbols-outlined" data-icon="inventory_2" style="">inventory_2</span>
-<span class="" style="">Produits</span>
-</a>
-<!-- Panier -->
-<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-['Manrope'] font-bold text-sm tracking-tight hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors relative" href="?action=cart&method=view" style="">
-<span class="material-symbols-outlined" data-icon="shopping_cart" style="">shopping_cart</span>
-<span class="" style="">Panier</span>
-<span class="cart-count absolute right-2 top-2 w-5 h-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full font-bold hidden" style="width: 20px; height: 20px;">0</span>
+<!-- Produits -->
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 rounded-l-none border-l-4 border-teal-600 font-['Manrope'] font-bold text-sm tracking-tight transition-colors" href="?action=supplier&controller=products&method=list">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>Produits</span>
 </a>
 
-<!-- Inactive Tab: Commandes -->
-<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-['Manrope'] font-bold text-sm tracking-tight hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="?action=orders&method=list" style="">
-<span class="material-symbols-outlined" data-icon="receipt" style="">receipt</span>
-<span class="" style="">Commandes</span>
+<!-- Commandes -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-['Manrope'] font-bold text-sm tracking-tight hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="?action=supplier&controller=orders&method=list">
+<span class="material-symbols-outlined">receipt</span>
+<span>Commandes</span>
 </a>
 </nav>
 <div class="px-6 mt-auto">
 <div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/10">
-<p class="text-xs font-semibold text-secondary mb-2" style="">Total Produits</p>
+<p class="text-xs font-semibold text-secondary mb-2">Total Produits</p>
 <div class="w-full bg-surface-container-high rounded-full h-1.5">
 <div class="bg-primary h-1.5 rounded-full" style="width: <?php echo min(100, ($totalProduits / 500) * 100); ?>%"></div>
 </div>
@@ -118,32 +111,28 @@
 </div>
 </div>
 </aside>
-<!-- TopNavBar (Authority: Shared Components JSON) -->
+
+<!-- TopNavBar -->
 <header class="fixed top-0 right-0 left-64 z-40 flex justify-between items-center px-8 py-3 rounded-2xl mt-4 mx-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-[0_20px_50px_rgba(0,77,153,0.05)] font-['Manrope'] font-semibold">
 <div class="flex items-center gap-4 flex-1">
 <div class="relative w-full max-w-md group">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" style="">search</span>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
 <form method="GET" class="w-full">
-<input type="hidden" name="action" value="products">
+<input type="hidden" name="action" value="supplier">
+<input type="hidden" name="controller" value="products">
 <input type="hidden" name="method" value="search">
-<input class="w-full pl-10 pr-4 py-2 bg-surface-container-highest border-none rounded-full text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none" name="q" placeholder="Rechercher un médicament..." type="text">
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-highest border-none rounded-full text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none" name="q" placeholder="Rechercher un produit..." type="text">
 </form>
 </div>
 </div>
-<div class="flex items-center gap-6">
-<button class="relative p-2 text-slate-400 hover:bg-slate-50/50 rounded-full transition-all group" style="">
-<span class="material-symbols-outlined" data-icon="shopping_cart" style="">shopping_cart</span>
-<span class="absolute top-1 right-1 w-4 h-4 bg-error text-white text-[10px] flex items-center justify-center rounded-full font-bold" style=""><?php echo count($stocksCritiques ?? []); ?></span>
-</button>
-<div class="flex items-center gap-3 pl-6 border-l border-outline-variant/20">
+<div class="flex items-center gap-3">
 <div class="text-right">
-<p class="text-sm font-bold text-on-surface" style="">Dr. Claire V.</p>
-<p class="text-[10px] text-secondary" style="">Pharmacien Chef</p>
-</div>
-<img alt="User profile" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" data-alt="professional portrait of a female doctor in a white coat with a friendly expression in a modern clinic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUFc_nP7jvx9i5LzboCasxXJrxZjRFJAJQVsDN-0KzH64UeEkeQCjYL1znWS2PpeeyCtpDc6bjNroHI9Ls-SrNyOayo-tjv6nHy1JDp4i3ZDrZOLNz7BVgAl8Wbt0ilWs8wMEI03aznQgDetXxiqzr_ywjcMueow456mhyBDTXzZkSN0_yXxkWddsLlm_1iAdl16RuKRpr_T0ah3SLGAT6oh7ggeJvo7h-e5vkK7B85kLQ6aEWqqaNPpQAKuxOCDG7DUoJGlhCaLCO" style="">
+<p class="text-sm font-bold text-on-surface">Fournisseur</p>
+<p class="text-[10px] text-secondary">BackOffice</p>
 </div>
 </div>
 </header>
+
 <!-- Main Content -->
 <main class="pl-64 pt-28 min-h-screen bg-surface">
 <div class="max-w-7xl mx-auto px-8 pb-12">
@@ -169,18 +158,18 @@
 <!-- Page Header Section -->
 <section class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
 <div>
-<h2 class="text-4xl font-extrabold text-on-surface font-headline tracking-tight mb-2" style="">Produits</h2>
-<p class="text-secondary font-body max-w-md" style="">Gérez l'inventaire de votre officine avec précision et sérénité. Visualisez vos stocks en temps réel.</p>
+<h2 class="text-4xl font-extrabold text-on-surface font-headline tracking-tight mb-2">Mes Produits</h2>
+<p class="text-secondary font-body max-w-md">Gérez votre catalogue de produits. Créez, modifiez et supprimez vos articles.</p>
 </div>
 <div class="flex gap-3">
 <div class="flex bg-surface-container-low p-1 rounded-xl">
-<a href="?action=products&method=list" class="px-4 py-2 bg-white shadow-sm rounded-lg text-sm font-bold text-primary">Tous</a>
-<a href="?action=products&method=filter&category=comprimés" class="px-4 py-2 text-sm font-medium text-secondary hover:text-on-surface transition-colors">Comprimés</a>
-<a href="?action=products&method=filter&category=sirops" class="px-4 py-2 text-sm font-medium text-secondary hover:text-on-surface transition-colors">Sirops</a>
-<a href="?action=products&method=filter&category=injectables" class="px-4 py-2 text-sm font-medium text-secondary hover:text-on-surface transition-colors">Injectables</a>
+<a href="?action=supplier&controller=products&method=list" class="px-4 py-2 bg-white shadow-sm rounded-lg text-sm font-bold text-primary">Tous</a>
+<a href="?action=supplier&controller=products&method=filter&category=comprimés" class="px-4 py-2 text-sm font-medium text-secondary hover:text-on-surface transition-colors">Comprimés</a>
+<a href="?action=supplier&controller=products&method=filter&category=sirops" class="px-4 py-2 text-sm font-medium text-secondary hover:text-on-surface transition-colors">Sirops</a>
+<a href="?action=supplier&controller=products&method=filter&category=injectables" class="px-4 py-2 text-sm font-medium text-secondary hover:text-on-surface transition-colors">Injectables</a>
 </div>
-<a href="?action=products&method=create" class="flex items-center gap-2 bg-primary px-4 py-2 rounded-xl text-sm font-bold text-white hover:bg-primary/90 transition-colors">
-<span class="material-symbols-outlined text-lg" style="">add</span>
+<a href="?action=supplier&controller=products&method=create" class="flex items-center gap-2 bg-primary px-4 py-2 rounded-xl text-sm font-bold text-white hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
 <span>Ajouter Produit</span>
 </a>
 </div>
@@ -192,7 +181,7 @@
     <?php foreach ($produits as $produit): ?>
     <!-- Product Card -->
     <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
-        <!-- Image Container avec Badge Catégorie -->
+        <!-- Image Container -->
         <div class="relative w-full bg-blue-100 aspect-square flex items-center justify-center overflow-hidden">
             <?php if (!empty($produit['image'])): ?>
                 <img alt="<?php echo htmlspecialchars($produit['nom']); ?>" class="w-full h-full object-contain" src="<?php echo htmlspecialchars($produit['image']); ?>" loading="lazy">
@@ -205,7 +194,7 @@
                 </div>
             <?php endif; ?>
             
-            <!-- Badge Catégorie en haut à droite -->
+            <!-- Badge Catégorie -->
             <div class="absolute top-2 right-2">
                 <span class="px-2.5 py-1 bg-blue-600 text-white text-xs font-bold rounded-full whitespace-nowrap">
                     <?php 
@@ -218,15 +207,15 @@
             </div>
         </div>
         
-        <!-- Contenu Card -->
+        <!-- Card Content -->
         <div class="p-4 flex flex-col flex-1">
-            <!-- Nom et Prix -->
+            <!-- Name and Price -->
             <div class="mb-4">
                 <h3 class="font-bold text-base text-gray-900"><?php echo htmlspecialchars($produit['nom']); ?></h3>
                 <p class="text-sm text-gray-600">Prix: <?php echo htmlspecialchars($produit['prix_unitaire']); ?> DT</p>
             </div>
             
-            <!-- Section Stock -->
+            <!-- Stock Section -->
             <div class="mb-4 bg-gray-100 rounded-lg p-3">
                 <p class="text-xs text-gray-600 font-semibold uppercase mb-2">Stock</p>
                 <div class="flex items-end justify-between">
@@ -240,27 +229,19 @@
                 <?php endif; ?>
             </div>
             
-            <!-- Boutons d'action alignés horizontalement -->
+            <!-- Action Buttons -->
             <div class="flex gap-2 mt-auto">
-                <!-- Bouton Ajouter Panier -->
-                <button onclick="addProductToCart(<?php echo $produit['id']; ?>, '<?php echo htmlspecialchars(addslashes($produit['nom'])); ?>', <?php echo $produit['prix_unitaire']; ?>, <?php echo $produit['prix_achat']; ?>, '<?php echo htmlspecialchars(addslashes($produit['categorie'])); ?>', '<?php echo htmlspecialchars(addslashes($produit['image'] ?? '')); ?>')" class="flex-1 bg-blue-600 text-white font-bold py-2 px-2 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all flex items-center justify-center gap-1" title="Ajouter au panier" type="button">
-                    <span class="material-symbols-outlined text-base">shopping_cart</span>
-                    <span class="text-xs hidden sm:inline">Ajouter</span>
-                </button>
-                
-                <!-- Bouton Éditer - Masqué pour Pharmacien -->
-                <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                <a href="?action=products&method=edit&id=<?php echo $produit['id']; ?>" class="flex-1 bg-gray-300 text-gray-700 font-bold py-2 px-2 rounded-lg hover:bg-gray-400 active:bg-gray-500 transition-all flex items-center justify-center gap-1" title="Modifier le produit">
+                <!-- Edit Button -->
+                <a href="?action=supplier&controller=products&method=edit&id=<?php echo $produit['id']; ?>" class="flex-1 bg-blue-600 text-white font-bold py-2 px-2 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all flex items-center justify-center gap-1" title="Modifier le produit">
                     <span class="material-symbols-outlined text-base">edit</span>
                     <span class="text-xs hidden sm:inline">Éditer</span>
                 </a>
                 
-                <!-- Bouton Supprimer -->
-                <a href="?action=products&method=delete&id=<?php echo $produit['id']; ?>" onclick="return confirm('Êtes-vous sûr? Cette action est irréversible.');" class="flex-1 bg-red-100 text-red-600 font-bold py-2 px-2 rounded-lg hover:bg-red-200 active:bg-red-300 transition-all flex items-center justify-center gap-1" title="Supprimer le produit">
+                <!-- Delete Button -->
+                <a href="?action=supplier&controller=products&method=delete&id=<?php echo $produit['id']; ?>" onclick="return confirm('Êtes-vous sûr? Cette action est irréversible.');" class="flex-1 bg-red-100 text-red-600 font-bold py-2 px-2 rounded-lg hover:bg-red-200 active:bg-red-300 transition-all flex items-center justify-center gap-1" title="Supprimer le produit">
                     <span class="material-symbols-outlined text-base">delete</span>
                     <span class="text-xs hidden sm:inline">Supprimer</span>
                 </a>
-                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -270,12 +251,11 @@
         <div class="mb-4">
             <p class="text-gray-500 text-lg mb-4">📦 Aucun produit trouvé</p>
         </div>
-        <a href="?action=products&method=create" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-bold">+ Créer un produit</a>
+        <a href="?action=supplier&controller=products&method=create" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-bold">+ Créer un produit</a>
     </div>
 <?php endif; ?>
 </div>
 
 </div>
 </main>
-<script src="assets/js/cart.js"></script>
 </body></html>

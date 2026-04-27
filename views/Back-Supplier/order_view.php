@@ -99,14 +99,10 @@ if (session_status() === PHP_SESSION_NONE) {
         <div class="max-w-4xl mx-auto px-8 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-on-surface font-headline">Commande #<?php echo $commande['id']; ?></h1>
             <div class="flex items-center gap-3 no-print">
-                <a href="?action=orders&method=list" class="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg font-bold flex items-center gap-2 transition-colors">
+                <a href="?action=supplier&controller=orders&method=list" class="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg font-bold flex items-center gap-2 transition-colors">
                     <span class="material-symbols-outlined">arrow_back</span>
                     Retour
                 </a>
-                <button onclick="window.print()" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-bold flex items-center gap-2 transition-colors">
-                    <span class="material-symbols-outlined">print</span>
-                    Imprimer
-                </button>
             </div>
         </div>
     </header>
@@ -114,23 +110,6 @@ if (session_status() === PHP_SESSION_NONE) {
     <!-- Main Content -->
     <main class="min-h-screen bg-surface py-8">
         <div class="max-w-4xl mx-auto px-8">
-            <!-- Messages de succès/erreur -->
-            <?php if (isset($_SESSION['success']) && !empty($_SESSION['success'])): ?>
-                <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                    <?php foreach ($_SESSION['success'] as $msg): ?>
-                        <p>✅ <?php echo htmlspecialchars($msg); ?></p>
-                    <?php endforeach; ?>
-                    <?php unset($_SESSION['success']); ?>
-                </div>
-            <?php endif; ?>
-            
-            <?php if (isset($_SESSION['error']) && !empty($_SESSION['error'])): ?>
-                <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                    <p>❌ <?php echo htmlspecialchars($_SESSION['error']); ?></p>
-                    <?php unset($_SESSION['error']); ?>
-                </div>
-            <?php endif; ?>
-            
             <!-- Infos générales -->
             <div class="grid grid-cols-3 gap-6 mb-8">
                 <div class="bg-white rounded-2xl p-6 border-l-4 border-primary">
@@ -162,42 +141,16 @@ if (session_status() === PHP_SESSION_NONE) {
             <!-- Statut -->
             <div class="bg-white rounded-2xl p-6 mb-8">
                 <p class="text-secondary font-body text-sm mb-3">Statut actuel</p>
-                <div class="flex items-center justify-between">
-                    <span class="px-4 py-2 rounded-full text-sm font-bold inline-block
-                        <?php 
-                            if ($commande['statut'] === 'en_attente') echo 'bg-yellow-100 text-yellow-700';
-                            elseif ($commande['statut'] === 'validee') echo 'bg-green-100 text-green-700';
-                            elseif ($commande['statut'] === 'annulee') echo 'bg-error-container text-error';
-                            else echo 'bg-surface-container text-on-surface';
-                        ?>
-                    ">
-                        <?php echo ucfirst(str_replace('_', ' ', $commande['statut'])); ?>
-                    </span>
-                    
-                    <!-- Boutons d'action - Seulement si en_attente -->
-                    <?php if ($commande['statut'] === 'en_attente'): ?>
-                    <div class="flex gap-3 no-print">
-                        <form method="POST" action="?action=orders&method=validate" style="display: inline;">
-                            <input type="hidden" name="order_id" value="<?php echo $commande['id']; ?>">
-                            <button type="submit" name="action" value="valider" 
-                                    class="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors flex items-center gap-2">
-                                <span class="material-symbols-outlined">check_circle</span>
-                                Valider
-                            </button>
-                        </form>
-                        
-                        <form method="POST" action="?action=orders&method=validate" style="display: inline;">
-                            <input type="hidden" name="order_id" value="<?php echo $commande['id']; ?>">
-                            <button type="submit" name="action" value="annuler" 
-                                    class="px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors flex items-center gap-2"
-                                    onclick="return confirm('Êtes-vous sûr de vouloir annuler cette commande?');">
-                                <span class="material-symbols-outlined">cancel</span>
-                                Annuler
-                            </button>
-                        </form>
-                    </div>
-                    <?php endif; ?>
-                </div>
+                <span class="px-4 py-2 rounded-full text-sm font-bold inline-block
+                    <?php 
+                        if ($commande['statut'] === 'en_attente') echo 'bg-yellow-100 text-yellow-700';
+                        elseif ($commande['statut'] === 'validee') echo 'bg-green-100 text-green-700';
+                        elseif ($commande['statut'] === 'annulee') echo 'bg-error-container text-error';
+                        else echo 'bg-surface-container text-on-surface';
+                    ?>
+                ">
+                    <?php echo ucfirst(str_replace('_', ' ', $commande['statut'])); ?>
+                </span>
             </div>
 
             <!-- Articles de la commande -->
@@ -247,13 +200,6 @@ if (session_status() === PHP_SESSION_NONE) {
     <script>
         function printOrder() {
             window.print();
-        }
-
-        function updateStatus(commandeId, newStatus) {
-            if (confirm('Êtes-vous sûr?')) {
-                // Vous pouvez ajouter une requête AJAX ici pour mettre à jour le statut
-                alert('Mise à jour du statut à: ' + newStatus);
-            }
         }
     </script>
 </body>
