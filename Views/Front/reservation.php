@@ -1,10 +1,34 @@
 ﻿<?php
-// $data['eq'], $data['erreur'], $data['currentUser'] injected by PatientEquipmentController
 $eq     = $data['eq']     ?? null;
 $erreur = $data['erreur'] ?? null;
 $user   = $data['currentUser'] ?? ($_SESSION['user'] ?? []);
 $prixDT = $eq ? (float)$eq['prix_jour'] : 0;
 $prixDTFmt = number_format($prixDT, 3, ',', '.');
+
+// ✅ Même logique que catalogue.php — utilise __DIR__ relatif
+function getEqImageUrl($eq): string {
+    if (!$eq) return '';
+    // Views/Front/ → ../../assets/ = integration/assets/
+    $bases = [
+        __DIR__ . '/../../assets/images/equipements/',
+        __DIR__ . '/../../Assets/images/equipements/',
+    ];
+    $exts = ['jpg','jpeg','png','webp'];
+    foreach ($bases as $base) {
+        foreach ($exts as $ext) {
+            if (file_exists($base . $eq['reference'] . '.' . $ext)) {
+                return '/integration/assets/images/equipements/' . $eq['reference'] . '.' . $ext;
+            }
+        }
+    }
+    // Fallback sur le champ image en BDD
+    if (!empty($eq['image'])) {
+        return '/integration/assets/images/equipements/' . htmlspecialchars($eq['image']);
+    }
+    return '';
+}
+$imgUrl = $eq ? getEqImageUrl($eq) : '';
+
 ?>
 <html lang="fr" class="light">
 <head>
@@ -17,10 +41,7 @@ $prixDTFmt = number_format($prixDT, 3, ',', '.');
   <link rel="stylesheet" href="/integration/assets/css/style.css"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>
-    tailwind.config = {
-      darkMode:"class",
-      theme:{extend:{colors:{"primary":"#004d99","primary-fixed":"#d6e3ff","primary-container":"#1565c0","surface":"#f7f9fb","surface-container-low":"#f2f4f6","surface-dim":"#d8dadc","outline":"#727783","on-surface":"#191c1e","on-surface-variant":"#424752"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},fontFamily:{headline:["Manrope"],body:["Inter"]}}}
-    }
+    tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#004d99","primary-fixed":"#d6e3ff","primary-container":"#1565c0","surface":"#f7f9fb","surface-container-low":"#f2f4f6","surface-dim":"#d8dadc","outline":"#727783","on-surface":"#191c1e","on-surface-variant":"#424752"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},fontFamily:{headline:["Manrope"],body:["Inter"]}}}}
   </script>
   <style>
     .form-card{background:#fff;border-radius:14px;border:1px solid #e8eaf0;padding:28px;margin-bottom:20px;}
@@ -81,168 +102,299 @@ $prixDTFmt = number_format($prixDT, 3, ',', '.');
     .toast.error{border-left:4px solid #dc2626;color:#dc2626;}
     .toast.info{border-left:4px solid #004d99;color:#004d99;}
     @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+    /* ✅ Message disponibilité */
+    .dispo-msg {
+      display: none;
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+      animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+    .dispo-msg.checking   { background:#f0f6ff; border:1px solid #bfdbfe; color:#1d4ed8; }
+    .dispo-msg.disponible { background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; }
+    .dispo-msg.indispo    { background:#fff7ed; border:1px solid #fed7aa; color:#c2410c; }
+    .dispo-msg-header { display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;margin-bottom:5px; }
+    .dispo-msg-header .material-symbols-outlined{font-size:18px;flex-shrink:0;}
+    .dispo-msg-detail { font-size:12px; font-weight:500; opacity:.9; }
+    .dispo-spinner { width:14px;height:14px;border:2px solid #bfdbfe;border-top-color:#1d4ed8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0; }
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
-  <div class="pt-24 pb-12 px-10">
-    <?php if ($erreur): ?>
-      <div class="max-w-lg mx-auto text-center py-20">
-        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span class="material-symbols-outlined text-red-500 text-3xl">error_outline</span>
-        </div>
-        <h2 class="text-xl font-bold mb-2">Équipement introuvable</h2>
-        <p class="text-slate-500 mb-6"><?= htmlspecialchars($erreur) ?></p>
-        <a href="/integration/catalogue" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold">
-          <span class="material-symbols-outlined text-base">arrow_back</span> Retour au catalogue
-        </a>
+
+<div class="pt-24 pb-12 px-10">
+  <?php if ($erreur): ?>
+    <div class="max-w-lg mx-auto text-center py-20">
+      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-outlined text-red-500 text-3xl">error_outline</span>
       </div>
-    <?php else: ?>
+      <h2 class="text-xl font-bold mb-2">Équipement introuvable</h2>
+      <p class="text-slate-500 mb-6"><?= htmlspecialchars($erreur) ?></p>
+      <a href="/integration/catalogue" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold">
+        <span class="material-symbols-outlined text-base">arrow_back</span> Retour au catalogue
+      </a>
+    </div>
+  <?php else: ?>
 
-      <h2 class="text-3xl font-extrabold bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent mb-2">Réservation d'équipement</h2>
-      <p class="text-on-surface-variant mb-6 font-medium">Configurez votre location en quelques étapes simples.</p>
+    <h2 class="text-3xl font-extrabold bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent mb-2">Réservation d'équipement</h2>
+    <p class="text-on-surface-variant mb-6 font-medium">Configurez votre location en quelques étapes simples.</p>
 
-      <div class="stepper">
-        <div class="step"><div class="step-circle active">1</div><span class="step-label active">Configuration</span></div>
-        <div class="step-line"></div>
-        <div class="step"><div class="step-circle inactive">2</div><span class="step-label inactive">Livraison</span></div>
-        <div class="step-line"></div>
-        <div class="step"><div class="step-circle inactive">3</div><span class="step-label inactive">Validation</span></div>
-      </div>
+    <div class="stepper">
+      <div class="step"><div class="step-circle active">1</div><span class="step-label active">Configuration</span></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-circle inactive">2</div><span class="step-label inactive">Livraison</span></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-circle inactive">3</div><span class="step-label inactive">Validation</span></div>
+    </div>
 
-      <div class="content-grid">
-        <div>
-          <!-- Equipment card -->
-          <div class="equip-card">
-            <div style="width:90px;height:90px;background:#f3f4f6;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <div class="content-grid">
+      <div>
+
+        <div class="equip-card">
+          <?php if ($imgUrl): ?>
+            <img src="<?= $imgUrl ?>"
+                 alt="<?= htmlspecialchars($eq['nom']) ?>"
+                 style="width:90px;height:90px;object-fit:contain;border-radius:10px;
+                        background:#f3f4f6;padding:8px;flex-shrink:0;"
+                 loading="lazy"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
+            <div style="width:90px;height:90px;background:#f3f4f6;border-radius:10px;
+                        display:none;align-items:center;justify-content:center;flex-shrink:0;">
               <span class="material-symbols-outlined" style="font-size:40px;color:#d1d5db;">medical_services</span>
             </div>
-            <div class="equip-info">
-              <span class="ref">Réf: <?= htmlspecialchars($eq['reference']) ?></span>
-              <h2><?= htmlspecialchars($eq['nom']) ?></h2>
-              <p class="desc"><?= htmlspecialchars($eq['categorie']) ?></p>
-              <div class="price" id="daily-rate" data-rate="<?= $prixDT ?>"><?= $prixDTFmt ?> DT / jour</div>
+          <?php else: ?>
+            <div style="width:90px;height:90px;background:#f3f4f6;border-radius:10px;
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span class="material-symbols-outlined" style="font-size:40px;color:#d1d5db;">medical_services</span>
             </div>
+          <?php endif; ?>
+          <div class="equip-info">
+            <span class="ref">Réf: <?= htmlspecialchars($eq['reference']) ?></span>
+            <h2><?= htmlspecialchars($eq['nom']) ?></h2>
+            <p class="desc"><?= htmlspecialchars($eq['categorie']) ?></p>
+            <div class="price" id="daily-rate" data-rate="<?= $prixDT ?>"><?= $prixDTFmt ?> DT / jour</div>
           </div>
+        </div>
 
-          <!-- Dates -->
-          <div class="form-card">
-            <div class="section-title">
-              <span class="material-symbols-outlined text-primary">calendar_today</span>
-              <h3>Période de location</h3>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="date-start">Date de début <span style="color:#dc2626;">*</span></label>
-                <input class="form-input" id="date-start" type="date"/>
-              </div>
-              <div class="form-group">
-                <label for="date-end">Date de fin <span style="color:#dc2626;">*</span></label>
-                <input class="form-input" id="date-end" type="date"/>
-              </div>
-            </div>
+        <!-- Dates + message disponibilité -->
+        <div class="form-card">
+          <div class="section-title">
+            <span class="material-symbols-outlined text-primary">calendar_today</span>
+            <h3>Période de location</h3>
           </div>
-
-          <!-- Delivery -->
-          <div class="form-card">
-            <div class="section-title">
-              <span class="material-symbols-outlined text-primary">local_shipping</span>
-              <h3>Options de livraison</h3>
-            </div>
-            <div class="delivery-grid">
-              <label class="delivery-opt selected" id="opt-livraison">
-                <input type="radio" name="delivery" value="livraison" checked/>
-                <div class="opt-text">
-                  <span class="opt-title blue">Livraison &amp; Installation</span>
-                  <span class="opt-sub">À domicile (Inclus)</span>
-                </div>
-                <span class="material-symbols-outlined opt-icon filled">check_circle</span>
-              </label>
-              <label class="delivery-opt unselected" id="opt-retrait">
-                <input type="radio" name="delivery" value="retrait"/>
-                <div class="opt-text">
-                  <span class="opt-title gray">Retrait en clinique</span>
-                  <span class="opt-sub">Sous 24h (Gratuit)</span>
-                </div>
-                <span class="material-symbols-outlined opt-icon unfilled">radio_button_unchecked</span>
-              </label>
-            </div>
-            <div id="adresse-section" style="margin-top:16px;">
-              <div class="form-group">
-                <label for="adresse-livraison">Adresse de livraison <span style="color:#dc2626;">*</span></label>
-                <input class="form-input" id="adresse-livraison" type="text" placeholder="Ex: 12 Rue de la République, Tunis"/>
-              </div>
-            </div>
-          </div>
-
-          <!-- Contact -->
-          <div class="form-card">
-            <div class="section-title">
-              <span class="material-symbols-outlined text-primary">person</span>
-              <h3>Informations de contact</h3>
-            </div>
-            <div class="form-row" style="margin-bottom:14px;">
-              <div class="form-group">
-                <label for="firstname">Prénom <span style="color:#dc2626;">*</span></label>
-                <input class="form-input" id="firstname" type="text" placeholder="Mohamed" value="<?= htmlspecialchars($user['prenom']??'') ?>"/>
-              </div>
-              <div class="form-group">
-                <label for="lastname">Nom <span style="color:#dc2626;">*</span></label>
-                <input class="form-input" id="lastname" type="text" placeholder="Ben Ali" value="<?= htmlspecialchars($user['nom']??'') ?>"/>
-              </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="date-start">Date de début <span style="color:#dc2626;">*</span></label>
+              <input class="form-input" id="date-start" type="date"/>
             </div>
             <div class="form-group">
-              <label for="phone">Téléphone <span style="color:#9ca3af;font-size:11px;">(optionnel)</span></label>
-              <input class="form-input" id="phone" type="text" placeholder="20 123 456" value="<?= htmlspecialchars($user['tel']??'') ?>"/>
+              <label for="date-end">Date de fin <span style="color:#dc2626;">*</span></label>
+              <input class="form-input" id="date-end" type="date"/>
+            </div>
+          </div>
+
+          <!--
+            ✅ MESSAGE DISPONIBILITÉ
+            Apparaît dès que les 2 dates sont sélectionnées
+            3 états visuels :
+              - checking    → spinner bleu "Vérification..."
+              - disponible  → vert  "Équipement disponible"
+              - indispo     → orange "Période déjà réservée + explication"
+          -->
+          <div id="dispo-msg" class="dispo-msg">
+            <div class="dispo-msg-header" id="dispo-header"></div>
+            <div class="dispo-msg-detail" id="dispo-detail"></div>
+          </div>
+
+        </div>
+
+        <!-- Livraison -->
+        <div class="form-card">
+          <div class="section-title">
+            <span class="material-symbols-outlined text-primary">local_shipping</span>
+            <h3>Options de livraison</h3>
+          </div>
+          <div class="delivery-grid">
+            <label class="delivery-opt selected" id="opt-livraison">
+              <input type="radio" name="delivery" value="livraison" checked/>
+              <div class="opt-text">
+                <span class="opt-title blue">Livraison &amp; Installation</span>
+                <span class="opt-sub">À domicile (Inclus)</span>
+              </div>
+              <span class="material-symbols-outlined opt-icon filled">check_circle</span>
+            </label>
+            <label class="delivery-opt unselected" id="opt-retrait">
+              <input type="radio" name="delivery" value="retrait"/>
+              <div class="opt-text">
+                <span class="opt-title gray">Retrait en clinique</span>
+                <span class="opt-sub">Sous 24h (Gratuit)</span>
+              </div>
+              <span class="material-symbols-outlined opt-icon unfilled">radio_button_unchecked</span>
+            </label>
+          </div>
+          <div id="adresse-section" style="margin-top:16px;">
+            <div class="form-group">
+              <label for="adresse-livraison">Adresse de livraison <span style="color:#dc2626;">*</span></label>
+              <input class="form-input" id="adresse-livraison" type="text" placeholder="Ex: 12 Rue de la République, Tunis"/>
             </div>
           </div>
         </div>
 
-        <!-- Summary -->
-        <aside class="summary-card">
-          <h3>Récapitulatif</h3>
-          <input type="hidden" id="equipement_id" value="<?= (int)$eq['id'] ?>"/>
-          <div class="summary-row" id="duration-row">
-            <span class="lbl">Location</span>
-            <span class="val">—</span>
+        <!-- Contact -->
+        <div class="form-card">
+          <div class="section-title">
+            <span class="material-symbols-outlined text-primary">person</span>
+            <h3>Informations de contact</h3>
           </div>
-          <div class="summary-row">
-            <span class="lbl">Frais de livraison</span>
-            <span class="val free">OFFERT</span>
-          </div>
-          <hr class="summary-divider"/>
-          <div class="total-label">TOTAL TTC</div>
-          <div class="total-amount" id="total-amount">—</div>
-          <button class="btn-confirm" id="btn-confirm" type="button">Confirmer la réservation</button>
-          <p class="confirm-legal">En confirmant, vous acceptez nos conditions générales de location médicale.</p>
-          <div class="tip-card">
-            <span class="material-symbols-outlined">info</span>
-            <div>
-              <span class="tip-title">Prise en charge CNAM</span>
-              <span class="tip-body">Ce matériel est éligible au remboursement CNAM sous réserve de prescription médicale valide.</span>
+          <div class="form-row" style="margin-bottom:14px;">
+            <div class="form-group">
+              <label for="firstname">Prénom <span style="color:#dc2626;">*</span></label>
+              <input class="form-input" id="firstname" type="text" placeholder="Mohamed" value="<?= htmlspecialchars($user['prenom']??'') ?>"/>
+            </div>
+            <div class="form-group">
+              <label for="lastname">Nom <span style="color:#dc2626;">*</span></label>
+              <input class="form-input" id="lastname" type="text" placeholder="Ben Ali" value="<?= htmlspecialchars($user['nom']??'') ?>"/>
             </div>
           </div>
-        </aside>
+          <div class="form-group">
+            <label for="phone">Téléphone <span style="color:#9ca3af;font-size:11px;">(optionnel)</span></label>
+            <input class="form-input" id="phone" type="text" placeholder="20 123 456" value="<?= htmlspecialchars($user['tel']??'') ?>"/>
+          </div>
+        </div>
+
       </div>
-    <?php endif; ?>
-  </div>
-</main>
+
+      <aside class="summary-card">
+        <h3>Récapitulatif</h3>
+        <input type="hidden" id="equipement_id" value="<?= (int)$eq['id'] ?>"/>
+        <div class="summary-row" id="duration-row">
+          <span class="lbl">Location</span><span class="val">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="lbl">Frais de livraison</span><span class="val free">OFFERT</span>
+        </div>
+        <hr class="summary-divider"/>
+        <div class="total-label">TOTAL TTC</div>
+        <div class="total-amount" id="total-amount">—</div>
+        <button class="btn-confirm" id="btn-confirm" type="button" disabled>
+          Confirmer la réservation
+        </button>
+        <p class="confirm-legal">En confirmant, vous acceptez nos conditions générales de location médicale.</p>
+        <div class="tip-card">
+          <span class="material-symbols-outlined">info</span>
+          <div>
+            <span class="tip-title">Prise en charge CNAM</span>
+            <span class="tip-body">Ce matériel est éligible au remboursement CNAM sous réserve de prescription médicale valide.</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+  <?php endif; ?>
+</div>
 
 <div class="toast-container"></div>
 <script>
-const API_RES = '/integration/equipment/api/reservations';
-const prixDT  = <?= $prixDT ?>;
+const API_RES   = '/integration/equipment/api/reservations';
+const API_DISPO = '/integration/equipment/api/disponibilite';
+const prixDT    = <?= $prixDT ?>;
+const equipId   = <?= (int)($eq['id'] ?? 0) ?>;
 
+/* ── Calcul total ── */
 function nbJours(d1,d2){if(!d1||!d2)return 0;return Math.ceil((new Date(d2)-new Date(d1))/86400000);}
 function formatDT(v){return v.toLocaleString('fr-TN',{minimumFractionDigits:3,maximumFractionDigits:3})+' DT';}
+function fmtDate(d){if(!d)return '—';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`;}
+
 function updateTotal(){
   const d1=document.getElementById('date-start').value,d2=document.getElementById('date-end').value,j=nbJours(d1,d2);
   const tot=document.getElementById('total-amount'),dr=document.getElementById('duration-row');
   if(!d1||!d2||j<=0){tot.textContent='—';dr.querySelector('.lbl').textContent='Location';dr.querySelector('.val').textContent='—';return;}
   const t=j*prixDT;tot.textContent=formatDT(t);
-  dr.querySelector('.lbl').textContent=`Location (${j} jour${j>1?'s':''})`;dr.querySelector('.val').textContent=formatDT(t);
+  dr.querySelector('.lbl').textContent=`Location (${j} jour${j>1?'s':''})`;
+  dr.querySelector('.val').textContent=formatDT(t);
 }
-document.getElementById('date-start')?.addEventListener('change',updateTotal);
-document.getElementById('date-end')?.addEventListener('change',updateTotal);
 
+/* ══════════════════════════════════════════════════════════
+   ✅ VÉRIFICATION DISPONIBILITÉ EN TEMPS RÉEL
+   Dès que les 2 dates sont choisies :
+   1. Affiche "Vérification..." (spinner bleu)
+   2. Appelle l'API de disponibilité
+   3. Affiche le résultat avec un message clair
+══════════════════════════════════════════════════════════ */
+let dispoOk   = false;
+let timerDispo = null;
+
+function verifierDisponibilite() {
+  const debut  = document.getElementById('date-start').value;
+  const fin    = document.getElementById('date-end').value;
+  const msg    = document.getElementById('dispo-msg');
+  const header = document.getElementById('dispo-header');
+  const detail = document.getElementById('dispo-detail');
+  const btn    = document.getElementById('btn-confirm');
+
+  if (!debut || !fin || fin <= debut) {
+    msg.style.display = 'none';
+    dispoOk = false;
+    btn.disabled = true;
+    return;
+  }
+
+  /* État : vérification en cours */
+  msg.className = 'dispo-msg checking';
+  msg.style.display = 'block';
+  header.innerHTML = '<div class="dispo-spinner"></div> Vérification de la disponibilité en cours...';
+  detail.textContent = '';
+  btn.disabled = true;
+  dispoOk = false;
+
+  clearTimeout(timerDispo);
+  timerDispo = setTimeout(async () => {
+    try {
+      const res  = await fetch(`${API_DISPO}?equipement_id=${equipId}&date_debut=${debut}&date_fin=${fin}`);
+      const json = await res.json();
+
+      if (json.disponible) {
+        /* ✅ Disponible */
+        const j = nbJours(debut, fin);
+        msg.className = 'dispo-msg disponible';
+        header.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Équipement disponible sur cette période';
+        detail.textContent = `L'équipement est libre du ${fmtDate(debut)} au ${fmtDate(fin)} (${j} jour${j>1?'s':''}). Vous pouvez confirmer votre réservation.`;
+        btn.disabled = false;
+        dispoOk = true;
+
+      } else {
+        /* ❌ Période déjà réservée */
+        msg.className = 'dispo-msg indispo';
+        header.innerHTML = '<span class="material-symbols-outlined">event_busy</span> Cette période est déjà réservée';
+
+        /* Message explicatif avec les dates du conflit */
+        let txt = 'Cet équipement n\'est pas disponible sur les dates sélectionnées.';
+        if (json.date_debut_conflit && json.date_fin_conflit) {
+          txt = `Une réservation est déjà confirmée du ${fmtDate(json.date_debut_conflit)} au ${fmtDate(json.date_fin_conflit)}. Veuillez choisir d'autres dates.`;
+        } else if (json.message) {
+          txt = json.message;
+        }
+        detail.textContent = txt;
+        btn.disabled = true;
+        dispoOk = false;
+      }
+
+    } catch(e) {
+      /* Erreur réseau → laisser passer sans bloquer */
+      msg.style.display = 'none';
+      btn.disabled = false;
+      dispoOk = true;
+    }
+  }, 600);
+}
+
+document.getElementById('date-start')?.addEventListener('change', () => { updateTotal(); verifierDisponibilite(); });
+document.getElementById('date-end')?.addEventListener('change',   () => { updateTotal(); verifierDisponibilite(); });
+
+/* ── Livraison ── */
 const optLiv=document.getElementById('opt-livraison'),optRet=document.getElementById('opt-retrait');
 const adrsec=document.getElementById('adresse-section'),adrinp=document.getElementById('adresse-livraison');
 function setDelivery(isLiv){
@@ -261,6 +413,7 @@ optLiv?.addEventListener('click',()=>{document.querySelector('input[value="livra
 optRet?.addEventListener('click',()=>{document.querySelector('input[value="retrait"]').checked=true;setDelivery(false);});
 setDelivery(true);
 
+/* ── Toast ── */
 function showToast(msg,type='info'){
   const c=document.querySelector('.toast-container');
   const t=document.createElement('div');t.className='toast '+type;
@@ -269,14 +422,20 @@ function showToast(msg,type='info'){
   c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3500);
 }
 
+/* ── Erreurs ── */
 function afficherErr(id,msg){const el=document.getElementById(id);if(!el)return;el.style.borderColor='#dc2626';el.style.boxShadow='0 0 0 3px rgba(220,38,38,.10)';el.parentElement.querySelector('.msg-erreur')?.remove();const s=document.createElement('small');s.className='msg-erreur';s.textContent='⚠ '+msg;s.style.cssText='color:#dc2626;font-size:11px;font-weight:600;display:block;margin-top:4px;';el.insertAdjacentElement('afterend',s);}
 function effacerErr(id){const el=document.getElementById(id);if(!el)return;el.style.borderColor='';el.style.boxShadow='';el.parentElement?.querySelector('.msg-erreur')?.remove();}
 
+/* ── Validation ── */
 function valider(){
-  let ok=true;document.querySelectorAll('.msg-erreur').forEach(e=>e.remove());document.querySelectorAll('.form-input').forEach(i=>{i.style.borderColor='';i.style.boxShadow='';});
+  let ok=true;
+  document.querySelectorAll('.msg-erreur').forEach(e=>e.remove());
+  document.querySelectorAll('.form-input').forEach(i=>{i.style.borderColor='';i.style.boxShadow='';});
   const today=new Date().toISOString().split('T')[0];
-  const prenom=document.getElementById('firstname')?.value.trim(),nom=document.getElementById('lastname')?.value.trim();
-  const debut=document.getElementById('date-start')?.value,fin=document.getElementById('date-end')?.value;
+  const prenom=document.getElementById('firstname')?.value.trim();
+  const nom=document.getElementById('lastname')?.value.trim();
+  const debut=document.getElementById('date-start')?.value;
+  const fin=document.getElementById('date-end')?.value;
   const isLiv=document.querySelector('input[name="delivery"]:checked')?.value==='livraison';
   const adresse=adrinp?.value.trim();
   if(!prenom||!/^[a-zA-ZÀ-ÿ\s'\-]{2,50}$/.test(prenom)){afficherErr('firstname','Prénom invalide.');ok=false;}
@@ -284,12 +443,14 @@ function valider(){
   if(!debut){afficherErr('date-start','Date de début obligatoire.');ok=false;}
   else if(debut<today){afficherErr('date-start','La date ne peut pas être dans le passé.');ok=false;}
   if(!fin){afficherErr('date-end','Date de fin obligatoire.');ok=false;}
-  else if(debut&&fin<=debut){afficherErr('date-end','La date de fin doit être après la date de début.');ok=false;}
-  if(isLiv&&(!adresse||adresse.length<5)){afficherErr('adresse-livraison',"Adresse obligatoire (min 5 caractères).");ok=false;}
+  else if(debut&&fin<=debut){afficherErr('date-end','La date de fin doit être après le début.');ok=false;}
+  if(isLiv&&(!adresse||adresse.length<5)){afficherErr('adresse-livraison','Adresse obligatoire (min 5 caractères).');ok=false;}
+  if(!dispoOk){showToast('Veuillez sélectionner des dates disponibles.','error');ok=false;}
   if(!ok)showToast('Veuillez corriger les erreurs.','error');
   return ok;
 }
 
+/* ── Soumission ── */
 let enCours=false;
 document.getElementById('btn-confirm')?.addEventListener('click',async function(){
   if(enCours)return;if(!valider())return;

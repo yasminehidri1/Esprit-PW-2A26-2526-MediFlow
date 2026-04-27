@@ -93,6 +93,14 @@ class App
             return;
         }
 
+        // ✅ NOUVEAU — Vérification disponibilité équipement en temps réel
+        // Appelé par reservation.php via fetch() dès que le patient choisit ses dates
+        // GET /integration/equipment/api/disponibilite?equipement_id=X&date_debut=Y&date_fin=Z
+        if (preg_match('#^/equipment/api/disponibilite(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->checkDisponibilite();
+            return;
+        }
+
         // ── Equipment rental module — Views ─────────────────────────────────
         if (preg_match('#^/historique-location(?:/|$)#', $path)) {
             (new \Controllers\PatientEquipmentController())->historiqueLocation();

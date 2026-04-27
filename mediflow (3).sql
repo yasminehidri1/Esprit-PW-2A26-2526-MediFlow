@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 23, 2026 at 03:43 PM
+-- Generation Time: Apr 27, 2026 at 03:58 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -67,7 +67,15 @@ INSERT INTO `comments` (`id`, `id_post`, `id_utilisateur`, `contenu`, `statut`, 
 (23, 1, 4, 'a', 'approuve', '2026-04-15 20:51:21', '2026-04-15 20:51:21'),
 (24, 9, 4, 'aaaaaaaa', 'approuve', '2026-04-16 13:44:02', '2026-04-16 13:44:02'),
 (25, 9, 4, 'aaaa', 'approuve', '2026-04-16 13:44:15', '2026-04-16 13:44:15'),
-(26, 7, 4, 'aaaa', 'approuve', '2026-04-16 14:33:31', '2026-04-16 14:33:31');
+(26, 7, 4, 'aaaa', 'approuve', '2026-04-16 14:33:31', '2026-04-16 14:33:31'),
+(28, 5, 19, 'aaa', 'approuve', '2026-04-23 15:47:03', '2026-04-23 15:47:03'),
+(29, 7, 19, 'AHLA', 'approuve', '2026-04-24 15:17:41', '2026-04-24 15:17:41'),
+(30, 7, 19, 'ahla', 'approuve', '2026-04-24 15:33:05', '2026-04-24 15:33:05'),
+(31, 7, 20, 'aha', 'approuve', '2026-04-24 15:34:46', '2026-04-24 15:34:46'),
+(32, 6, 19, 'Alo', 'approuve', '2026-04-24 16:00:25', '2026-04-24 16:00:25'),
+(33, 11, 19, 'Abro', 'approuve', '2026-04-24 16:01:32', '2026-04-24 16:01:32'),
+(34, 11, 20, 'aaaAhla, bro', 'approuve', '2026-04-24 16:10:50', '2026-04-27 14:25:10'),
+(35, 11, 20, 'aaa', 'approuve', '2026-04-27 14:25:00', '2026-04-27 14:25:00');
 
 -- --------------------------------------------------------
 
@@ -129,11 +137,32 @@ INSERT INTO `posts` (`id`, `titre`, `contenu`, `categorie`, `image_url`, `auteur
 (2, '5 Superfoods for Brain Health', 'Research indicates that a diet rich in these specific nutrients can significantly reduce cognitive decline and improve mental clarity.\r\n\r\nThe connection between diet and brain health has been a growing area of scientific research. Studies consistently show that certain foods contain compounds that directly support neural function, protect against oxidative stress, and promote the growth of new brain cells.\r\n\r\n1. **Blueberries** - Rich in anthocyanins, these powerful antioxidants cross the blood-brain barrier and accumulate in areas responsible for learning and memory.\r\n\r\n2. **Fatty Fish** - Salmon, trout, and sardines are excellent sources of omega-3 fatty acids, which are essential building blocks of the brain.\r\n\r\n3. **Turmeric** - Curcumin, the active ingredient in turmeric, has been shown to cross the blood-brain barrier and has anti-inflammatory and antioxidant benefits.\r\n\r\n4. **Broccoli** - High in compounds called glucosinolates, which produce isothiocyanates that may reduce oxidative stress and lower the risk of neurodegenerative diseases.\r\n\r\n5. **Pumpkin Seeds** - Contain zinc, magnesium, copper, and iron — all crucial for nerve signaling and brain function.', 'Diet & Nutrition', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjJ4UHdtpL6BV1hMMPQ3dqzM-ogrnY6xS_Og&s', 1, 'publie', 850, 4200, '2026-04-03 14:30:00', '2026-04-16 13:27:54', '2026-04-03 14:30:00'),
 (3, 'Understanding Sleep Cycles and Recovery', 'How REM and deep sleep stages impact your body\'s daily recovery mechanisms and what you can do to optimize your rest.\r\n\r\nSleep is not a uniform state — it\'s a complex, dynamic process consisting of multiple stages that cycle throughout the night. Understanding these cycles is key to improving both the quality and effectiveness of your rest.\r\n\r\nThe sleep cycle consists of four stages:\r\n- **Stage 1 (N1)**: Light sleep lasting 1-7 minutes. Your heartbeat, breathing, and eye movements slow down.\r\n- **Stage 2 (N2)**: Deeper sleep where body temperature drops and brain waves show specific patterns called sleep spindles.\r\n- **Stage 3 (N3)**: Deep sleep or slow-wave sleep. This is the most restorative stage where tissue growth and repair occurs.\r\n- **REM Sleep**: Rapid Eye Movement sleep where most dreaming occurs. Critical for memory consolidation and emotional processing.\r\n\r\nEach complete cycle lasts approximately 90 minutes, and a healthy adult goes through 4-6 cycles per night. The proportion of each stage changes throughout the night, with more deep sleep in the first half and more REM sleep in the second half.', 'Research', 'https://www.clmsleep.com/wp-content/uploads/2025/07/stages-of-sleep-2.jpg', 2, 'publie', 432, 3100, '2026-04-05 11:00:00', '2026-04-16 13:28:25', '2026-04-05 11:00:00'),
 (4, 'Advancements in Neural Plasticity Research', 'New studies reveal groundbreaking findings about the brain\'s ability to rewire itself, offering hope for stroke recovery and neurodegenerative disease treatments.\r\n\r\nNeuroplasticity — the brain\'s remarkable ability to reorganize itself by forming new neural connections — has been one of the most exciting areas of neuroscience research in recent decades.\r\n\r\nRecent clinical trials have demonstrated that targeted rehabilitation programs, combined with non-invasive brain stimulation techniques, can significantly enhance neural plasticity in stroke patients. These findings suggest that the window for recovery may be much wider than previously believed.\r\n\r\nKey findings include:\r\n- Transcranial magnetic stimulation (TMS) combined with physical therapy shows 40% improvement in motor recovery\r\n- Music therapy activates multiple brain regions simultaneously, promoting cross-hemispheric connections\r\n- Virtual reality rehabilitation programs create immersive environments that challenge the brain to adapt\r\n- Pharmacological interventions using BDNF (Brain-Derived Neurotrophic Factor) show promise in animal models', 'Research', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSdq236h91l4XE_Z3tLGLK94uOmlQVbdzn1Q&s', 2, 'publie', 679, 5606, '2026-04-10 08:15:00', '2026-04-16 13:28:40', '2026-04-10 08:15:00'),
-(5, 'The Future of Sustainable Healthcare Infrastructure', 'How modern hospitals are embracing green architecture, renewable energy, and sustainable materials to reduce their environmental footprint while improving patient outcomes.\r\n\r\nHealthcare facilities are among the most energy-intensive buildings in any community. They operate 24/7, require sophisticated HVAC systems, and consume vast amounts of water and electricity. But a growing movement in healthcare architecture is proving that sustainability and excellent patient care can go hand in hand.\r\n\r\nLeading medical centers around the world are now:\r\n- Installing solar panels and wind turbines to offset energy consumption\r\n- Using biophilic design principles that incorporate natural elements into healing environments\r\n- Implementing smart building management systems that optimize energy usage in real-time\r\n- Adopting circular economy principles for medical waste management\r\n- Creating green spaces and therapeutic gardens that improve patient recovery times\r\n\r\nStudies show that patients in sustainably designed hospitals recover up to 15% faster and report higher satisfaction scores. The natural lighting, improved air quality, and connection to nature all contribute to better health outcomes.', 'General Health', 'https://www.creativehatti.com/wp-content/uploads/edd/2023/07/Health-medical-clinic-poster-banner-template-78-large.jpg', 1, 'publie', 545, 3805, '2026-04-12 16:45:00', '2026-04-16 13:27:05', '2026-04-12 16:45:00'),
-(6, 'Cardiovascular Robotics: A New Frontier', 'Robotic-assisted cardiovascular procedures are revolutionizing how surgeons approach complex heart operations, offering unprecedented precision and faster patient recovery.\r\n\r\nThe integration of robotics into cardiovascular surgery represents one of the most significant technological advances in modern medicine. These sophisticated systems allow surgeons to perform intricate procedures through small incisions with enhanced visualization and greater dexterity than the human hand alone can provide.\r\n\r\nCurrent applications include:\r\n- Robotic-assisted coronary artery bypass grafting (CABG)\r\n- Minimally invasive mitral valve repair\r\n- Catheter-based interventions with robotic navigation\r\n- Hybrid procedures combining traditional and robotic techniques\r\n\r\nThe da Vinci surgical system and newer platforms offer 3D high-definition visualization, motion scaling (converting large hand movements into precise micro-movements), and tremor filtration. These capabilities are particularly valuable in cardiac surgery where precision is literally a matter of life and death.', 'Journals', 'https://www.acc.org//-/media/Non-Clinical/Images/2024/01/CARDIOLOGY/02/Robotics-3-1200x800.jpg', 3, 'publie', 325, 2906, '2026-04-13 10:00:00', '2026-04-16 13:29:05', '2026-04-13 10:00:00'),
-(7, 'Epidemiology Trends: 2026 Seasonal Preview', 'A data-driven look at respiratory health and preventive measures for the coming months based on global surveillance data.\r\n\r\nAs we enter the second quarter of 2026, epidemiological data from global health surveillance networks provides crucial insights into what we can expect in terms of seasonal health challenges.\r\n\r\nThis preview is based on data collected from the WHO Global Influenza Surveillance and Response System, CDC FluView, and European Centre for Disease Prevention and Control.\r\n\r\nKey trends for the upcoming season include shifts in influenza strain dominance, emerging respiratory syncytial virus (RSV) patterns, and the continued evolution of COVID-19 variants.\r\n\r\nPreventive recommendations:\r\n- Updated vaccination schedules for high-risk populations\r\n- Enhanced indoor air quality measures in clinical settings\r\n- Community-based health literacy programs\r\n- Early warning systems integration with primary care networks', 'General Health', 'https://img.freepik.com/premium-psd/medical-clinic-poster-design_452208-1049.jpg', 1, 'publie', 292, 2105, '2026-04-14 13:20:00', '2026-04-16 14:33:31', '2026-04-14 13:20:00'),
+(5, 'The Future of Sustainable Healthcare Infrastructure', 'How modern hospitals are embracing green architecture, renewable energy, and sustainable materials to reduce their environmental footprint while improving patient outcomes.\r\n\r\nHealthcare facilities are among the most energy-intensive buildings in any community. They operate 24/7, require sophisticated HVAC systems, and consume vast amounts of water and electricity. But a growing movement in healthcare architecture is proving that sustainability and excellent patient care can go hand in hand.\r\n\r\nLeading medical centers around the world are now:\r\n- Installing solar panels and wind turbines to offset energy consumption\r\n- Using biophilic design principles that incorporate natural elements into healing environments\r\n- Implementing smart building management systems that optimize energy usage in real-time\r\n- Adopting circular economy principles for medical waste management\r\n- Creating green spaces and therapeutic gardens that improve patient recovery times\r\n\r\nStudies show that patients in sustainably designed hospitals recover up to 15% faster and report higher satisfaction scores. The natural lighting, improved air quality, and connection to nature all contribute to better health outcomes.', 'General Health', 'https://www.creativehatti.com/wp-content/uploads/edd/2023/07/Health-medical-clinic-poster-banner-template-78-large.jpg', 1, 'publie', 545, 3807, '2026-04-12 16:45:00', '2026-04-23 15:47:03', '2026-04-12 16:45:00'),
+(6, 'Cardiovascular Robotics: A New Frontier', 'Robotic-assisted cardiovascular procedures are revolutionizing how surgeons approach complex heart operations, offering unprecedented precision and faster patient recovery.\r\n\r\nThe integration of robotics into cardiovascular surgery represents one of the most significant technological advances in modern medicine. These sophisticated systems allow surgeons to perform intricate procedures through small incisions with enhanced visualization and greater dexterity than the human hand alone can provide.\r\n\r\nCurrent applications include:\r\n- Robotic-assisted coronary artery bypass grafting (CABG)\r\n- Minimally invasive mitral valve repair\r\n- Catheter-based interventions with robotic navigation\r\n- Hybrid procedures combining traditional and robotic techniques\r\n\r\nThe da Vinci surgical system and newer platforms offer 3D high-definition visualization, motion scaling (converting large hand movements into precise micro-movements), and tremor filtration. These capabilities are particularly valuable in cardiac surgery where precision is literally a matter of life and death.', 'Journals', 'https://www.acc.org//-/media/Non-Clinical/Images/2024/01/CARDIOLOGY/02/Robotics-3-1200x800.jpg', 3, 'publie', 326, 2908, '2026-04-13 10:00:00', '2026-04-27 14:31:04', '2026-04-13 10:00:00'),
+(7, 'Epidemiology Trends: 2026 Seasonal Preview', 'A data-driven look at respiratory health and preventive measures for the coming months based on global surveillance data.\r\n\r\nAs we enter the second quarter of 2026, epidemiological data from global health surveillance networks provides crucial insights into what we can expect in terms of seasonal health challenges.\r\n\r\nThis preview is based on data collected from the WHO Global Influenza Surveillance and Response System, CDC FluView, and European Centre for Disease Prevention and Control.\r\n\r\nKey trends for the upcoming season include shifts in influenza strain dominance, emerging respiratory syncytial virus (RSV) patterns, and the continued evolution of COVID-19 variants.\r\n\r\nPreventive recommendations:\r\n- Updated vaccination schedules for high-risk populations\r\n- Enhanced indoor air quality measures in clinical settings\r\n- Community-based health literacy programs\r\n- Early warning systems integration with primary care networks', 'General Health', 'https://img.freepik.com/premium-psd/medical-clinic-poster-design_452208-1049.jpg', 1, 'publie', 292, 2113, '2026-04-14 13:20:00', '2026-04-24 15:35:12', '2026-04-14 13:20:00'),
 (8, 'Mental Health in the Digital Age: Navigating Screen Time', 'Understanding the complex relationship between technology use and psychological well-being, with evidence-based strategies for healthier digital habits.\r\n\r\nThe ubiquity of smartphones, social media, and digital entertainment has created an unprecedented challenge for mental health. While technology offers incredible benefits for connectivity and information access, excessive or mindless use can contribute to anxiety, depression, and sleep disorders.\r\n\r\nThis article is currently under review by our editorial board and will be published upon completion of peer review.', 'Mental Wellness', 'https://static.vecteezy.com/system/resources/thumbnails/004/341/503/small/prenatal-clinic-social-media-post-mockup-childbirth-at-hospital-advertising-web-banner-design-template-social-media-booster-content-layout-promotion-poster-print-ads-with-flat-illustrations-vector.jpg', 3, 'brouillon', 0, 0, '2026-04-15 09:00:00', '2026-04-16 13:26:39', NULL),
-(9, 'Advancements in Neural Plasticity Researchee', 'aaaa', 'Journals', 'https://img.freepik.com/premium-psd/medical-clinic-poster-design_452208-1049.jpg', 1, 'publie', 1, 4, '2026-04-16 13:42:26', '2026-04-16 13:44:15', '2026-04-16 14:42:26');
+(11, 'alo', 'aaaaaaa', 'General Health', '/integration/assets/uploads/img_69eb869d118d80.85631575.jpg', 19, 'publie', 1, 13, '2026-04-24 15:36:32', '2026-04-27 14:26:27', '2026-04-24 17:00:50');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `post_likes`
+--
+
+CREATE TABLE `post_likes` (
+  `id` int(11) NOT NULL,
+  `post_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `post_likes`
+--
+
+INSERT INTO `post_likes` (`id`, `post_id`, `user_id`, `created_at`) VALUES
+(5, 11, 20, '2026-04-27 14:24:54'),
+(6, 6, 20, '2026-04-27 14:31:04');
 
 -- --------------------------------------------------------
 
@@ -258,6 +287,14 @@ ALTER TABLE `posts`
   ADD KEY `idx_posts_date_publication` (`date_publication`);
 
 --
+-- Indexes for table `post_likes`
+--
+ALTER TABLE `post_likes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_like` (`post_id`,`user_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `reservation`
 --
 ALTER TABLE `reservation`
@@ -288,7 +325,7 @@ ALTER TABLE `utilisateurs`
 -- AUTO_INCREMENT for table `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `equipement`
@@ -300,7 +337,13 @@ ALTER TABLE `equipement`
 -- AUTO_INCREMENT for table `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `post_likes`
+--
+ALTER TABLE `post_likes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `reservation`
@@ -323,6 +366,13 @@ ALTER TABLE `utilisateurs`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `post_likes`
+--
+ALTER TABLE `post_likes`
+  ADD CONSTRAINT `post_likes_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `post_likes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `utilisateurs` (`id_PK`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `reservation`

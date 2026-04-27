@@ -1,243 +1,365 @@
 ﻿<?php
-// $data injected by PatientEquipmentController::mesReservations()
+/**
+ * mes-reservations.php — Vue Frontoffice
+ * ✅ Pas de require_once ni new Reservation() ici
+ * Le controller PatientEquipmentController->mesReservations()
+ * injecte $data['reservations'] et $data['currentUser']
+ */
 $reservations = $data['reservations'] ?? [];
 $user         = $data['currentUser']  ?? ($_SESSION['user'] ?? []);
-$total        = count(array_filter($reservations, fn($r) => $r['statut'] === 'en_cours'));
 
-function fmtDate($d){ return $d ? (new DateTime($d))->format('d/m/Y') : '—'; }
-function getBadgeCls($s){ return ['en_cours'=>'encours','termine'=>'termine','en_retard'=>'retard'][$s]??'encours'; }
-function getBadgeLbl($s){ return ['en_cours'=>'En cours','termine'=>'Terminé','en_retard'=>'En retard'][$s]??'—'; }
+function fmtDateR($d) {
+    if (!$d) return '—';
+    return (new DateTime($d))->format('d/m/Y');
+}
+function getBadgeClassR($s) {
+    return ['en_cours'=>'encours','termine'=>'termine','en_retard'=>'retard'][$s] ?? 'encours';
+}
+function getBadgeLabelR($s) {
+    return ['en_cours'=>'En cours','termine'=>'Terminé','en_retard'=>'En retard'][$s] ?? '—';
+}
+function getImgR($ref) {
+    foreach ([__DIR__.'/../../assets/images/equipements/', __DIR__.'/../../Assets/images/equipements/'] as $base) {
+        foreach (['jpg','jpeg','png','webp'] as $ext) {
+            if (file_exists($base.$ref.'.'.$ext))
+                return '/integration/assets/images/equipements/'.$ref.'.'.$ext;
+        }
+    }
+    return '';
+}
 ?>
-<html lang="fr" class="light">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mes Réservations — MediFlow</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/integration/assets/css/style.css"/>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script>
-    tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#004d99","primary-fixed":"#d6e3ff","primary-container":"#1565c0","surface":"#f7f9fb","surface-container-low":"#f2f4f6","surface-dim":"#d8dadc","outline":"#727783","on-surface":"#191c1e","on-surface-variant":"#424752"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},fontFamily:{headline:["Manrope"],body:["Inter"]}}}}
-  </script>
-  <style>
-    .resa-card{background:#fff;border:1px solid #e8eaf0;border-radius:14px;padding:20px 22px;margin-bottom:14px;display:flex;align-items:center;gap:18px;transition:box-shadow .2s;}
-    .resa-card:hover{box-shadow:0 6px 24px rgba(0,77,153,.08);}
-    .resa-info{flex:1;}
-    .resa-ref{font-size:11px;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:2px;}
-    .resa-nom{font-family:'Manrope',sans-serif;font-size:16px;font-weight:800;color:#111827;margin-bottom:2px;}
-    .resa-cat{font-size:12px;color:#9ca3af;margin-bottom:6px;}
-    .resa-prix{font-size:13px;font-weight:700;color:#004d99;}
-    .resa-dates{display:flex;flex-direction:column;gap:3px;align-items:center;min-width:120px;}
-    .resa-date-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;}
-    .resa-date-val{font-size:13px;font-weight:600;color:#374151;}
-    .resa-locataire{min-width:130px;font-size:13px;}
-    .resa-locataire .nom{font-weight:700;color:#111827;}
-    .resa-locataire .tel,.resa-locataire .ville{color:#9ca3af;font-size:12px;margin-top:1px;}
-    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap;}
-    .badge-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-    .badge.termine{background:#dcfce7;color:#15803d;}.badge.termine .badge-dot{background:#16a34a;}
-    .badge.encours{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}.badge.encours .badge-dot{background:#1d4ed8;}
-    .badge.retard{background:#fee2e2;color:#dc2626;border:1px solid #fecaca;}.badge.retard .badge-dot{background:#dc2626;}
-    .resa-actions{display:flex;flex-direction:column;gap:8px;align-items:center;flex-shrink:0;}
-    .btn-act{width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s,transform .15s;}
-    .btn-act:hover{transform:scale(1.08);}
-    .btn-act.edit{background:#eff6ff;border:1px solid #bfdbfe;color:#004d99;}.btn-act.edit:hover{background:#dbeafe;}
-    .btn-act.del{background:#fff5f5;border:1px solid #fecaca;color:#dc2626;}.btn-act.del:hover{background:#fee2e2;}
-    .btn-act .material-symbols-outlined{font-size:17px;}
-    .empty-state{text-align:center;padding:80px 20px;color:#9ca3af;}
-    .empty-state .material-symbols-outlined{font-size:64px;display:block;margin-bottom:16px;color:#d1d5db;}
-    /* Modal */
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;}
-    .modal-overlay.open{display:flex;}
-    .modal-box{background:#fff;border-radius:16px;padding:30px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18);animation:mIn .22s ease;}
-    @keyframes mIn{from{opacity:0;transform:translateY(-14px) scale(.97)}to{opacity:1;transform:none}}
-    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
-    .modal-header h2{font-size:18px;font-weight:800;color:#111827;}
-    .modal-close{width:30px;height:30px;border-radius:8px;background:#f3f4f6;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b7280;}
-    .modal-close:hover{background:#e5e7eb;}
-    .modal-field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px;}
-    .modal-field label{font-size:12px;font-weight:600;color:#6b7280;}
-    .modal-input{width:100%;padding:10px 13px;background:#f5f7fa;border:1px solid #e5e7eb;border-radius:8px;font-size:13.5px;font-family:'Inter',sans-serif;color:#111827;outline:none;transition:border-color .18s,box-shadow .18s;}
-    .modal-input:focus{border-color:#004d99;box-shadow:0 0 0 3px rgba(0,77,153,.10);}
-    .modal-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
-    .btn-cancel-modal{padding:10px 20px;border-radius:8px;background:#fff;border:1px solid #e5e7eb;font-size:13px;font-weight:600;color:#374151;cursor:pointer;font-family:'Inter',sans-serif;}
-    .btn-save-modal{padding:10px 22px;border-radius:8px;background:#004d99;color:#fff;border:none;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;}
-    .btn-save-modal:hover{background:#00357a;}
-    .toast-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:99999;}
-    .toast{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:10px;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.12);font-size:13.5px;font-weight:600;font-family:'Inter',sans-serif;animation:toastIn .3s ease;}
-    .toast.success{border-left:4px solid #16a34a;color:#15803d;}
-    .toast.error{border-left:4px solid #dc2626;color:#dc2626;}
-    .toast.info{border-left:4px solid #004d99;color:#004d99;}
-    @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
-  </style>
-</head>
-  <div class="pt-24 pb-12 px-10">
-    <h2 class="text-3xl font-extrabold bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent mb-1">Mes Réservations</h2>
-    <p class="text-on-surface-variant mb-8 font-medium"><?= count($reservations) ?> réservation(s) au total</p>
+<style>
+.res-wrap{max-width:960px;margin:0 auto;padding:24px 0 60px;}
+.res-card{background:#fff;border:1px solid #e8eaf0;border-radius:14px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;gap:16px;transition:box-shadow .2s,transform .18s;}
+.res-card:hover{box-shadow:0 6px 24px rgba(0,77,153,.08);transform:translateY(-1px);}
+.res-img{width:76px;height:76px;object-fit:contain;border-radius:10px;background:#f3f4f6;padding:6px;flex-shrink:0;}
+.res-img-ph{width:76px;height:76px;border-radius:10px;background:#f3f4f6;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.res-img-ph .material-symbols-outlined{font-size:30px;color:#d1d5db;}
+.res-info{flex:1;}
+.res-ref{font-size:11px;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:2px;}
+.res-nom{font-family:'Manrope',sans-serif;font-size:15px;font-weight:800;color:#111827;margin-bottom:2px;}
+.res-cat{font-size:12px;color:#9ca3af;margin-bottom:4px;}
+.res-prix{font-size:13px;font-weight:700;color:#004d99;}
+.res-period{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:100px;}
+.rp-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;}
+.rp-date{font-size:12px;font-weight:600;color:#374151;}
+.rp-arrow{color:#9ca3af;font-size:14px;}
+.res-loca{min-width:130px;}
+.rl-nom{font-weight:700;color:#111827;font-size:13px;}
+.rl-sub{font-size:11px;color:#6b7280;margin-top:2px;display:flex;align-items:center;gap:3px;}
+.rl-sub .material-symbols-outlined{font-size:13px;}
+.rbadge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.rbadge-dot{width:6px;height:6px;border-radius:50%;}
+.rbadge.termine{background:#dcfce7;color:#15803d;}.rbadge.termine .rbadge-dot{background:#16a34a;}
+.rbadge.encours{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}.rbadge.encours .rbadge-dot{background:#1d4ed8;}
+.rbadge.retard{background:#fee2e2;color:#dc2626;border:1px solid #fecaca;}.rbadge.retard .rbadge-dot{background:#dc2626;}
+.res-actions{display:flex;flex-direction:column;gap:7px;align-items:center;flex-shrink:0;}
+.btn-eye-r{width:36px;height:36px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#004d99;transition:background .18s;}
+.btn-eye-r:hover{background:#dbeafe;}
+.btn-eye-r .material-symbols-outlined{font-size:16px;}
+.btn-del-r{width:36px;height:36px;border-radius:8px;background:#fff5f5;border:1px solid #fecaca;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#dc2626;transition:background .18s;}
+.btn-del-r:hover{background:#fee2e2;}
+.btn-del-r .material-symbols-outlined{font-size:16px;}
+.empty-r{text-align:center;padding:60px 20px;color:#9ca3af;}
+.empty-r .material-symbols-outlined{font-size:52px;display:block;margin-bottom:12px;color:#d1d5db;}
+/* Modale */
+.mo-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999999;align-items:center;justify-content:center;}
+.mo-overlay.open{display:flex;}
+.mo-box{background:#fff;border-radius:18px;width:520px;max-width:95vw;max-height:90vh;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.18);animation:moIn .22s ease;}
+@keyframes moIn{from{opacity:0;transform:translateY(-14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.mo-head{background:linear-gradient(135deg,#004d99,#1565c0);padding:18px 22px;display:flex;align-items:flex-start;justify-content:space-between;}
+.mo-head h2{font-family:'Manrope',sans-serif;font-size:17px;font-weight:900;color:#fff;margin:0 0 2px;}
+.mo-head p{font-size:12px;color:rgba(255,255,255,.72);margin:0;}
+.mo-close{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.18);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;}
+.mo-close:hover{background:rgba(255,255,255,.3);}
+.mo-close .material-symbols-outlined{font-size:16px;}
+.mo-body{padding:18px 22px;overflow-y:auto;max-height:calc(90vh - 90px);}
+.eq-mo-card{display:flex;gap:12px;align-items:center;background:#f0f6ff;border:1px solid #dbeafe;border-radius:10px;padding:12px;margin-bottom:14px;}
+.eq-mo-img{width:58px;height:58px;object-fit:contain;border-radius:8px;background:#fff;padding:4px;flex-shrink:0;}
+.eq-mo-ph{width:58px;height:58px;border-radius:8px;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.eq-mo-ph .material-symbols-outlined{font-size:24px;color:#9ca3af;}
+.drow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:13px;}
+.drow:last-child{border-bottom:none;}
+.dlbl{color:#6b7280;display:flex;align-items:center;gap:5px;}
+.dlbl .material-symbols-outlined{font-size:14px;color:#9ca3af;}
+.dval{font-weight:600;color:#111827;}
+.total-mo{background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-top:14px;}
+.total-mo .tl{font-size:13px;color:#1d4ed8;font-weight:600;}
+.total-mo .tv{font-family:'Manrope',sans-serif;font-size:22px;font-weight:900;color:#004d99;}
+</style>
 
-    <?php if (empty($reservations)): ?>
-      <div class="empty-state">
-        <span class="material-symbols-outlined">shopping_cart</span>
-        <p class="font-bold text-xl text-slate-700 mb-2">Aucune réservation</p>
-        <p class="text-sm mb-6">Vous n'avez aucune réservation en cours.</p>
-        <a href="/integration/catalogue" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm">
-          <span class="material-symbols-outlined text-base">medical_services</span> Parcourir le catalogue
-        </a>
-      </div>
-    <?php else: ?>
+<div class="res-wrap">
 
-      <?php foreach ($reservations as $r):
-        $prixDT   = number_format((float)($r['prix_jour'] ?? 0), 3, ',', '.');
-        $badgeCls = getBadgeCls($r['statut']);
-        $badgeLbl = getBadgeLbl($r['statut']);
-        $rJson    = htmlspecialchars(json_encode($r), ENT_QUOTES);
-      ?>
-      <div class="resa-card" id="resa-<?= $r['id'] ?>">
-
-        <div style="width:72px;height:72px;background:#f3f4f6;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-          <span class="material-symbols-outlined" style="font-size:32px;color:#d1d5db;">medical_services</span>
-        </div>
-
-        <div class="resa-info">
-          <span class="resa-ref"><?= htmlspecialchars($r['reference'] ?? '') ?></span>
-          <div class="resa-nom"><?= htmlspecialchars($r['equipement_nom'] ?? '—') ?></div>
-          <div class="resa-cat"><?= htmlspecialchars($r['categorie'] ?? '—') ?></div>
-          <div class="resa-prix"><?= $prixDT ?> DT / jour</div>
-        </div>
-
-        <div class="resa-dates">
-          <span class="resa-date-label">Période</span>
-          <span class="resa-date-val"><?= fmtDate($r['date_debut']) ?></span>
-          <span style="color:#9ca3af;font-size:16px;">↓</span>
-          <span class="resa-date-val" style="<?= $r['statut']==='en_retard'?'color:#dc2626;font-weight:700;':'' ?>">
-            <?= $r['date_fin'] ? fmtDate($r['date_fin']) : 'En cours' ?>
-          </span>
-        </div>
-
-        <div class="resa-locataire">
-          <div class="nom"><?= htmlspecialchars($r['locataire_nom']) ?></div>
-          <div class="ville"><?= htmlspecialchars($r['locataire_ville'] ?? '') ?></div>
-          <div class="tel"><?= htmlspecialchars($r['telephone'] ?? '') ?></div>
-        </div>
-
-        <span class="badge <?= $badgeCls ?>">
-          <span class="badge-dot"></span><?= $badgeLbl ?>
-        </span>
-
-        <div class="resa-actions">
-          <button class="btn-act edit" type="button" title="Modifier" onclick='ouvrirModale(<?= $rJson ?>)'>
-            <span class="material-symbols-outlined">edit</span>
-          </button>
-          <button class="btn-act del" type="button" title="Supprimer"
-                  onclick="supprimerResa(<?= (int)$r['id'] ?>,'<?= htmlspecialchars($r['equipement_nom']??'',ENT_QUOTES) ?>')">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </div>
-      </div>
-      <?php endforeach; ?>
-
-    <?php endif; ?>
+  <!-- En-tête -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h2 class="text-3xl font-extrabold bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent mb-1">
+        Mes Réservations
+      </h2>
+      <p style="font-size:13px;color:#6b7280;">
+        <strong><?= count($reservations) ?></strong> réservation(s) — connecté en tant que
+        <strong><?= htmlspecialchars(trim(($user['prenom']??'').' '.($user['nom']??''))) ?></strong>
+      </p>
+    </div>
+    <a href="/integration/catalogue"
+       style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#004d99;color:#fff;border-radius:9px;text-decoration:none;font-weight:700;font-size:13px;">
+      <span class="material-symbols-outlined" style="font-size:16px;">add</span>
+      Nouvelle réservation
+    </a>
   </div>
-</main>
 
-<!-- MODAL -->
-<div id="modal-modifier" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2>Modifier la Réservation</h2>
-      <button class="modal-close" id="modal-close-btn" type="button">
+  <?php if (empty($reservations)): ?>
+    <div class="empty-r">
+      <span class="material-symbols-outlined">inbox</span>
+      <h3 style="font-family:'Manrope',sans-serif;font-size:17px;color:#374151;margin-bottom:6px;">Aucune réservation</h3>
+      <p style="font-size:13px;">Vous n'avez pas encore de réservation.</p>
+      <a href="/integration/catalogue"
+         style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#004d99;color:#fff;border-radius:9px;text-decoration:none;font-weight:700;font-size:13px;margin-top:14px;">
+        <span class="material-symbols-outlined" style="font-size:16px;">medical_services</span>Voir le catalogue
+      </a>
+    </div>
+
+  <?php else: ?>
+    <?php foreach ($reservations as $r):
+      $bc  = getBadgeClassR($r['statut']);
+      $bl  = getBadgeLabelR($r['statut']);
+      $img = getImgR($r['reference'] ?? '');
+      $pj  = (float)($r['prix_jour'] ?? 0);
+      $rj  = json_encode($r, JSON_HEX_QUOT | JSON_HEX_APOS);
+    ?>
+    <div class="res-card" id="rc-<?= (int)$r['id'] ?>">
+
+      <?php if ($img): ?>
+        <img class="res-img" src="<?= $img ?>" alt="<?= htmlspecialchars($r['equipement_nom']??'') ?>"/>
+      <?php else: ?>
+        <div class="res-img-ph"><span class="material-symbols-outlined">medical_services</span></div>
+      <?php endif; ?>
+
+      <div class="res-info">
+        <span class="res-ref"><?= htmlspecialchars($r['reference']??'') ?></span>
+        <div class="res-nom"><?= htmlspecialchars($r['equipement_nom']??'—') ?></div>
+        <div class="res-cat"><?= htmlspecialchars($r['categorie']??'—') ?></div>
+        <div class="res-prix"><?= number_format($pj,3,',','.') ?> DT / jour</div>
+      </div>
+
+      <div class="res-period">
+        <span class="rp-lbl">Période</span>
+        <span class="rp-date"><?= fmtDateR($r['date_debut']) ?></span>
+        <span class="rp-arrow">↓</span>
+        <span class="rp-date" style="<?= $r['statut']==='en_retard'?'color:#dc2626;':'' ?>">
+          <?= $r['date_fin'] ? fmtDateR($r['date_fin']) : 'En cours' ?>
+        </span>
+      </div>
+
+      <div class="res-loca">
+        <div class="rl-nom"><?= htmlspecialchars($r['locataire_nom']??'') ?></div>
+        <?php if (!empty($r['telephone'])): ?>
+          <div class="rl-sub"><span class="material-symbols-outlined">phone</span><?= htmlspecialchars($r['telephone']) ?></div>
+        <?php endif; ?>
+        <?php if (!empty($r['locataire_ville'])): ?>
+          <div class="rl-sub"><span class="material-symbols-outlined">location_on</span><?= htmlspecialchars($r['locataire_ville']) ?></div>
+        <?php else: ?>
+          <div class="rl-sub" style="color:#9ca3af;"><span class="material-symbols-outlined">store</span>Retrait clinique</div>
+        <?php endif; ?>
+      </div>
+
+      <span class="rbadge <?= $bc ?>"><span class="rbadge-dot"></span><?= $bl ?></span>
+
+      <div class="res-actions">
+        <button class="btn-eye-r" type="button" title="Voir le détail" data-resa='<?= $rj ?>'>
+          <span class="material-symbols-outlined">visibility</span>
+        </button>
+        <button class="btn-del-r" type="button" title="Supprimer"
+                onclick="suppResa(<?= (int)$r['id'] ?>,'<?= htmlspecialchars($r['equipement_nom']??'',ENT_QUOTES) ?>')">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
+    </div>
+    <?php endforeach; ?>
+  <?php endif; ?>
+
+  <!-- ✅ PAGINATION -->
+  <div id="pagination-resas"></div>
+
+</div>
+
+<!-- MODALE DÉTAIL -->
+<div id="mo-resa" class="mo-overlay">
+  <div class="mo-box">
+    <div class="mo-head">
+      <div><h2 id="mo-titre">Détail</h2><p id="mo-ref">—</p></div>
+      <button class="mo-close" onclick="fermerMoResa()" type="button">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
-    <input type="hidden" id="mod-id"/>
-    <input type="hidden" id="mod-equipement-id"/>
-    <div class="modal-field">
-      <label>Équipement</label>
-      <div id="mod-equip-nom" style="padding:10px 13px;background:#f9fafb;border-radius:8px;font-weight:600;color:#374151;font-size:13px;border:1px solid #e5e7eb;"></div>
-    </div>
-    <div class="modal-row">
-      <div class="modal-field"><label for="mod-debut">Date de début *</label><input id="mod-debut" class="modal-input" type="date"/></div>
-      <div class="modal-field"><label for="mod-fin">Date de fin</label><input id="mod-fin" class="modal-input" type="date"/></div>
-    </div>
-    <div class="modal-row">
-      <div class="modal-field"><label for="mod-prenom">Prénom *</label><input id="mod-prenom" class="modal-input" type="text" placeholder="Mohamed"/></div>
-      <div class="modal-field"><label for="mod-nom">Nom *</label><input id="mod-nom" class="modal-input" type="text" placeholder="Ben Ali"/></div>
-    </div>
-    <div class="modal-field"><label for="mod-tel">Téléphone</label><input id="mod-tel" class="modal-input" type="text" placeholder="20 123 456"/></div>
-    <div class="modal-field"><label for="mod-ville">Adresse / Ville</label><input id="mod-ville" class="modal-input" type="text" placeholder="Tunis"/></div>
-    <div class="modal-footer">
-      <button class="btn-cancel-modal" id="modal-cancel-btn" type="button">Annuler</button>
-      <button class="btn-save-modal" id="modal-save-btn" type="button">
-        <span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">save</span> Enregistrer
-      </button>
+    <div class="mo-body">
+      <div class="eq-mo-card">
+        <div id="mo-img"></div>
+        <div>
+          <div id="mo-cat" style="font-size:11px;color:#9ca3af;margin-bottom:2px;"></div>
+          <div id="mo-nom" style="font-family:'Manrope',sans-serif;font-size:14px;font-weight:800;color:#111827;margin-bottom:4px;"></div>
+          <div id="mo-badge"></div>
+        </div>
+      </div>
+      <div class="drow"><span class="dlbl"><span class="material-symbols-outlined">calendar_today</span>Date début</span><span class="dval" id="mo-debut"></span></div>
+      <div class="drow"><span class="dlbl"><span class="material-symbols-outlined">event</span>Date fin</span><span class="dval" id="mo-fin"></span></div>
+      <div class="drow"><span class="dlbl"><span class="material-symbols-outlined">schedule</span>Durée</span><span class="dval" id="mo-duree"></span></div>
+      <div class="drow"><span class="dlbl"><span class="material-symbols-outlined">local_shipping</span>Livraison</span><span class="dval" id="mo-liv"></span></div>
+      <div class="drow" id="mo-adr-row"><span class="dlbl"><span class="material-symbols-outlined">home</span>Adresse</span><span class="dval" id="mo-adr"></span></div>
+      <div class="drow"><span class="dlbl"><span class="material-symbols-outlined">phone</span>Téléphone</span><span class="dval" id="mo-tel"></span></div>
+      <div class="total-mo"><span class="tl">Total estimé (TTC)</span><span class="tv" id="mo-total"></span></div>
     </div>
   </div>
 </div>
 
-<div class="toast-container"></div>
+<div class="toast-container" style="position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:999999;"></div>
+
 <script>
-const API_RES='/integration/equipment/api/reservations';
+const API_RES_V = '/integration/equipment/api/reservations';
 
-function showToast(msg,type='info'){const c=document.querySelector('.toast-container');const t=document.createElement('div');t.className='toast '+type;const icons={success:'check_circle',error:'error',info:'info'};t.innerHTML=`<span class="material-symbols-outlined">${icons[type]||'info'}</span><span>${msg}</span>`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3500);}
-
-function ouvrirModale(r){
-  document.getElementById('mod-id').value=r.id;
-  document.getElementById('mod-equipement-id').value=r.equipement_id;
-  document.getElementById('mod-equip-nom').textContent=(r.reference||'')+' — '+(r.equipement_nom||'');
-  document.getElementById('mod-debut').value=r.date_debut||'';
-  document.getElementById('mod-fin').value=r.date_fin||'';
-  const parts=(r.locataire_nom||'').split(' ');
-  document.getElementById('mod-prenom').value=parts[0]||'';
-  document.getElementById('mod-nom').value=parts.slice(1).join(' ')||'';
-  document.getElementById('mod-tel').value=r.telephone||'';
-  document.getElementById('mod-ville').value=r.locataire_ville||'';
-  document.querySelectorAll('.msg-erreur').forEach(e=>e.remove());
-  document.querySelectorAll('.modal-input').forEach(i=>{i.style.borderColor='';i.style.boxShadow='';});
-  document.getElementById('modal-modifier').classList.add('open');
-}
-function fermerModale(){document.getElementById('modal-modifier').classList.remove('open');}
-document.getElementById('modal-close-btn').addEventListener('click',fermerModale);
-document.getElementById('modal-cancel-btn').addEventListener('click',fermerModale);
-document.getElementById('modal-modifier').addEventListener('click',function(e){if(e.target===this)fermerModale();});
-
-function afficherErr(id,msg){const el=document.getElementById(id);if(!el)return;el.style.borderColor='#dc2626';el.style.boxShadow='0 0 0 3px rgba(220,38,38,.10)';el.parentElement?.querySelector('.msg-erreur')?.remove();const s=document.createElement('small');s.className='msg-erreur';s.textContent='⚠ '+msg;s.style.cssText='color:#dc2626;font-size:11px;font-weight:600;display:block;margin-top:4px;';el.insertAdjacentElement('afterend',s);}
-
-function validerMod(){
-  let ok=true;document.querySelectorAll('.msg-erreur').forEach(e=>e.remove());document.querySelectorAll('.modal-input').forEach(i=>{i.style.borderColor='';i.style.boxShadow='';});
-  const prenom=document.getElementById('mod-prenom').value.trim(),nom=document.getElementById('mod-nom').value.trim();
-  const debut=document.getElementById('mod-debut').value,fin=document.getElementById('mod-fin').value,tel=document.getElementById('mod-tel').value.trim();
-  if(!prenom||!/^[a-zA-ZÀ-ÿ\s'\-]{2,50}$/.test(prenom)){afficherErr('mod-prenom','Prénom invalide.');ok=false;}
-  if(!nom||!/^[a-zA-ZÀ-ÿ\s'\-]{2,50}$/.test(nom)){afficherErr('mod-nom','Nom invalide.');ok=false;}
-  if(!debut){afficherErr('mod-debut','Date de début obligatoire.');ok=false;}
-  if(fin&&debut&&fin<=debut){afficherErr('mod-fin','La date de fin doit être après la date de début.');ok=false;}
-  if(tel&&!/^[2345789]\d{7}$/.test(tel.replace(/\s/g,''))){afficherErr('mod-tel','Format tunisien : 8 chiffres.');ok=false;}
-  if(!ok)showToast('Veuillez corriger les erreurs.','error');
-  return ok;
-}
-
-document.getElementById('modal-save-btn').addEventListener('click',async()=>{
-  if(!validerMod())return;
-  const id=document.getElementById('mod-id').value,eqId=document.getElementById('mod-equipement-id').value;
-  const prenom=document.getElementById('mod-prenom').value.trim(),nom=document.getElementById('mod-nom').value.trim();
-  const data={equipement_id:eqId,locataire_nom:prenom+' '+nom,locataire_ville:document.getElementById('mod-ville').value.trim(),telephone:document.getElementById('mod-tel').value.trim(),date_debut:document.getElementById('mod-debut').value,date_fin:document.getElementById('mod-fin').value||null,statut:'en_cours'};
-  try{
-    const res=await fetch(`${API_RES}?id=${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    const json=await res.json();
-    if(json.success){showToast('Réservation modifiée !','success');fermerModale();setTimeout(()=>location.reload(),1400);}
-    else showToast('Erreur : '+(json.message||'Inconnue'),'error');
-  }catch(e){showToast('Erreur réseau.','error');}
+/* Œil */
+document.addEventListener('click', function(e) {
+  const b = e.target.closest('[data-resa]');
+  if (b) try { ouvrirMoResa(JSON.parse(b.getAttribute('data-resa'))); } catch(x){}
 });
 
-async function supprimerResa(id,nom){
-  if(!confirm(`Supprimer la réservation de "${nom}" ?\nCette action est irréversible.`))return;
+function fmtDR(d){if(!d)return'—';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`;}
+
+function ouvrirMoResa(r){
+  const prix=parseFloat(r.prix_jour||0);
+  document.getElementById('mo-titre').textContent=r.equipement_nom||'—';
+  document.getElementById('mo-ref').textContent='Réf. '+(r.reference||'');
+  document.getElementById('mo-nom').textContent=r.equipement_nom||'—';
+  document.getElementById('mo-cat').textContent=r.categorie||'—';
+  document.getElementById('mo-debut').textContent=fmtDR(r.date_debut);
+  document.getElementById('mo-fin').textContent=r.date_fin?fmtDR(r.date_fin):'En cours';
+  document.getElementById('mo-tel').textContent=r.telephone||'—';
+
+  if(r.date_debut&&r.date_fin){
+    const j=Math.ceil((new Date(r.date_fin)-new Date(r.date_debut))/86400000);
+    document.getElementById('mo-duree').textContent=j+' jour'+(j>1?'s':'');
+    document.getElementById('mo-total').textContent=(j*prix).toLocaleString('fr-TN',{minimumFractionDigits:3,maximumFractionDigits:3})+' DT';
+  }else{document.getElementById('mo-duree').textContent='—';document.getElementById('mo-total').textContent='—';}
+
+  if(r.locataire_ville){
+    document.getElementById('mo-liv').textContent='Livraison à domicile';
+    document.getElementById('mo-adr').textContent=r.locataire_ville;
+    document.getElementById('mo-adr-row').style.display='flex';
+  }else{
+    document.getElementById('mo-liv').textContent='Retrait en clinique';
+    document.getElementById('mo-adr-row').style.display='none';
+  }
+
+  const s={en_cours:{bg:'#eff6ff',c:'#1d4ed8',l:'En cours'},termine:{bg:'#dcfce7',c:'#15803d',l:'Terminé'},en_retard:{bg:'#fee2e2',c:'#dc2626',l:'En retard'}}[r.statut]||{bg:'#f3f4f6',c:'#374151',l:r.statut};
+  document.getElementById('mo-badge').innerHTML=`<span style="background:${s.bg};color:${s.c};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">${s.l}</span>`;
+
+  const ref=r.reference||'';
+  const urls=[`/integration/assets/images/equipements/${ref}.jpg`,`/integration/assets/images/equipements/${ref}.png`,`/integration/Assets/images/equipements/${ref}.jpg`];
+  let ti=0;const img=document.createElement('img');img.className='eq-mo-img';img.alt=r.equipement_nom||'';
+  img.onerror=function(){ti++;if(ti<urls.length)this.src=urls[ti];else document.getElementById('mo-img').innerHTML='<div class="eq-mo-ph"><span class="material-symbols-outlined">medical_services</span></div>';};
+  img.src=urls[0];const mc=document.getElementById('mo-img');mc.innerHTML='';mc.appendChild(img);
+
+  document.getElementById('mo-resa').classList.add('open');
+}
+
+function fermerMoResa(){document.getElementById('mo-resa').classList.remove('open');}
+document.getElementById('mo-resa').addEventListener('click',function(e){if(e.target===this)fermerMoResa();});
+
+/* Supprimer */
+async function suppResa(id,nom){
+  if(!confirm('Supprimer la réservation de "'+nom+'" ?'))return;
   try{
-    const res=await fetch(`${API_RES}?id=${id}`,{method:'DELETE'});
-    const json=await res.json();
-    if(json.success){showToast('Réservation supprimée.','success');const card=document.getElementById('resa-'+id);if(card){card.style.transition='opacity .3s,transform .3s';card.style.opacity='0';card.style.transform='translateX(20px)';setTimeout(()=>card.remove(),300);}}
-    else showToast('Erreur : '+(json.message||'Inconnue'),'error');
-  }catch(e){showToast('Erreur réseau.','error');}
+    const r=await fetch(`${API_RES_V}?id=${id}`,{method:'DELETE'});
+    const j=await r.json();
+    if(j.success){
+      const c=document.getElementById('rc-'+id);
+      if(c){c.style.opacity='0';c.style.transition='opacity .3s';setTimeout(()=>c.remove(),300);}
+    }else showToastR('Erreur: '+(j.message||''),'error');
+  }catch(e){showToastR('Erreur réseau.','error');}
+}
+
+/* ════════════════════════════════════════
+   PAGINATION — 6 réservations par page
+════════════════════════════════════════ */
+const RESAS_PAR_PAGE = 3;
+let pageResa = 1;
+
+window.getResasVisibles = function() {
+  return [...document.querySelectorAll('.res-card')];
+}
+
+window.afficherPageResa = function(page) {
+  pageResa = page;
+  const cartes = getResasVisibles();
+  const total  = cartes.length;
+  const pages  = Math.ceil(total / RESAS_PAR_PAGE);
+  const debut  = (page - 1) * RESAS_PAR_PAGE;
+  const fin    = debut + RESAS_PAR_PAGE;
+
+  cartes.forEach((c, i) => {
+    c.style.display = (i >= debut && i < fin) ? '' : 'none';
+  });
+
+  renderPaginationResa(page, pages, total);
+}
+
+window.renderPaginationResa = function(page, pages, total) {
+  const container = document.getElementById('pagination-resas');
+  if (!container) return;
+  if (pages <= 1) { container.innerHTML = ''; return; }
+
+  const debut = (page - 1) * RESAS_PAR_PAGE + 1;
+  const fin   = Math.min(page * RESAS_PAR_PAGE, total);
+
+    container.innerHTML = `
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;
+                padding:16px 0;margin-top:12px;">
+      <button onclick="afficherPageResa(${page - 1})"
+              ${page <= 1 ? 'disabled' : ''}
+              style="padding:9px 20px;border-radius:9px;
+                     border:1.5px solid ${page<=1?'#e5e7eb':'#004d99'};
+                     background:${page<=1?'#f9fafb':'#fff'};
+                     color:${page<=1?'#9ca3af':'#004d99'};
+                     font-size:13.5px;font-weight:700;
+                     cursor:${page<=1?'not-allowed':'pointer'};
+                     font-family:'Inter',sans-serif;">
+        ← Précédent
+      </button>
+      ${Array.from({length:pages},(_,i)=>i+1).map(p=>`
+        <button onclick="afficherPageResa(${p})"
+                style="width:36px;height:36px;border-radius:9px;
+                       border:${p===page?'none':'1.5px solid #e5e7eb'};
+                       background:${p===page?'#004d99':'#fff'};
+                       color:${p===page?'#fff':'#374151'};
+                       font-size:13px;font-weight:700;cursor:pointer;
+                       font-family:'Inter',sans-serif;">
+          ${p}
+        </button>`).join('')}
+      <button onclick="afficherPageResa(${page + 1})"
+              ${page >= pages ? 'disabled' : ''}
+              style="padding:9px 20px;border-radius:9px;
+                     border:1.5px solid transparent;
+                     background:${page>=pages?'#f9fafb':'#004d99'};
+                     color:${page>=pages?'#9ca3af':'#fff'};
+                     font-size:13.5px;font-weight:700;
+                     cursor:${page>=pages?'not-allowed':'pointer'};
+                     font-family:'Inter',sans-serif;">
+        Suivant →
+      </button>
+    </div>
+  `;}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => afficherPageResa(1));
+if (document.readyState !== 'loading') afficherPageResa(1);
+
+function showToastR(msg,type){
+  const c=document.querySelector('.toast-container');
+  const t=document.createElement('div');
+  t.style.cssText='display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:10px;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.12);font-size:13px;font-weight:600;';
+  t.style.borderLeft='4px solid '+(type==='success'?'#16a34a':'#dc2626');
+  t.style.color=type==='success'?'#15803d':'#dc2626';
+  t.textContent=msg;c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3500);
 }
 </script>

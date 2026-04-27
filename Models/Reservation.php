@@ -11,7 +11,6 @@ class Reservation {
     private $pdo;
 
     public function __construct() {
-        // Utiliser le singleton de config.php
         $this->pdo = config::getConnexion();
     }
 
@@ -34,7 +33,8 @@ class Reservation {
                 e.nom       AS equipement_nom,
                 e.reference AS reference,
                 e.categorie AS categorie,
-                e.prix_jour AS prix_jour
+                e.prix_jour AS prix_jour,
+                e.image     AS image
             FROM reservation r
             JOIN equipement e ON r.equipement_id = e.id
             ORDER BY r.id DESC
@@ -61,7 +61,8 @@ class Reservation {
                 e.nom       AS equipement_nom,
                 e.reference AS reference,
                 e.categorie AS categorie,
-                e.prix_jour AS prix_jour
+                e.prix_jour AS prix_jour,
+                e.image     AS image
             FROM reservation r
             JOIN equipement e ON r.equipement_id = e.id
             WHERE r.matricule = ?
@@ -69,6 +70,41 @@ class Reservation {
         ");
         $stmt->execute([$matricule]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /* ════════════════════════════════════════════
+       ✅ READ BY NOM — fallback si pas de matricule
+       Filtre par locataire_nom (recherche partielle)
+    ════════════════════════════════════════════ */
+    public function getByNom($nom) {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT
+                    r.id,
+                    r.equipement_id,
+                    r.locataire_nom,
+                    r.matricule,
+                    r.locataire_ville,
+                    r.date_debut,
+                    r.date_fin,
+                    r.statut,
+                    r.telephone,
+                    r.created_at,
+                    e.nom       AS equipement_nom,
+                    e.reference AS reference,
+                    e.categorie AS categorie,
+                    e.prix_jour AS prix_jour,
+                    e.image     AS image
+                FROM reservation r
+                JOIN equipement e ON r.equipement_id = e.id
+                WHERE r.locataire_nom LIKE ?
+                ORDER BY r.id DESC
+            ");
+            $stmt->execute(['%' . $nom . '%']);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
     }
 
     /* ════════════════════════════════════════════
@@ -81,7 +117,8 @@ class Reservation {
                 e.nom       AS equipement_nom,
                 e.reference AS reference,
                 e.categorie AS categorie,
-                e.prix_jour AS prix_jour
+                e.prix_jour AS prix_jour,
+                e.image     AS image
             FROM reservation r
             JOIN equipement e ON r.equipement_id = e.id
             WHERE r.id = ?

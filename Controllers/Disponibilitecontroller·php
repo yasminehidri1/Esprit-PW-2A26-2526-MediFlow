@@ -1,0 +1,167 @@
+<?php
+/**
+ * DisponibiliteController.php
+ * ═══════════════════════════════════════════════════════════
+ * API endpoint : vérification de disponibilité d'un équipement
+ * sur une période donnée.
+ *
+ * URL  : GET /integration/equipment/api/disponibilite
+ * Params :
+ *   - equipement_id : int   (obligatoire)
+ *   - date_debut    : string YYYY-MM-DD (obligatoire)
+ *   - date_fin      : string YYYY-MM-DD (obligatoire)
+ *
+ * Réponse JSON :
+ *   { "disponible": true }
+ *   { "disponible": false, "date_debut_conflit": "...", "date_fin_conflit": "...", "message": "..." }
+ * ═══════════════════════════════════════════════════════════
+ */
+
+namespace Integration\Controllers;
+
+use Integration\Core\Database;
+
+class DisponibiliteController
+{
+    private \PDO $pdo;
+
+    public function __construct()
+    {
+        $this->pdo = Database::getInstance()->getConnection();
+    }
+
+    /**
+     * Vérifie si un équipement est disponible sur une période
+     * Appelé par reservation.php via fetch() en JS
+     */
+    public function check(): void
+    {
+        // ── En-têtes JSON ──
+        header('Content-Type: application/json; charset=utf-8');
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            http_response_code(200);
+            exit;
+        }
+
+        // ── Récupérer et valider les paramètres ──
+        $equipementId = isset($_GET['equipement_id']) && is_numeric($_GET['equipement_id'])
+            ? (int)$_GET['equipement_id']
+            : null;
+
+        $dateDebut = $_GET['date_debut'] ?? '';
+        $dateFin   = $_GET['date_fin']   ?? '';
+
+        // Validation des paramètres
+        if (!$equipementId || empty($dateDebut) || empty($dateFin)) {
+            echo json_encode([
+                'disponible' => false,
+                'message'    => 'Paramètres manquants : equipement_id, date_debut, date_fin requis.'
+            ]);
+            return;
+        }
+
+        // Valider le format des dates (YYYY-MM-DD)
+        if (!$this->isValidDate($dateDebut) || !$this->isValidDate($dateFin)) {
+            echo json_encode([
+                'disponible' => false,
+                'message'    => 'Format de date invalide. Utilisez YYYY-MM-DD.'
+            ]);
+            return;
+        }
+
+        // La date de fin doit être après la date de début
+        if ($dateFin <= $dateDebut) {
+            echo json_encode([
+                'disponible' => false,
+                'message'    => 'La date de fin doit être après la date de début.'
+            ]);
+            return;
+        }
+
+        try {
+            // ══════════════════════════════════════════════════════
+            // REQUÊTE DE VÉRIFICATION DE CHEVAUCHEMENT
+            //
+            // Logique : deux périodes se chevauchent si :
+            //   période A chevauche période B quand :
+            //   A.debut <= B.fin ET A.fin >= B.debut
+            //
+            // On cherche toute réservation active sur cet équipement
+            // dont la période chevauche la période demandée.
+            // On exclut les réservations "termine".
+            // ══════════════════════════════════════════════════════
+            $stmt = $this->pdo->prepare("
+                SELECT
+                    r.id,
+                    r.date_debut,
+                    r.date_fin,
+                    r.locataire_nom,
+                    r.statut
+                FROM reservation r
+                WHERE r.equipement_id = :equip_id
+                  AND r.statut NOT IN ('termine')
+                  AND r.date_debut <= :date_fin
+                  AND (r.date_fin IS NULL OR r.date_fin >= :date_debut)
+                LIMIT 1
+            ");
+
+            $stmt->execute([
+                ':equip_id'   => $equipementId,
+                ':date_debut' => $dateDebut,
+                ':date_fin'   => $dateFin,
+            ]);
+
+            $conflit = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if ($conflit) {
+                // ❌ Conflit trouvé — période occupée
+                // Formater les dates pour le message
+                $debutConflit = $conflit['date_debut']
+                    ? (new \DateTime($conflit['date_debut']))->format('d/m/Y')
+                    : '—';
+                $finConflit = $conflit['date_fin']
+                    ? (new \DateTime($conflit['date_fin']))->format('d/m/Y')
+                    : 'date inconnue';
+
+                echo json_encode([
+                    'disponible'          => false,
+                    'date_debut_conflit'  => $conflit['date_debut'],
+                    'date_fin_conflit'    => $conflit['date_fin'],
+                    'message'             => sprintf(
+                        'Une réservation est déjà confirmée du %s au %s. Veuillez choisir d\'autres dates.',
+                        $debutConflit,
+                        $finConflit
+                    )
+                ]);
+
+            } else {
+                // ✅ Aucun conflit — équipement disponible
+                echo json_encode([
+                    'disponible' => true,
+                    'message'    => 'Équipement disponible sur cette période.'
+                ]);
+            }
+
+        } catch (\PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'disponible' => false,
+                'message'    => 'Erreur base de données : ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Valide qu'une chaîne est une date au format YYYY-MM-DD
+     */
+    private function isValidDate(string $date): bool
+    {
+        if (strlen($date) !== 10) return false;
+        $d = \DateTime::createFromFormat('Y-m-d', $date);
+        return $d && $d->format('Y-m-d') === $date;
+    }
+}
