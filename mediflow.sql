@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Apr 27, 2026 at 03:58 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- Hôte : 127.0.0.1
+-- Généré le : mar. 28 avr. 2026 à 20:46
+-- Version du serveur : 10.4.32-MariaDB
+-- Version de PHP : 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `mediflow`
+-- Base de données : `mediflow`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `comments`
+-- Structure de la table `comments`
 --
 
 CREATE TABLE `comments` (
@@ -38,7 +38,7 @@ CREATE TABLE `comments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `comments`
+-- Déchargement des données de la table `comments`
 --
 
 INSERT INTO `comments` (`id`, `id_post`, `id_utilisateur`, `contenu`, `statut`, `date_creation`, `date_modification`) VALUES
@@ -80,7 +80,7 @@ INSERT INTO `comments` (`id`, `id_post`, `id_utilisateur`, `contenu`, `statut`, 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `equipement`
+-- Structure de la table `equipement`
 --
 
 CREATE TABLE `equipement` (
@@ -95,7 +95,7 @@ CREATE TABLE `equipement` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `equipement`
+-- Déchargement des données de la table `equipement`
 --
 
 INSERT INTO `equipement` (`id`, `reference`, `nom`, `categorie`, `prix_jour`, `statut`, `image`, `created_at`) VALUES
@@ -110,7 +110,37 @@ INSERT INTO `equipement` (`id`, `reference`, `nom`, `categorie`, `prix_jour`, `s
 -- --------------------------------------------------------
 
 --
--- Table structure for table `posts`
+-- Structure de la table `planning`
+--
+
+CREATE TABLE `planning` (
+  `id` int(11) NOT NULL,
+  `medecin_id` int(11) NOT NULL,
+  `titre` varchar(150) NOT NULL,
+  `date_debut` datetime NOT NULL,
+  `date_fin` datetime NOT NULL,
+  `type` enum('chirurgie','reunion','pause','formation','urgence','autre') DEFAULT 'autre',
+  `note` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `planning`
+--
+
+INSERT INTO `planning` (`id`, `medecin_id`, `titre`, `date_debut`, `date_fin`, `type`, `note`, `created_at`) VALUES
+(7, 1, 'pause', '2026-04-14 12:00:00', '2026-04-16 09:00:00', 'reunion', '', '2026-04-12 22:06:41'),
+(8, 1, 'reunionnnn', '2026-04-15 12:00:00', '2026-04-15 13:00:00', 'reunion', 'a ne pas venir en retard', '2026-04-12 22:08:36'),
+(9, 1, 'staff', '2026-04-13 19:45:00', '2026-04-13 21:45:00', 'reunion', 'ahhhh', '2026-04-13 18:46:13'),
+(10, 1, 'pause dej', '2026-04-16 13:00:00', '2026-04-16 15:00:00', 'pause', '', '2026-04-14 21:30:00'),
+(11, 1, 'pause dej', '2026-04-22 07:54:00', '2026-04-22 10:23:00', 'reunion', 'top1', '2026-04-20 19:20:52'),
+(12, 1, 'staff', '2026-04-21 19:00:00', '2026-04-21 21:00:00', 'formation', '', '2026-04-20 20:01:53'),
+(14, 1, 'formation5', '2026-04-28 09:00:00', '2026-04-28 17:00:00', 'formation', '', '2026-04-26 15:33:02');
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `posts`
 --
 
 CREATE TABLE `posts` (
@@ -129,7 +159,7 @@ CREATE TABLE `posts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `posts`
+-- Déchargement des données de la table `posts`
 --
 
 INSERT INTO `posts` (`id`, `titre`, `contenu`, `categorie`, `image_url`, `auteur_id`, `statut`, `likes_count`, `views_count`, `date_creation`, `date_modification`, `date_publication`) VALUES
@@ -137,7 +167,7 @@ INSERT INTO `posts` (`id`, `titre`, `contenu`, `categorie`, `image_url`, `auteur
 (2, '5 Superfoods for Brain Health', 'Research indicates that a diet rich in these specific nutrients can significantly reduce cognitive decline and improve mental clarity.\r\n\r\nThe connection between diet and brain health has been a growing area of scientific research. Studies consistently show that certain foods contain compounds that directly support neural function, protect against oxidative stress, and promote the growth of new brain cells.\r\n\r\n1. **Blueberries** - Rich in anthocyanins, these powerful antioxidants cross the blood-brain barrier and accumulate in areas responsible for learning and memory.\r\n\r\n2. **Fatty Fish** - Salmon, trout, and sardines are excellent sources of omega-3 fatty acids, which are essential building blocks of the brain.\r\n\r\n3. **Turmeric** - Curcumin, the active ingredient in turmeric, has been shown to cross the blood-brain barrier and has anti-inflammatory and antioxidant benefits.\r\n\r\n4. **Broccoli** - High in compounds called glucosinolates, which produce isothiocyanates that may reduce oxidative stress and lower the risk of neurodegenerative diseases.\r\n\r\n5. **Pumpkin Seeds** - Contain zinc, magnesium, copper, and iron — all crucial for nerve signaling and brain function.', 'Diet & Nutrition', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjJ4UHdtpL6BV1hMMPQ3dqzM-ogrnY6xS_Og&s', 1, 'publie', 850, 4200, '2026-04-03 14:30:00', '2026-04-16 13:27:54', '2026-04-03 14:30:00'),
 (3, 'Understanding Sleep Cycles and Recovery', 'How REM and deep sleep stages impact your body\'s daily recovery mechanisms and what you can do to optimize your rest.\r\n\r\nSleep is not a uniform state — it\'s a complex, dynamic process consisting of multiple stages that cycle throughout the night. Understanding these cycles is key to improving both the quality and effectiveness of your rest.\r\n\r\nThe sleep cycle consists of four stages:\r\n- **Stage 1 (N1)**: Light sleep lasting 1-7 minutes. Your heartbeat, breathing, and eye movements slow down.\r\n- **Stage 2 (N2)**: Deeper sleep where body temperature drops and brain waves show specific patterns called sleep spindles.\r\n- **Stage 3 (N3)**: Deep sleep or slow-wave sleep. This is the most restorative stage where tissue growth and repair occurs.\r\n- **REM Sleep**: Rapid Eye Movement sleep where most dreaming occurs. Critical for memory consolidation and emotional processing.\r\n\r\nEach complete cycle lasts approximately 90 minutes, and a healthy adult goes through 4-6 cycles per night. The proportion of each stage changes throughout the night, with more deep sleep in the first half and more REM sleep in the second half.', 'Research', 'https://www.clmsleep.com/wp-content/uploads/2025/07/stages-of-sleep-2.jpg', 2, 'publie', 432, 3100, '2026-04-05 11:00:00', '2026-04-16 13:28:25', '2026-04-05 11:00:00'),
 (4, 'Advancements in Neural Plasticity Research', 'New studies reveal groundbreaking findings about the brain\'s ability to rewire itself, offering hope for stroke recovery and neurodegenerative disease treatments.\r\n\r\nNeuroplasticity — the brain\'s remarkable ability to reorganize itself by forming new neural connections — has been one of the most exciting areas of neuroscience research in recent decades.\r\n\r\nRecent clinical trials have demonstrated that targeted rehabilitation programs, combined with non-invasive brain stimulation techniques, can significantly enhance neural plasticity in stroke patients. These findings suggest that the window for recovery may be much wider than previously believed.\r\n\r\nKey findings include:\r\n- Transcranial magnetic stimulation (TMS) combined with physical therapy shows 40% improvement in motor recovery\r\n- Music therapy activates multiple brain regions simultaneously, promoting cross-hemispheric connections\r\n- Virtual reality rehabilitation programs create immersive environments that challenge the brain to adapt\r\n- Pharmacological interventions using BDNF (Brain-Derived Neurotrophic Factor) show promise in animal models', 'Research', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSdq236h91l4XE_Z3tLGLK94uOmlQVbdzn1Q&s', 2, 'publie', 679, 5606, '2026-04-10 08:15:00', '2026-04-16 13:28:40', '2026-04-10 08:15:00'),
-(5, 'The Future of Sustainable Healthcare Infrastructure', 'How modern hospitals are embracing green architecture, renewable energy, and sustainable materials to reduce their environmental footprint while improving patient outcomes.\r\n\r\nHealthcare facilities are among the most energy-intensive buildings in any community. They operate 24/7, require sophisticated HVAC systems, and consume vast amounts of water and electricity. But a growing movement in healthcare architecture is proving that sustainability and excellent patient care can go hand in hand.\r\n\r\nLeading medical centers around the world are now:\r\n- Installing solar panels and wind turbines to offset energy consumption\r\n- Using biophilic design principles that incorporate natural elements into healing environments\r\n- Implementing smart building management systems that optimize energy usage in real-time\r\n- Adopting circular economy principles for medical waste management\r\n- Creating green spaces and therapeutic gardens that improve patient recovery times\r\n\r\nStudies show that patients in sustainably designed hospitals recover up to 15% faster and report higher satisfaction scores. The natural lighting, improved air quality, and connection to nature all contribute to better health outcomes.', 'General Health', 'https://www.creativehatti.com/wp-content/uploads/edd/2023/07/Health-medical-clinic-poster-banner-template-78-large.jpg', 1, 'publie', 545, 3807, '2026-04-12 16:45:00', '2026-04-23 15:47:03', '2026-04-12 16:45:00'),
+(5, 'The Future of Sustainable Healthcare Infrastructure', 'How modern hospitals are embracing green architecture, renewable energy, and sustainable materials to reduce their environmental footprint while improving patient outcomes.\r\n\r\nHealthcare facilities are among the most energy-intensive buildings in any community. They operate 24/7, require sophisticated HVAC systems, and consume vast amounts of water and electricity. But a growing movement in healthcare architecture is proving that sustainability and excellent patient care can go hand in hand.\r\n\r\nLeading medical centers around the world are now:\r\n- Installing solar panels and wind turbines to offset energy consumption\r\n- Using biophilic design principles that incorporate natural elements into healing environments\r\n- Implementing smart building management systems that optimize energy usage in real-time\r\n- Adopting circular economy principles for medical waste management\r\n- Creating green spaces and therapeutic gardens that improve patient recovery times\r\n\r\nStudies show that patients in sustainably designed hospitals recover up to 15% faster and report higher satisfaction scores. The natural lighting, improved air quality, and connection to nature all contribute to better health outcomes.', 'General Health', 'https://www.creativehatti.com/wp-content/uploads/edd/2023/07/Health-medical-clinic-poster-banner-template-78-large.jpg', 1, 'publie', 546, 3807, '2026-04-12 16:45:00', '2026-04-28 19:15:45', '2026-04-12 16:45:00'),
 (6, 'Cardiovascular Robotics: A New Frontier', 'Robotic-assisted cardiovascular procedures are revolutionizing how surgeons approach complex heart operations, offering unprecedented precision and faster patient recovery.\r\n\r\nThe integration of robotics into cardiovascular surgery represents one of the most significant technological advances in modern medicine. These sophisticated systems allow surgeons to perform intricate procedures through small incisions with enhanced visualization and greater dexterity than the human hand alone can provide.\r\n\r\nCurrent applications include:\r\n- Robotic-assisted coronary artery bypass grafting (CABG)\r\n- Minimally invasive mitral valve repair\r\n- Catheter-based interventions with robotic navigation\r\n- Hybrid procedures combining traditional and robotic techniques\r\n\r\nThe da Vinci surgical system and newer platforms offer 3D high-definition visualization, motion scaling (converting large hand movements into precise micro-movements), and tremor filtration. These capabilities are particularly valuable in cardiac surgery where precision is literally a matter of life and death.', 'Journals', 'https://www.acc.org//-/media/Non-Clinical/Images/2024/01/CARDIOLOGY/02/Robotics-3-1200x800.jpg', 3, 'publie', 326, 2908, '2026-04-13 10:00:00', '2026-04-27 14:31:04', '2026-04-13 10:00:00'),
 (7, 'Epidemiology Trends: 2026 Seasonal Preview', 'A data-driven look at respiratory health and preventive measures for the coming months based on global surveillance data.\r\n\r\nAs we enter the second quarter of 2026, epidemiological data from global health surveillance networks provides crucial insights into what we can expect in terms of seasonal health challenges.\r\n\r\nThis preview is based on data collected from the WHO Global Influenza Surveillance and Response System, CDC FluView, and European Centre for Disease Prevention and Control.\r\n\r\nKey trends for the upcoming season include shifts in influenza strain dominance, emerging respiratory syncytial virus (RSV) patterns, and the continued evolution of COVID-19 variants.\r\n\r\nPreventive recommendations:\r\n- Updated vaccination schedules for high-risk populations\r\n- Enhanced indoor air quality measures in clinical settings\r\n- Community-based health literacy programs\r\n- Early warning systems integration with primary care networks', 'General Health', 'https://img.freepik.com/premium-psd/medical-clinic-poster-design_452208-1049.jpg', 1, 'publie', 292, 2113, '2026-04-14 13:20:00', '2026-04-24 15:35:12', '2026-04-14 13:20:00'),
 (8, 'Mental Health in the Digital Age: Navigating Screen Time', 'Understanding the complex relationship between technology use and psychological well-being, with evidence-based strategies for healthier digital habits.\r\n\r\nThe ubiquity of smartphones, social media, and digital entertainment has created an unprecedented challenge for mental health. While technology offers incredible benefits for connectivity and information access, excessive or mindless use can contribute to anxiety, depression, and sleep disorders.\r\n\r\nThis article is currently under review by our editorial board and will be published upon completion of peer review.', 'Mental Wellness', 'https://static.vecteezy.com/system/resources/thumbnails/004/341/503/small/prenatal-clinic-social-media-post-mockup-childbirth-at-hospital-advertising-web-banner-design-template-social-media-booster-content-layout-promotion-poster-print-ads-with-flat-illustrations-vector.jpg', 3, 'brouillon', 0, 0, '2026-04-15 09:00:00', '2026-04-16 13:26:39', NULL),
@@ -146,7 +176,7 @@ INSERT INTO `posts` (`id`, `titre`, `contenu`, `categorie`, `image_url`, `auteur
 -- --------------------------------------------------------
 
 --
--- Table structure for table `post_likes`
+-- Structure de la table `post_likes`
 --
 
 CREATE TABLE `post_likes` (
@@ -157,17 +187,53 @@ CREATE TABLE `post_likes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `post_likes`
+-- Déchargement des données de la table `post_likes`
 --
 
 INSERT INTO `post_likes` (`id`, `post_id`, `user_id`, `created_at`) VALUES
 (5, 11, 20, '2026-04-27 14:24:54'),
-(6, 6, 20, '2026-04-27 14:31:04');
+(6, 6, 20, '2026-04-27 14:31:04'),
+(7, 5, 20, '2026-04-28 19:15:45');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `reservation`
+-- Structure de la table `rendez_vous`
+--
+
+CREATE TABLE `rendez_vous` (
+  `id` int(11) NOT NULL,
+  `medecin_id` int(11) NOT NULL,
+  `patient_nom` varchar(100) NOT NULL,
+  `patient_prenom` varchar(100) NOT NULL,
+  `cin` char(8) NOT NULL,
+  `genre` enum('homme','femme') NOT NULL,
+  `date_rdv` date NOT NULL,
+  `heure_rdv` time NOT NULL,
+  `statut` enum('en_attente','confirme','annule') DEFAULT 'en_attente',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `rendez_vous`
+--
+
+INSERT INTO `rendez_vous` (`id`, `medecin_id`, `patient_nom`, `patient_prenom`, `cin`, `genre`, `date_rdv`, `heure_rdv`, `statut`, `created_at`) VALUES
+(2, 2, 'salah', 'ali', '59833366', 'homme', '2026-04-30', '12:00:00', 'en_attente', '2026-04-12 11:53:29'),
+(6, 2, 'samir', 'kkkk', '56931233', 'homme', '2026-04-14', '17:00:00', 'en_attente', '2026-04-12 22:11:44'),
+(7, 1, 'eya', 'malou', '55685223', 'femme', '2026-04-15', '13:55:00', 'confirme', '2026-04-13 12:50:55'),
+(8, 1, 'Khalil', 'Cherif', '78719548', 'femme', '2026-04-15', '09:30:00', 'confirme', '2026-04-13 18:38:52'),
+(9, 1, 'samia', 'fffff', '69258777', 'femme', '2026-04-28', '19:00:00', 'confirme', '2026-04-14 21:27:41'),
+(10, 1, 'yesmin', 'hhhh', '59688120', 'homme', '2026-04-16', '10:00:00', 'en_attente', '2026-04-15 22:52:24'),
+(13, 1, 'yesmine', 'hidri', '88888888', 'femme', '2026-04-24', '13:00:00', 'confirme', '2026-04-20 19:36:34'),
+(14, 1, 'med', 'sisi', '96325874', 'homme', '2026-04-24', '11:30:00', 'en_attente', '2026-04-20 20:00:51'),
+(15, 2, 'sirine', 'haab', '74259335', 'femme', '2026-04-29', '10:00:00', 'en_attente', '2026-04-20 20:33:46'),
+(16, 1, 'samira', 'hhhhhh', '74259335', 'femme', '2026-04-25', '10:00:00', 'confirme', '2026-04-23 14:54:44');
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `reservation`
 --
 
 CREATE TABLE `reservation` (
@@ -184,7 +250,7 @@ CREATE TABLE `reservation` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `reservation`
+-- Déchargement des données de la table `reservation`
 --
 
 INSERT INTO `reservation` (`id`, `equipement_id`, `locataire_nom`, `matricule`, `locataire_ville`, `date_debut`, `date_fin`, `statut`, `telephone`, `created_at`) VALUES
@@ -196,7 +262,7 @@ INSERT INTO `reservation` (`id`, `equipement_id`, `locataire_nom`, `matricule`, 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `roles`
+-- Structure de la table `roles`
 --
 
 CREATE TABLE `roles` (
@@ -207,7 +273,7 @@ CREATE TABLE `roles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `roles`
+-- Déchargement des données de la table `roles`
 --
 
 INSERT INTO `roles` (`id_role`, `libelle`, `permission`, `date_creation`) VALUES
@@ -222,7 +288,7 @@ INSERT INTO `roles` (`id_role`, `libelle`, `permission`, `date_creation`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `utilisateurs`
+-- Structure de la table `utilisateurs`
 --
 
 CREATE TABLE `utilisateurs` (
@@ -240,7 +306,7 @@ CREATE TABLE `utilisateurs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `utilisateurs`
+-- Déchargement des données de la table `utilisateurs`
 --
 
 INSERT INTO `utilisateurs` (`id_PK`, `matricule`, `nom`, `prenom`, `mail`, `motdp`, `tel`, `adresse`, `id_role`, `created_at`, `updated_at`) VALUES
@@ -257,11 +323,11 @@ INSERT INTO `utilisateurs` (`id_PK`, `matricule`, `nom`, `prenom`, `mail`, `motd
 (23, 'PT103', 'khalil', 'cherif', 'khalil@mediflow.com', '$2y$10$c7J0m95iBePywJdx36ETR.pSosQp8ebTiwfHOPVB/zkGt5eMnAG6m', NULL, NULL, 9, '2026-04-21 01:04:22', '2026-04-21 01:04:22');
 
 --
--- Indexes for dumped tables
+-- Index pour les tables déchargées
 --
 
 --
--- Indexes for table `comments`
+-- Index pour la table `comments`
 --
 ALTER TABLE `comments`
   ADD PRIMARY KEY (`id`),
@@ -270,14 +336,21 @@ ALTER TABLE `comments`
   ADD KEY `idx_comments_statut` (`statut`);
 
 --
--- Indexes for table `equipement`
+-- Index pour la table `equipement`
 --
 ALTER TABLE `equipement`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `reference` (`reference`);
 
 --
--- Indexes for table `posts`
+-- Index pour la table `planning`
+--
+ALTER TABLE `planning`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_planning_medecin` (`medecin_id`);
+
+--
+-- Index pour la table `posts`
 --
 ALTER TABLE `posts`
   ADD PRIMARY KEY (`id`),
@@ -287,7 +360,7 @@ ALTER TABLE `posts`
   ADD KEY `idx_posts_date_publication` (`date_publication`);
 
 --
--- Indexes for table `post_likes`
+-- Index pour la table `post_likes`
 --
 ALTER TABLE `post_likes`
   ADD PRIMARY KEY (`id`),
@@ -295,21 +368,28 @@ ALTER TABLE `post_likes`
   ADD KEY `user_id` (`user_id`);
 
 --
--- Indexes for table `reservation`
+-- Index pour la table `rendez_vous`
+--
+ALTER TABLE `rendez_vous`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_rdv_medecin` (`medecin_id`);
+
+--
+-- Index pour la table `reservation`
 --
 ALTER TABLE `reservation`
   ADD PRIMARY KEY (`id`),
   ADD KEY `equipement_id` (`equipement_id`);
 
 --
--- Indexes for table `roles`
+-- Index pour la table `roles`
 --
 ALTER TABLE `roles`
   ADD PRIMARY KEY (`id_role`),
   ADD UNIQUE KEY `libelle` (`libelle`);
 
 --
--- Indexes for table `utilisateurs`
+-- Index pour la table `utilisateurs`
 --
 ALTER TABLE `utilisateurs`
   ADD PRIMARY KEY (`id_PK`),
@@ -318,70 +398,82 @@ ALTER TABLE `utilisateurs`
   ADD KEY `id_role` (`id_role`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT pour les tables déchargées
 --
 
 --
--- AUTO_INCREMENT for table `comments`
+-- AUTO_INCREMENT pour la table `comments`
 --
 ALTER TABLE `comments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
--- AUTO_INCREMENT for table `equipement`
+-- AUTO_INCREMENT pour la table `equipement`
 --
 ALTER TABLE `equipement`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
--- AUTO_INCREMENT for table `posts`
+-- AUTO_INCREMENT pour la table `planning`
+--
+ALTER TABLE `planning`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT pour la table `posts`
 --
 ALTER TABLE `posts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- AUTO_INCREMENT for table `post_likes`
+-- AUTO_INCREMENT pour la table `post_likes`
 --
 ALTER TABLE `post_likes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT for table `reservation`
+-- AUTO_INCREMENT pour la table `rendez_vous`
+--
+ALTER TABLE `rendez_vous`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT pour la table `reservation`
 --
 ALTER TABLE `reservation`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
--- AUTO_INCREMENT for table `roles`
+-- AUTO_INCREMENT pour la table `roles`
 --
 ALTER TABLE `roles`
   MODIFY `id_role` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
--- AUTO_INCREMENT for table `utilisateurs`
+-- AUTO_INCREMENT pour la table `utilisateurs`
 --
 ALTER TABLE `utilisateurs`
   MODIFY `id_PK` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
--- Constraints for dumped tables
+-- Contraintes pour les tables déchargées
 --
 
 --
--- Constraints for table `post_likes`
+-- Contraintes pour la table `post_likes`
 --
 ALTER TABLE `post_likes`
   ADD CONSTRAINT `post_likes_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `post_likes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `utilisateurs` (`id_PK`) ON DELETE CASCADE;
 
 --
--- Constraints for table `reservation`
+-- Contraintes pour la table `reservation`
 --
 ALTER TABLE `reservation`
   ADD CONSTRAINT `reservation_ibfk_1` FOREIGN KEY (`equipement_id`) REFERENCES `equipement` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `utilisateurs`
+-- Contraintes pour la table `utilisateurs`
 --
 ALTER TABLE `utilisateurs`
   ADD CONSTRAINT `utilisateurs_ibfk_1` FOREIGN KEY (`id_role`) REFERENCES `roles` (`id_role`);

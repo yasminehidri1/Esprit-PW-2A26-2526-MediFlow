@@ -219,6 +219,52 @@ class App
             return;
         }
 
+        // ── Rendez-vous module ───────────────────────────────────────────────
+        if (preg_match('#^/rdv/admin(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->adminDashboard();
+            return;
+        }
+        if (preg_match('#^/rdv/dashboard(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->doctorDashboard();
+            return;
+        }
+        if (preg_match('#^/rdv/planning(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->doctorPlanning();
+            return;
+        }
+        if (preg_match('#^/rdv/statistiques(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->doctorStats();
+            return;
+        }
+        if (preg_match('#^/rdv/modifier(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->modifierRdvView();
+            return;
+        }
+        if (preg_match('#^/rdv/annuaire(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->patientAnnuaire();
+            return;
+        }
+        if (preg_match('#^/rdv/reserver(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->patientBookRdv();
+            return;
+        }
+        if (preg_match('#^/rdv/medecin/planning(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->patientPlanning();
+            return;
+        }
+        if (preg_match('#^/rdv/traitement(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->traitementRdv();
+            return;
+        }
+        if (preg_match('#^/rdv/confirmation(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->patientConfirmation();
+            return;
+        }
+        if (preg_match('#^/rdv/mes-rdv(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->patientMesRdv();
+            return;
+        }
+
         // ── Default: Landing page ────────────────────────────────────────────
         (new \Controllers\LandingController())->index();
     }

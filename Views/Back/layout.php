@@ -175,6 +175,22 @@ function groupOpen(string $prefix, string $currentPath): string {
                 </a>
             </div>
         </details>
+
+        <!-- ── Rendez-vous (Admin) ── -->
+        <details class="nav-group" <?= groupOpen('/integration/rdv', $currentPath) ?>>
+            <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
+                <span class="material-symbols-outlined text-xl">calendar_month</span>
+                <span class="flex-1">Rendez-vous</span>
+                <span class="material-symbols-outlined text-base chevron">chevron_right</span>
+            </summary>
+            <div class="mt-1 ml-4 pl-3 border-l-2 border-primary-fixed space-y-0.5">
+                <a href="/integration/rdv/admin"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/rdv/admin', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">dashboard</span>
+                    <span>Tableau de bord</span>
+                </a>
+            </div>
+        </details>
         <?php endif; ?>
 
         <!-- ── Magazine (Admin + Magazine) ── -->
@@ -268,19 +284,57 @@ function groupOpen(string $prefix, string $currentPath): string {
         </a>
         <?php endif; ?>
 
-        <!-- ── Other roles ── -->
+        <!-- ── Medecin module ── -->
         <?php if ($role === 'Medecin'): ?>
-        <a href="/integration/medical" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150">
-            <span class="material-symbols-outlined text-xl">description</span>
-            <span>Dossier Médical</span>
-        </a>
+        <details class="nav-group" <?= groupOpen('/integration/rdv', $currentPath) ?>>
+            <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
+                <span class="material-symbols-outlined text-xl">calendar_month</span>
+                <span class="flex-1">Rendez-vous</span>
+                <span class="material-symbols-outlined text-base chevron">chevron_right</span>
+            </summary>
+            <div class="mt-1 ml-4 pl-3 border-l-2 border-primary-fixed space-y-0.5">
+                <a href="/integration/rdv/dashboard"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/rdv/dashboard', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">dashboard</span>
+                    <span>Mes RDV</span>
+                </a>
+                <a href="/integration/rdv/planning"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/rdv/planning', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">event_note</span>
+                    <span>Planning</span>
+                </a>
+                <a href="/integration/rdv/statistiques"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/rdv/statistiques', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">bar_chart</span>
+                    <span>Statistiques</span>
+                </a>
+            </div>
+        </details>
         <?php endif; ?>
-        <?php if ($role === 'Rendez-vous'): ?>
-        <a href="/integration/appointments" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150">
-            <span class="material-symbols-outlined text-xl">calendar_today</span>
-            <span>Rendez-vous</span>
-        </a>
+
+        <!-- ── Patient — Rendez-vous ── -->
+        <?php if ($role === 'Patient'): ?>
+        <details class="nav-group" <?= groupOpen('/integration/rdv', $currentPath) ?>>
+            <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
+                <span class="material-symbols-outlined text-xl">calendar_month</span>
+                <span class="flex-1">Rendez-vous</span>
+                <span class="material-symbols-outlined text-base chevron">chevron_right</span>
+            </summary>
+            <div class="mt-1 ml-4 pl-3 border-l-2 border-primary-fixed space-y-0.5">
+                <a href="/integration/rdv/annuaire"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/rdv/annuaire', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">person_search</span>
+                    <span>Trouver un médecin</span>
+                </a>
+                <a href="/integration/rdv/mes-rdv"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/rdv/mes-rdv', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">event_available</span>
+                    <span>Mes rendez-vous</span>
+                </a>
+            </div>
+        </details>
         <?php endif; ?>
+
         <?php if ($role === 'Stock medicament'): ?>
         <a href="/integration/stock" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150">
             <span class="material-symbols-outlined text-xl">inventory_2</span>
