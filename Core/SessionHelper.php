@@ -17,7 +17,7 @@ trait SessionHelper
      * 
      * @return void
      */
-    protected function ensureSession(): void
+    public function ensureSession(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
@@ -29,7 +29,7 @@ trait SessionHelper
      * 
      * @return bool
      */
-    protected function isAuthenticated(): bool
+    public function isAuthenticated(): bool
     {
         return isset($_SESSION['user']) && isset($_SESSION['user']['id']);
     }
@@ -39,7 +39,7 @@ trait SessionHelper
      * 
      * @return void
      */
-    protected function requireAuth(): void
+    public function requireAuth(): void
     {
         if (!$this->isAuthenticated()) {
             header('Location: /integration/login');
@@ -52,7 +52,7 @@ trait SessionHelper
      * 
      * @return \PDO
      */
-    protected function getDatabase(): \PDO
+    public function getDatabase(): \PDO
     {
         require_once __DIR__ . '/../config.php';
         return \config::getConnexion();
@@ -65,7 +65,7 @@ trait SessionHelper
      * @param mixed $default
      * @return mixed
      */
-    protected function getPost(string $key, $default = null)
+    public function getPost(string $key, $default = null)
     {
         return isset($_POST[$key]) ? trim((string)$_POST[$key]) : $default;
     }

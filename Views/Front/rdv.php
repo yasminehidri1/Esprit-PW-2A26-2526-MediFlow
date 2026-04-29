@@ -60,12 +60,12 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-on-surface-variant ml-1">Nom</label>
-            <input type="text" name="nom" required placeholder="Votre nom"
+            <input type="text" name="nom" required placeholder="Votre nom" value="<?= htmlspecialchars($patient['nom'] ?? '') ?>"
                    class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/40 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all"/>
           </div>
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-on-surface-variant ml-1">Prénom</label>
-            <input type="text" name="prenom" required placeholder="Votre prénom"
+            <input type="text" name="prenom" required placeholder="Votre prénom" value="<?= htmlspecialchars($patient['prenom'] ?? '') ?>"
                    class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/40 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all"/>
           </div>
         </div>
@@ -73,7 +73,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-on-surface-variant ml-1">CIN (8 chiffres)</label>
-            <input type="text" name="cin" required maxlength="8" pattern="[0-9]{8}" placeholder="Ex: 12345678"
+            <input type="text" name="cin" required maxlength="8" pattern="[0-9]{8}" placeholder="Ex: 12345678" value="<?= htmlspecialchars($patient['cin'] ?? '') ?>"
                    class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/40 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all font-mono"/>
           </div>
           <div class="space-y-1.5">
@@ -90,12 +90,12 @@
         <div class="grid grid-cols-2 gap-4 pt-4 border-t border-outline-variant/10">
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-on-surface-variant ml-1">Date souhaitée</label>
-            <input type="date" name="date_rdv" required min="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($prefill_date) ?>"
+            <input type="date" name="date_rdv" required min="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($date_rdv ?? '') ?>"
                    class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/40 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all"/>
           </div>
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-on-surface-variant ml-1">Heure</label>
-            <input type="time" name="heure_rdv" required value="<?= htmlspecialchars($prefill_heure) ?>"
+            <input type="time" name="heure_rdv" required value="<?= htmlspecialchars($heure_rdv ?? '') ?>"
                    class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/40 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all"/>
           </div>
         </div>

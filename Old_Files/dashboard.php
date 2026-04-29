@@ -1,10 +1,82 @@
 <?php
-/**
- * View: Back/dashboard_doctor.php
- * Integrated from Old_Files/dashboard.php
- */
+// ============================================================
+//  dashboard.php — MediFlow Pro (VERSION AMÉLIORÉE)
+// ============================================================
+require_once __DIR__ . '/../../../controller/RendezVousController.php';
+
+$controller = new RendezVousController();
+$medecin_id = 1;
+
+if (isset($_GET['supprimer'])) {
+    $controller->supprimerRdv(intval($_GET['supprimer']), $medecin_id);
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'modifier') {
+    $controller->modifierRdv($medecin_id);
+}
+
+$filtre      = isset($_GET['statut']) && in_array($_GET['statut'],['en_attente','confirme','annule']) ? $_GET['statut'] : '';
+$data        = $controller->getDashboardData($medecin_id, $filtre);
+$rendez_vous = $data['rendez_vous'];
+$stats       = $data['stats'];
+
+// Tri : du plus récent au plus ancien
+usort($rendez_vous, fn($a,$b) => strcmp($b['date_rdv'].' '.$b['heure_rdv'], $a['date_rdv'].' '.$a['heure_rdv']));
+
+// Pagination
+$per_page    = 8;
+$total_rdv   = count($rendez_vous);
+$total_pages = max(1, (int)ceil($total_rdv/$per_page));
+$page        = max(1, min($total_pages, intval($_GET['page'] ?? 1)));
+$offset      = ($page-1)*$per_page;
+$rdv_page    = array_slice($rendez_vous, $offset, $per_page);
+
+// Prochain RDV du jour
+$today    = date('Y-m-d');
+$now_time = date('H:i:s');
+$prochain = null;
+foreach (array_filter($rendez_vous, fn($r)=>$r['date_rdv']===$today) as $r) {
+    if ($r['heure_rdv'] >= $now_time && $r['statut'] !== 'annule') {
+        if (!$prochain || $r['heure_rdv'] < $prochain['heure_rdv']) $prochain = $r;
+    }
+}
+
+// Taux de confirmation
+$taux_conf = $stats['total'] > 0 ? round(($stats['total']-$stats['nb_attente'])/$stats['total']*100) : 0;
+
+// Calcul RDV par jour de la semaine (pour mini graphique activité)
+$rdv_par_jour = array_fill(0,7,0);
+$debut_sem = new DateTime(); $debut_sem->setISODate((int)date('Y'),(int)date('W')); $debut_sem->setTime(0,0,0);
+foreach ($rendez_vous as $r) {
+    $d = new DateTime($r['date_rdv']);
+    $diff = (int)$debut_sem->diff($d)->days;
+    if ($diff >= 0 && $diff < 7) $rdv_par_jour[$diff]++;
+}
+$max_rdv_jour = max(1, max($rdv_par_jour));
+
+// Messages
+$msg_succes = '';
+$msg_erreur = '';
+if (isset($_GET['succes'])) $msg_succes = $_GET['succes'] === 'modifie' ? 'Rendez-vous modifié avec succès.' : 'Rendez-vous supprimé avec succès.';
+if (isset($_GET['succes']) && strpos($_GET['succes'],'succès')!==false) $msg_succes = urldecode($_GET['succes']);
+if (isset($_GET['erreur'])) $msg_erreur = 'Une erreur est survenue.';
+
+function pageUrl(int $p, string $filtre): string {
+    $params = ['page' => $p];
+    if ($filtre) $params['statut'] = $filtre;
+    return 'dashboard.php?' . http_build_query($params);
+}
+$noms_j = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
 ?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard — MediFlow Pro</title>
+<link rel="preconnect" href="https://fonts.bunny.net">
+<link href="https://fonts.bunny.net/css?family=manrope:400,500,600,700,800|inter:400,500,600,700&display=swap" rel="stylesheet">
 <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --pr:#004d99;--prd:#1565c0;--prl:#d6e3ff;
   --te:#005851;--tel:#84f5e8;--teb:rgba(0,88,81,.10);
@@ -13,11 +85,67 @@
   --sh:0 2px 16px rgba(0,77,153,.08);--shh:0 8px 32px rgba(0,77,153,.15);
   --sw:220px;--rm:12px;--rl:16px;--rx:20px;--rf:9999px
 }
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sw);min-height:100vh;position:fixed;top:0;left:0;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;padding:20px 12px;z-index:100}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 16px;border-bottom:1px solid var(--bd);margin-bottom:12px}
+.brand-logo{width:38px;height:38px;background:linear-gradient(135deg,var(--pr),var(--prd));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-logo svg{width:20px;height:20px;fill:white}
+.bt-name{font-family:'Manrope',sans-serif;font-weight:800;font-size:15px;color:#1e3a6e;display:block;line-height:1.1}
+.bt-sub{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--tm);display:block}
+.sb-profile{display:flex;align-items:center;gap:10px;padding:10px;background:var(--sfl);border-radius:var(--rm);margin-bottom:10px}
+.pf-av{width:40px;height:40px;border-radius:var(--rf);background:var(--prl);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pf-av svg{width:22px;height:22px;fill:var(--pr)}
+.pf-n{font-family:'Manrope',sans-serif;font-weight:700;font-size:13px;display:block}
+.pf-s{font-size:11px;color:var(--tm);display:block}
+.sb-nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--rm);color:var(--tm);font-size:14px;font-weight:500;text-decoration:none;transition:all .15s;border-left:3px solid transparent}
+.nav-item svg{width:18px;height:18px;flex-shrink:0}
+.nav-item:hover{background:rgba(0,77,153,.05);color:var(--pr)}
+.nav-item.active{background:var(--sf);color:var(--pr);font-weight:700;border-left-color:var(--te);box-shadow:var(--sh)}
+.nav-item.logout{color:var(--er)}
+.nav-item.logout:hover{background:rgba(186,26,26,.05)}
+.sb-footer{padding-top:12px;border-top:1px solid var(--bd);display:flex;flex-direction:column;gap:2px}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{height:64px;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50}
+.topbar-left{display:flex;flex-direction:column}
+.topbar-title{font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;background:linear-gradient(135deg,#1e3a6e,var(--pr));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.topbar-date{font-size:11px;color:var(--tm);font-weight:500;margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.search-bar{display:flex;align-items:center;background:var(--sfl);border-radius:var(--rf);padding:7px 14px;gap:7px;width:210px;border:1px solid var(--bd)}
+.search-bar svg{width:15px;height:15px;color:var(--tm);flex-shrink:0}
+.search-bar input{border:none;background:transparent;outline:none;font-size:13px;color:var(--tx);width:100%;font-family:'Inter',sans-serif}
+.search-bar input::placeholder{color:#94a3b8}
+.notif-btn{width:36px;height:36px;border:none;background:var(--sfl);border-radius:var(--rm);display:flex;align-items:center;justify-content:center;color:var(--tm);cursor:pointer;border:1px solid var(--bd);position:relative}
+.notif-btn svg{width:18px;height:18px}
+.notif-dot{width:8px;height:8px;background:var(--er);border-radius:50%;position:absolute;top:6px;right:6px;border:2px solid white}
+
+.page-content{padding:22px 28px;flex:1}
 
 /* ── ALERTES ── */
 .alert{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--rm);font-size:14px;font-weight:500;margin-bottom:18px}
 .alert-ok{background:#dcfce7;color:#15803d;border:1px solid #bbf7d0}
 .alert-er{background:#fee2e2;color:var(--er);border:1px solid #fecaca}
+
+/* ── GRILLE STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:var(--sf);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh);display:flex;align-items:center;gap:12px;transition:all .2s;cursor:default;border:1px solid transparent}
+.stat-card:hover{box-shadow:var(--shh);transform:translateY(-2px);border-color:rgba(0,77,153,.08)}
+.stat-icon{width:42px;height:42px;border-radius:var(--rm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-icon svg{width:20px;height:20px}
+.si-blue  {background:var(--prl);color:var(--pr)}
+.si-teal  {background:rgba(132,245,232,.25);color:var(--te)}
+.si-orange{background:#fff7ed;color:#c2410c}
+.si-red   {background:#fee2e2;color:var(--er)}
+.si-green {background:#dcfce7;color:#15803d}
+.stat-info{}
+.stat-value{font-family:'Manrope',sans-serif;font-size:26px;font-weight:800;line-height:1;color:var(--tx)}
+.stat-label{font-size:11px;color:var(--tm);margin-top:3px;font-weight:500}
+.stat-trend{font-size:10px;font-weight:700;margin-top:4px;display:flex;align-items:center;gap:3px}
+.trend-up  {color:#15803d}.trend-dw{color:var(--er)}.trend-ne{color:var(--tm)}
 
 /* ── ROW : Prochain RDV + Activité ── */
 .dash-row{display:grid;grid-template-columns:1fr 320px;gap:14px;margin-bottom:18px}
@@ -28,6 +156,7 @@
 .next-banner::after{content:'';position:absolute;bottom:-40px;right:60px;width:80px;height:80px;background:rgba(255,255,255,.04);border-radius:50%}
 .next-left{display:flex;align-items:center;gap:14px;z-index:1}
 .next-ico{width:46px;height:46px;background:rgba(255,255,255,.18);border-radius:var(--rm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.next-ico svg{width:22px;height:22px}
 .next-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;opacity:.75}
 .next-name{font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;margin-top:2px}
 .next-meta{font-size:12px;opacity:.8;margin-top:3px;display:flex;align-items:center;gap:8px}
@@ -158,9 +287,62 @@
 .btn-mc{padding:10px 18px;background:transparent;border:1.5px solid var(--bd);color:var(--tm);font-family:'Manrope',sans-serif;font-weight:600;font-size:13px;border-radius:var(--rm);cursor:pointer}
 .btn-ms{display:flex;align-items:center;gap:7px;padding:10px 18px;background:linear-gradient(135deg,var(--pr),var(--prd));color:white;border:none;border-radius:var(--rm);font-family:'Manrope',sans-serif;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,77,153,.25)}
 .btn-ms svg{width:14px;height:14px}
-</style>
 
-<div class="page-content" style="padding: 22px 28px;">
+/* Toast */
+.toast{position:fixed;bottom:22px;right:22px;background:#0f172a;color:white;padding:12px 18px;border-radius:var(--rm);font-size:13px;font-weight:600;z-index:999;transform:translateY(70px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:9px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="brand-logo"><svg viewBox="0 0 24 24"><path d="M19 8h-3V5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v3H5a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h3v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3h3a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1zm-1 6h-3a1 1 0 0 0-1 1v3h-4v-3a1 1 0 0 0-1-1H6v-4h3a1 1 0 0 0 1-1V6h4v3a1 1 0 0 0 1 1h3v4z"/></svg></div>
+    <div><span class="bt-name">MediFlow Pro</span><span class="bt-sub">Practitioner Portal</span></div>
+  </div>
+  <div class="sb-profile">
+    <div class="pf-av"><svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
+    <div><span class="pf-n">Dr. Marc Laurent</span><span class="pf-s">Cardiologue</span></div>
+  </div>
+  <nav class="sb-nav">
+    <a href="dashboard.php" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+    <a href="planning.php" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Planning</a>
+    <a href="patients.php" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Patients</a>
+    <a href="statistiques.php" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Statistiques</a>
+    <a href="settings.php" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Paramètres</a>
+  </nav>
+  <div class="sb-footer">
+    <a href="logout.php" class="nav-item logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Déconnexion</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Tableau de Bord</div>
+      <div class="topbar-date">
+        <?php
+          $jours_fr = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+          $mois_fr  = ['','Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+          echo $jours_fr[date('w')] . ' ' . date('j') . ' ' . $mois_fr[(int)date('n')] . ' ' . date('Y');
+        ?>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Rechercher un patient…" id="searchRdv" oninput="filterRdv()">
+      </div>
+      <button class="notif-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <?php if ($stats['nb_attente'] > 0): ?><span class="notif-dot"></span><?php endif; ?>
+      </button>
+    </div>
+  </header>
+
+  <div class="page-content">
 
     <!-- Alertes -->
     <?php if ($msg_succes): ?><div class="alert alert-ok">✓ <?= htmlspecialchars($msg_succes) ?></div><?php endif; ?>
@@ -217,9 +399,7 @@
           <span class="ac-total"><?= array_sum($rdv_par_jour) ?> RDV</span>
         </div>
         <div class="ac-bars">
-          <?php 
-          $noms_j = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
-          foreach ($rdv_par_jour as $i => $nb):
+          <?php foreach ($rdv_par_jour as $i => $nb):
             $is_today_bar = ($i === intval(date('N'))-1);
             $pct = round($nb/$max_rdv_jour*100);
           ?>
@@ -247,11 +427,11 @@
         </div>
       </div>
       <div class="pb-right">
-        <a href="/integration/rdv/planning?vue=jour&date=<?= date('Y-m-d') ?>" class="btn-plan-ghost">
+        <a href="planning.php?vue=jour&date=<?= $today ?>" class="btn-plan-ghost">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Vue jour
         </a>
-        <a href="/integration/rdv/planning" class="btn-plan">
+        <a href="planning.php" class="btn-plan">
           Planning complet
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
@@ -266,10 +446,10 @@
       </h2>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <div class="filter-tabs">
-          <a href="/integration/rdv/dashboard"                   class="ftab <?= !$filtre           ?'active':'' ?>">Tous</a>
-          <a href="/integration/rdv/dashboard?statut=en_attente" class="ftab ftab-at <?= $filtre==='en_attente'?'active':'' ?>">⏳ En attente</a>
-          <a href="/integration/rdv/dashboard?statut=confirme"   class="ftab ftab-co <?= $filtre==='confirme'  ?'active':'' ?>">✓ Confirmés</a>
-          <a href="/integration/rdv/dashboard?statut=annule"     class="ftab ftab-an <?= $filtre==='annule'    ?'active':'' ?>">✗ Annulés</a>
+          <a href="dashboard.php"                   class="ftab <?= !$filtre           ?'active':'' ?>">Tous</a>
+          <a href="dashboard.php?statut=en_attente" class="ftab ftab-at <?= $filtre==='en_attente'?'active':'' ?>">⏳ En attente</a>
+          <a href="dashboard.php?statut=confirme"   class="ftab ftab-co <?= $filtre==='confirme'  ?'active':'' ?>">✓ Confirmés</a>
+          <a href="dashboard.php?statut=annule"     class="ftab ftab-an <?= $filtre==='annule'    ?'active':'' ?>">✗ Annulés</a>
         </div>
         <div class="inline-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -286,9 +466,7 @@
         <div class="es-sub">Les RDV pris par les patients apparaîtront ici.</div>
       </div>
       <?php else: ?>
-        <?php 
-        $today = date('Y-m-d');
-        foreach ($rdv_page as $rdv):
+        <?php foreach ($rdv_page as $rdv):
           $ini       = strtoupper(substr($rdv['patient_prenom'],0,1).substr($rdv['patient_nom'],0,1));
           $date_fr   = date('d M Y', strtotime($rdv['date_rdv']));
           $heure_fr  = date('H:i',   strtotime($rdv['heure_rdv']));
@@ -343,10 +521,10 @@
             <button class="act-btn act-edit" title="Modifier" onclick="openModal(<?= $djson ?>)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <a href="/integration/rdv/modifier?id=<?= $rdv['id'] ?>" class="act-btn act-view" title="Voir détail">
+            <a href="modifier-rdv.php?id=<?= $rdv['id'] ?>" class="act-btn act-view" title="Voir détail">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </a>
-            <a href="/integration/rdv/dashboard?supprimer=<?= $rdv['id'] ?>&page=<?= $page ?><?= $filtre?'&statut='.$filtre:'' ?>"
+            <a href="dashboard.php?supprimer=<?= $rdv['id'] ?>&page=<?= $page ?><?= $filtre?'&statut='.$filtre:'' ?>"
                class="act-btn act-del" title="Supprimer"
                onclick="return confirm('Supprimer le RDV de <?= htmlspecialchars($rdv['patient_prenom'].' '.$rdv['patient_nom']) ?> ?')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
@@ -359,15 +537,8 @@
 
     <!-- Pagination -->
     <?php if ($total_pages > 1): ?>
-    <?php
-    function pageUrl(int $p, string $filtre): string {
-        $params = ['page' => $p];
-        if ($filtre) $params['statut'] = $filtre;
-        return '/integration/rdv/dashboard?' . http_build_query($params);
-    }
-    ?>
     <div class="pag-wrap">
-      <div class="pag-info">Affichage <strong><?= ($page-1)*8+1 ?>–<?= min($page*8,$total_rdv) ?></strong> sur <strong><?= $total_rdv ?></strong> rendez-vous</div>
+      <div class="pag-info">Affichage <strong><?= $offset+1 ?>–<?= min($offset+$per_page,$total_rdv) ?></strong> sur <strong><?= $total_rdv ?></strong> rendez-vous</div>
       <nav class="pag-nav">
         <a href="<?= pageUrl($page-1,$filtre) ?>" class="pg-btn <?= $page<=1?'disabled':'' ?>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -386,6 +557,10 @@
     <?php endif; ?>
 
   </div><!-- /page-content -->
+</div><!-- /main -->
+
+<!-- Toast -->
+<div class="toast" id="toast" style="pointer-events:none"></div>
 
 <!-- ── MODALE MODIFIER ── -->
 <div class="modal-overlay" id="modalOverlay">
@@ -396,7 +571,8 @@
       <div class="mpi" id="mIni"></div>
       <div class="mpn" id="mNom"></div>
     </div>
-    <form method="POST" action="/integration/rdv/modifier">
+    <form method="POST" action="dashboard.php">
+      <input type="hidden" name="action" value="modifier">
       <input type="hidden" name="rdv_id" id="mRdvId">
       <div class="modal-row">
         <div class="modal-group">
@@ -429,8 +605,15 @@
 
 <script>
 // ── Filtrage live ─────────────────────────────────────────────
+function filterRdv() {
+  const q = document.getElementById('searchRdv').value.toLowerCase();
+  filterRows(q);
+}
 function filterRdv2() {
   const q = document.getElementById('searchRdv2').value.toLowerCase();
+  filterRows(q);
+}
+function filterRows(q){
   document.querySelectorAll('.rdv-row').forEach(r => {
     r.style.display = r.dataset.patient.toLowerCase().includes(q) ? '' : 'none';
   });
@@ -461,4 +644,16 @@ function updateCountdown(){
 }
 updateCountdown(); setInterval(updateCountdown, 30000);
 <?php endif; ?>
+
+// ── Toast ────────────────────────────────────────────────────
+<?php if ($msg_succes): ?>
+window.addEventListener('DOMContentLoaded', () => {
+  const t = document.getElementById('toast');
+  t.innerHTML = '<span style="color:#16a34a;font-size:15px">✓</span><?= addslashes($msg_succes) ?>';
+  t.style.cssText = 'transform:translateY(0);opacity:1;background:#0f172a;color:white;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:999;position:fixed;bottom:22px;right:22px;display:flex;align-items:center;gap:9px';
+  setTimeout(()=>t.style.cssText+='transition:all .3s;transform:translateY(70px);opacity:0', 3200);
+});
+<?php endif; ?>
 </script>
+</body>
+</html>

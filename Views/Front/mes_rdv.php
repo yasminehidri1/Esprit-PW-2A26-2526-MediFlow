@@ -16,20 +16,32 @@ $mois_fr = ['','Janvier','Février','Mars','Avril','Mai','Juin',
     </div>
   </div>
 
-  <!-- Search Form -->
+  <!-- Search Form / Auto-Detected Status -->
   <div class="bg-white rounded-3xl p-8 border border-outline-variant/20 shadow-sm">
-    <h2 class="text-sm font-bold text-on-surface mb-4">Rechercher mes rendez-vous</h2>
-    <form method="POST" action="/integration/rdv/mes-rdv" class="flex flex-col md:flex-row gap-3">
-      <div class="flex-1 relative">
-        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">id_card</span>
-        <input type="text" name="cin" value="<?= htmlspecialchars($cin ?? '') ?>" maxlength="8" required
-               placeholder="Entrez votre CIN (8 chiffres)…"
-               class="w-full pl-12 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 transition-all text-sm"/>
+    <?php if ($is_auto): ?>
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-tertiary-container rounded-full flex items-center justify-center text-on-tertiary-container">
+          <span class="material-symbols-outlined">person_check</span>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-on-surface">Compte identifié</h2>
+          <p class="text-xs text-on-surface-variant">Affichage automatique des rendez-vous pour le CIN <strong><?= htmlspecialchars($cin) ?></strong></p>
+        </div>
       </div>
-      <button type="submit" class="px-8 py-3 bg-primary text-on-primary font-bold rounded-2xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 text-sm">
-        Rechercher
-      </button>
-    </form>
+    <?php else: ?>
+      <h2 class="text-sm font-bold text-on-surface mb-4">Rechercher mes rendez-vous</h2>
+      <form method="POST" action="/integration/rdv/mes-rdv" class="flex flex-col md:flex-row gap-3">
+        <div class="flex-1 relative">
+          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">id_card</span>
+          <input type="text" name="cin" value="<?= htmlspecialchars($cin ?? '') ?>" maxlength="8" required
+                 placeholder="Entrez votre CIN (8 chiffres)…"
+                 class="w-full pl-12 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 transition-all text-sm"/>
+        </div>
+        <button type="submit" class="px-8 py-3 bg-primary text-on-primary font-bold rounded-2xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 text-sm">
+          Rechercher
+        </button>
+      </form>
+    <?php endif; ?>
   </div>
 
   <!-- Search Results -->

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : mar. 28 avr. 2026 à 20:46
+-- Généré le : mer. 29 avr. 2026 à 20:38
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.0.30
 
@@ -116,6 +116,7 @@ INSERT INTO `equipement` (`id`, `reference`, `nom`, `categorie`, `prix_jour`, `s
 CREATE TABLE `planning` (
   `id` int(11) NOT NULL,
   `medecin_id` int(11) NOT NULL,
+  `rdv_id` int(11) DEFAULT NULL,
   `titre` varchar(150) NOT NULL,
   `date_debut` datetime NOT NULL,
   `date_fin` datetime NOT NULL,
@@ -128,14 +129,17 @@ CREATE TABLE `planning` (
 -- Déchargement des données de la table `planning`
 --
 
-INSERT INTO `planning` (`id`, `medecin_id`, `titre`, `date_debut`, `date_fin`, `type`, `note`, `created_at`) VALUES
-(7, 1, 'pause', '2026-04-14 12:00:00', '2026-04-16 09:00:00', 'reunion', '', '2026-04-12 22:06:41'),
-(8, 1, 'reunionnnn', '2026-04-15 12:00:00', '2026-04-15 13:00:00', 'reunion', 'a ne pas venir en retard', '2026-04-12 22:08:36'),
-(9, 1, 'staff', '2026-04-13 19:45:00', '2026-04-13 21:45:00', 'reunion', 'ahhhh', '2026-04-13 18:46:13'),
-(10, 1, 'pause dej', '2026-04-16 13:00:00', '2026-04-16 15:00:00', 'pause', '', '2026-04-14 21:30:00'),
-(11, 1, 'pause dej', '2026-04-22 07:54:00', '2026-04-22 10:23:00', 'reunion', 'top1', '2026-04-20 19:20:52'),
-(12, 1, 'staff', '2026-04-21 19:00:00', '2026-04-21 21:00:00', 'formation', '', '2026-04-20 20:01:53'),
-(14, 1, 'formation5', '2026-04-28 09:00:00', '2026-04-28 17:00:00', 'formation', '', '2026-04-26 15:33:02');
+INSERT INTO `planning` (`id`, `medecin_id`, `rdv_id`, `titre`, `date_debut`, `date_fin`, `type`, `note`, `created_at`) VALUES
+(7, 24, NULL, 'pause', '2026-04-14 12:00:00', '2026-04-16 09:00:00', 'reunion', '', '2026-04-12 22:06:41'),
+(8, 24, NULL, 'reunionnnn', '2026-04-15 12:00:00', '2026-04-15 13:00:00', 'reunion', 'a ne pas venir en retard', '2026-04-12 22:08:36'),
+(9, 24, NULL, 'staff', '2026-04-13 19:45:00', '2026-04-13 21:45:00', 'reunion', 'ahhhh', '2026-04-13 18:46:13'),
+(10, 24, NULL, 'pause dej', '2026-04-16 13:00:00', '2026-04-16 15:00:00', 'pause', '', '2026-04-14 21:30:00'),
+(11, 24, NULL, 'pause dej', '2026-04-22 07:54:00', '2026-04-22 10:23:00', 'reunion', 'top1', '2026-04-20 19:20:52'),
+(12, 24, NULL, 'staff', '2026-04-21 19:00:00', '2026-04-21 21:00:00', 'formation', '', '2026-04-20 20:01:53'),
+(14, 24, NULL, 'formation5', '2026-04-28 09:00:00', '2026-04-28 17:00:00', 'formation', '', '2026-04-26 15:33:02'),
+(16, 24, NULL, 'Réunion Staff', '2026-04-28 09:00:00', '2026-04-28 10:30:00', 'reunion', 'Important', '2026-04-28 20:17:06'),
+(17, 24, NULL, 'Chirurgie', '2026-04-29 14:00:00', '2026-04-29 17:00:00', 'chirurgie', 'Bloc B', '2026-04-28 20:17:06'),
+(18, 24, NULL, 'aaaaaadddd', '2026-04-29 19:16:00', '2026-04-29 23:16:00', 'urgence', 'aaaaaaaaaaa', '2026-04-29 18:16:48');
 
 -- --------------------------------------------------------
 
@@ -210,6 +214,7 @@ CREATE TABLE `rendez_vous` (
   `genre` enum('homme','femme') NOT NULL,
   `date_rdv` date NOT NULL,
   `heure_rdv` time NOT NULL,
+  `motif` varchar(100) DEFAULT 'Consultation générale',
   `statut` enum('en_attente','confirme','annule') DEFAULT 'en_attente',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -218,17 +223,9 @@ CREATE TABLE `rendez_vous` (
 -- Déchargement des données de la table `rendez_vous`
 --
 
-INSERT INTO `rendez_vous` (`id`, `medecin_id`, `patient_nom`, `patient_prenom`, `cin`, `genre`, `date_rdv`, `heure_rdv`, `statut`, `created_at`) VALUES
-(2, 2, 'salah', 'ali', '59833366', 'homme', '2026-04-30', '12:00:00', 'en_attente', '2026-04-12 11:53:29'),
-(6, 2, 'samir', 'kkkk', '56931233', 'homme', '2026-04-14', '17:00:00', 'en_attente', '2026-04-12 22:11:44'),
-(7, 1, 'eya', 'malou', '55685223', 'femme', '2026-04-15', '13:55:00', 'confirme', '2026-04-13 12:50:55'),
-(8, 1, 'Khalil', 'Cherif', '78719548', 'femme', '2026-04-15', '09:30:00', 'confirme', '2026-04-13 18:38:52'),
-(9, 1, 'samia', 'fffff', '69258777', 'femme', '2026-04-28', '19:00:00', 'confirme', '2026-04-14 21:27:41'),
-(10, 1, 'yesmin', 'hhhh', '59688120', 'homme', '2026-04-16', '10:00:00', 'en_attente', '2026-04-15 22:52:24'),
-(13, 1, 'yesmine', 'hidri', '88888888', 'femme', '2026-04-24', '13:00:00', 'confirme', '2026-04-20 19:36:34'),
-(14, 1, 'med', 'sisi', '96325874', 'homme', '2026-04-24', '11:30:00', 'en_attente', '2026-04-20 20:00:51'),
-(15, 2, 'sirine', 'haab', '74259335', 'femme', '2026-04-29', '10:00:00', 'en_attente', '2026-04-20 20:33:46'),
-(16, 1, 'samira', 'hhhhhh', '74259335', 'femme', '2026-04-25', '10:00:00', 'confirme', '2026-04-23 14:54:44');
+INSERT INTO `rendez_vous` (`id`, `medecin_id`, `patient_nom`, `patient_prenom`, `cin`, `genre`, `date_rdv`, `heure_rdv`, `motif`, `statut`, `created_at`) VALUES
+(17, 24, 'Doe', 'John', '12345678', 'homme', '2026-04-30', '10:00:00', 'Suivi post-opératoire', 'confirme', '2026-04-28 20:17:06'),
+(18, 24, 'Doe', 'John', '12345678', 'homme', '2026-05-01', '11:30:00', 'Vaccination', 'en_attente', '2026-04-28 20:17:06');
 
 -- --------------------------------------------------------
 
@@ -301,6 +298,7 @@ CREATE TABLE `utilisateurs` (
   `tel` varchar(20) DEFAULT NULL,
   `adresse` text DEFAULT NULL,
   `id_role` int(11) DEFAULT NULL,
+  `cin` char(8) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -309,18 +307,20 @@ CREATE TABLE `utilisateurs` (
 -- Déchargement des données de la table `utilisateurs`
 --
 
-INSERT INTO `utilisateurs` (`id_PK`, `matricule`, `nom`, `prenom`, `mail`, `motdp`, `tel`, `adresse`, `id_role`, `created_at`, `updated_at`) VALUES
-(3, NULL, 'yasss', 'ss', 'medecin2@mediflow.com', '$2y$10$DWh64If5QpqCT.LEvRwP0O2XWg3AS6C32H5qOpEkig8EOsEnxK5Wy', '+212612345679', 'Tunis, Tunisia', 5, '2026-04-11 15:39:37', '2026-04-16 12:48:48'),
-(11, 'AD101', 'aa', 'aaaaa', 'aaaaa@mediflow.com', '$2y$10$mLnxXqMhZF09jNgd.dtOWOyyWZ2cfV.rPjsMG0q6n3O7soGg8OyNq', NULL, 'dddd', 1, '2026-04-13 22:36:04', '2026-04-13 22:39:01'),
-(15, 'AD100', 'Admin', 'MediFlow', 'admin@mediflow.com', '$2y$10$dAUyViEr3jFurQWGeKDhKO9MMPJR8z0SiAN.nrDMGzq/xel2d.PNe', '+216 00 000 000', NULL, 1, '2026-04-13 22:44:16', '2026-04-13 22:46:34'),
-(16, 'AD102', 'fathi', 'khelifi', 'fathikhelifi@mediflow.com', '$2y$10$kBpNqqIQYw3XftXxsdGL7u7D2GZRGMzqCAgj05rZ9kGVOkBGW8gMC', NULL, 'ghazel', 1, '2026-04-13 22:47:29', '2026-04-13 22:47:29'),
-(17, 'PT100', 'fathi', 'fathitest', 'fathikk@gmail.com', '$2y$10$UufGs0R1Sp6XozR7fbMoWu2oeArzEksu.r0UZ.P97X4HH5imXjIby', '99999999999', NULL, 9, '2026-04-13 23:18:06', '2026-04-13 23:18:06'),
-(18, 'PT101', 'abdo', 'samad', 'abdo@mediflow.com', '$2y$10$8wybCzdyPYdGXlrB5OaLauGYqBpYAzIziw5Gx10a8/Uvna02mur26', '444444444444', 'Ariena,Ghazela', 9, '2026-04-15 18:07:26', '2026-04-15 18:07:26'),
-(19, 'AD103', 'fathi', 'khelifi', 'admin11@mediflow.com', '$2y$10$9TUE.90W5k6IkVyMWzHND.WB4b4brVFoagkE0H8p11z80ObcPju0G', '+216 92 518 333', 'Ariena,Ghazela', 1, '2026-04-16 12:40:30', '2026-04-16 12:40:30'),
-(20, 'PT102', 'khelifi', 'fathi', 'fathikhelifi10@gmail.com', '$2y$10$3NgQjaBa4nrg2ubQadmZ3.FhPq8bQphdB.t6ELvhtnPJsDaO15I7q', '+216 92 518 333', NULL, 9, '2026-04-16 12:59:14', '2026-04-16 12:59:14'),
-(21, 'MD100', 'fathi', 'khelifi', 'MED1@mediflow.com', '$2y$10$o8Yi2QkYNkAMYHISYJnzre6qZvZunda2yeObGuD3YCPGgaCpMqaeu', NULL, 'Ariena,Ghazela', 2, '2026-04-16 13:12:06', '2026-04-16 13:12:06'),
-(22, 'EQ101', 'nada', 'karoui', 'nada@mediflow.com', '$2y$10$jji1Az.JjOARrkRAsDcysOEZDHueHhxGv7Zy0UE1ljso0F2z4hZr2', NULL, NULL, 5, '2026-04-21 00:06:42', '2026-04-21 00:06:42'),
-(23, 'PT103', 'khalil', 'cherif', 'khalil@mediflow.com', '$2y$10$c7J0m95iBePywJdx36ETR.pSosQp8ebTiwfHOPVB/zkGt5eMnAG6m', NULL, NULL, 9, '2026-04-21 01:04:22', '2026-04-21 01:04:22');
+INSERT INTO `utilisateurs` (`id_PK`, `matricule`, `nom`, `prenom`, `mail`, `motdp`, `tel`, `adresse`, `id_role`, `cin`, `created_at`, `updated_at`) VALUES
+(3, NULL, 'yasss', 'ss', 'medecin2@mediflow.com', '$2y$10$DWh64If5QpqCT.LEvRwP0O2XWg3AS6C32H5qOpEkig8EOsEnxK5Wy', '+212612345679', 'Tunis, Tunisia', 5, NULL, '2026-04-11 15:39:37', '2026-04-16 12:48:48'),
+(11, 'AD101', 'aa', 'aaaaa', 'aaaaa@mediflow.com', '$2y$10$mLnxXqMhZF09jNgd.dtOWOyyWZ2cfV.rPjsMG0q6n3O7soGg8OyNq', NULL, 'dddd', 1, NULL, '2026-04-13 22:36:04', '2026-04-13 22:39:01'),
+(15, 'AD100', 'Admin', 'MediFlow', 'admin@mediflow.com', '$2y$10$dAUyViEr3jFurQWGeKDhKO9MMPJR8z0SiAN.nrDMGzq/xel2d.PNe', '+216 00 000 000', NULL, 1, NULL, '2026-04-13 22:44:16', '2026-04-13 22:46:34'),
+(16, 'AD102', 'fathi', 'khelifi', 'fathikhelifi@mediflow.com', '$2y$10$kBpNqqIQYw3XftXxsdGL7u7D2GZRGMzqCAgj05rZ9kGVOkBGW8gMC', NULL, 'ghazel', 1, NULL, '2026-04-13 22:47:29', '2026-04-13 22:47:29'),
+(17, 'PT100', 'fathi', 'fathitest', 'fathikk@gmail.com', '$2y$10$UufGs0R1Sp6XozR7fbMoWu2oeArzEksu.r0UZ.P97X4HH5imXjIby', '99999999999', NULL, 9, '12345678', '2026-04-13 23:18:06', '2026-04-29 18:33:43'),
+(18, 'PT101', 'abdo', 'samad', 'abdo@mediflow.com', '$2y$10$8wybCzdyPYdGXlrB5OaLauGYqBpYAzIziw5Gx10a8/Uvna02mur26', '444444444444', 'Ariena,Ghazela', 9, '12345678', '2026-04-15 18:07:26', '2026-04-29 18:33:43'),
+(19, 'AD103', 'fathi', 'khelifi', 'admin11@mediflow.com', '$2y$10$9TUE.90W5k6IkVyMWzHND.WB4b4brVFoagkE0H8p11z80ObcPju0G', '+216 92 518 333', 'Ariena,Ghazela', 1, NULL, '2026-04-16 12:40:30', '2026-04-16 12:40:30'),
+(20, 'PT102', 'khelifi', 'fathi', 'fathikhelifi10@gmail.com', '$2y$10$3NgQjaBa4nrg2ubQadmZ3.FhPq8bQphdB.t6ELvhtnPJsDaO15I7q', '+216 92 518 333', NULL, 2, NULL, '2026-04-16 12:59:14', '2026-04-28 20:00:20'),
+(21, 'MD100', 'fathi', 'khelifi', 'MED1@mediflow.com', '$2y$10$o8Yi2QkYNkAMYHISYJnzre6qZvZunda2yeObGuD3YCPGgaCpMqaeu', NULL, 'Ariena,Ghazela', 2, NULL, '2026-04-16 13:12:06', '2026-04-16 13:12:06'),
+(22, 'EQ101', 'nada', 'karoui', 'nada@mediflow.com', '$2y$10$jji1Az.JjOARrkRAsDcysOEZDHueHhxGv7Zy0UE1ljso0F2z4hZr2', NULL, NULL, 5, NULL, '2026-04-21 00:06:42', '2026-04-21 00:06:42'),
+(23, 'PT103', 'khalil', 'cherif', 'khalil@mediflow.com', '$2y$10$c7J0m95iBePywJdx36ETR.pSosQp8ebTiwfHOPVB/zkGt5eMnAG6m', NULL, NULL, 9, '12345678', '2026-04-21 01:04:22', '2026-04-29 18:33:43'),
+(24, 'MD200', 'Smith', 'Adam', 'dr.smith@mediflow.com', '$2y$10$uWu93squAEw/91qe7kX0tuoY1xqsHUbkMbgAYTBRw1IDdUBmAeXpa', NULL, NULL, 2, NULL, '2026-04-28 20:17:06', '2026-04-28 20:17:06'),
+(25, 'PT200', 'Doe', 'John', 'john.doe@gmail.com', '$2y$10$5aYyIrc.ZyMUxEiDV9uVKeuYgz.SDdpR.9oPYHFm6xIk7dL5/T8Ny', '55667788', NULL, 9, '12345678', '2026-04-28 20:17:06', '2026-04-29 18:33:43');
 
 --
 -- Index pour les tables déchargées
@@ -347,7 +347,8 @@ ALTER TABLE `equipement`
 --
 ALTER TABLE `planning`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_planning_medecin` (`medecin_id`);
+  ADD KEY `idx_planning_medecin` (`medecin_id`),
+  ADD KEY `fk_planning_rdv` (`rdv_id`);
 
 --
 -- Index pour la table `posts`
@@ -417,7 +418,7 @@ ALTER TABLE `equipement`
 -- AUTO_INCREMENT pour la table `planning`
 --
 ALTER TABLE `planning`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT pour la table `posts`
@@ -435,7 +436,7 @@ ALTER TABLE `post_likes`
 -- AUTO_INCREMENT pour la table `rendez_vous`
 --
 ALTER TABLE `rendez_vous`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT pour la table `reservation`
@@ -453,11 +454,18 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT pour la table `utilisateurs`
 --
 ALTER TABLE `utilisateurs`
-  MODIFY `id_PK` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id_PK` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- Contraintes pour les tables déchargées
 --
+
+--
+-- Contraintes pour la table `planning`
+--
+ALTER TABLE `planning`
+  ADD CONSTRAINT `fk_planning_medecin` FOREIGN KEY (`medecin_id`) REFERENCES `utilisateurs` (`id_PK`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_planning_rdv` FOREIGN KEY (`rdv_id`) REFERENCES `rendez_vous` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Contraintes pour la table `post_likes`
@@ -465,6 +473,12 @@ ALTER TABLE `utilisateurs`
 ALTER TABLE `post_likes`
   ADD CONSTRAINT `post_likes_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `post_likes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `utilisateurs` (`id_PK`) ON DELETE CASCADE;
+
+--
+-- Contraintes pour la table `rendez_vous`
+--
+ALTER TABLE `rendez_vous`
+  ADD CONSTRAINT `fk_rdv_medecin` FOREIGN KEY (`medecin_id`) REFERENCES `utilisateurs` (`id_PK`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Contraintes pour la table `reservation`

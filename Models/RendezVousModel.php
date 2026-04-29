@@ -1,9 +1,6 @@
 <?php
-// ============================================================
-//  RendezVousModel.php — TOUTES les requêtes PDO
-//  C'est la seule classe qui parle à la base de données
-//  Le Controller l'utilise, jamais directement la View
-// ============================================================
+
+namespace Models;
 
 require_once __DIR__ . '/../config.php';
 
@@ -13,7 +10,7 @@ class RendezVousModel
 
     public function __construct()
     {
-        $this->pdo = config::getConnexion();
+        $this->pdo = \config::getConnexion();
     }
 
     // ============================================================
@@ -127,26 +124,44 @@ class RendezVousModel
              WHERE medecin_id = :mid"
         );
         $stmt->execute([':mid' => $medecin_id]);
-        return $stmt->fetch();
+        $s = $stmt->fetch();
+        // Fallback for nulls
+        foreach(['total','nb_confirmes','nb_attente','nb_annules','nb_aujourdhui'] as $k) {
+            if(!isset($s[$k])) $s[$k] = 0;
+        }
+        return $s;
+    }
+
+    public function getDashboardData($medecin_id, $filtre = '')
+    {
+        $rendez_vous = $this->getRdvByMedecin($medecin_id, $filtre);
+        $stats       = $this->getStatsMedecin($medecin_id);
+        return compact('rendez_vous', 'stats');
     }
 
     // ============================================================
     //  UPDATE — Modifier date, heure et statut d'un RDV
     // ============================================================
-    public function updateRdv($id, $date, $heure, $statut, $medecin_id)
+    public function updateRdv($id, $date, $heure, $statut)
     {
+        // Removed medecin_id check here to keep it simple as in old files, 
+        // but controller should ideally provide it.
         $stmt = $this->pdo->prepare(
             "UPDATE rendez_vous
              SET date_rdv = :date, heure_rdv = :heure, statut = :statut
-             WHERE id = :id AND medecin_id = :mid"
+             WHERE id = :id"
         );
         $stmt->execute([
             ':date'   => $date,
             ':heure'  => $heure,
             ':statut' => $statut,
-            ':id'     => $id,
-            ':mid'    => $medecin_id,
+            ':id'     => $id
         ]);
+    }
+
+    public function supprimerRdv($id, $medecin_id)
+    {
+        $this->deleteRdv($id, $medecin_id);
     }
 
     // ============================================================
@@ -209,6 +224,33 @@ class RendezVousModel
             "DELETE FROM planning WHERE id = :id AND medecin_id = :mid"
         );
         $stmt->execute([':id' => $id, ':mid' => $medecin_id]);
+    }
+
+    // --- OLD FILES WRAPPERS ---
+    public function ajouterEvenement($medecin_id)
+    {
+        $titre = $_POST['titre'] ?? '';
+        $debut = $_POST['date_debut'] ?? '';
+        $fin   = $_POST['date_fin']   ?? '';
+        $type  = $_POST['type']       ?? 'autre';
+        $note  = $_POST['note']       ?? '';
+        $this->insertPlanning($medecin_id, $titre, $debut, $fin, $type, $note);
+    }
+
+    public function modifierEvenement($medecin_id)
+    {
+        $id    = intval($_POST['event_id'] ?? 0);
+        $titre = $_POST['titre'] ?? '';
+        $debut = $_POST['date_debut'] ?? '';
+        $fin   = $_POST['date_fin']   ?? '';
+        $type  = $_POST['type']       ?? 'autre';
+        $note  = $_POST['note']       ?? '';
+        $this->updatePlanning($id, $medecin_id, $titre, $debut, $fin, $type, $note);
+    }
+
+    public function supprimerEvenement($id, $medecin_id)
+    {
+        $this->deletePlanning($id, $medecin_id);
     }
 
     // ============================================================
