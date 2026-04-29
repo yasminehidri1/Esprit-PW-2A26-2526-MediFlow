@@ -31,15 +31,21 @@ class AdminController {
         $prescriptionStats = $this->adminModel->getTotalPrescriptions();
         $revenueStats      = $this->adminModel->getRevenueOverview();
 
-        $featuredDoctors   = $this->adminModel->getFeaturedStaff(3);
+        $featuredDoctors     = $this->adminModel->getFeaturedStaff(3);
         $recentConsultations = $this->adminModel->getRecentConsultations(4);
-        $prescriptionData  = $this->adminModel->getPrescriptionStats();
+        $prescriptionData    = $this->adminModel->getPrescriptionStats();
+
+        $totalPatients         = $this->adminModel->getTotalPatients();
+        $topDoctors            = $this->adminModel->getTopDoctors(5);
+        $consultationsByType   = $this->adminModel->getConsultationsByType();
+        $prescriptionsByStatus = $this->adminModel->getPrescriptionsByStatus();
+        $weeklyComparison      = $this->adminModel->getWeeklyComparison();
+        $consultationCompletion = $this->adminModel->getConsultationCompletion();
 
         $admin      = $this->adminInfo;
         $adminId    = $this->adminId;
         $activePage = 'admin';
 
-        // Flash message from POST redirect
         $flash = $_SESSION['flash'] ?? null;
         unset($_SESSION['flash']);
 
@@ -49,11 +55,13 @@ class AdminController {
     // ── Doctors List ──────────────────────────────────────────────
 
     public function doctorsList(): void {
-        $perPage    = 10;
-        $page       = max(1, (int)($_GET['p'] ?? 1));
-        $offset     = ($page - 1) * $perPage;
+        $perPage   = 10;
+        $page      = max(1, (int)($_GET['p'] ?? 1));
+        $offset    = ($page - 1) * $perPage;
+        $sortBy    = $_GET['sort']  ?? 'prenom';
+        $sortOrder = $_GET['order'] ?? 'ASC';
 
-        $doctors    = $this->adminModel->getAllDoctors($perPage, $offset);
+        $doctors    = $this->adminModel->getAllDoctors($perPage, $offset, $sortBy, $sortOrder);
         $totalCount = $this->adminModel->countDoctors();
         $totalPages = (int) ceil($totalCount / $perPage);
 
@@ -77,12 +85,34 @@ class AdminController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = [
-                'nom' => htmlspecialchars(trim($_POST['nom'] ?? '')),
-                'prenom' => htmlspecialchars(trim($_POST['prenom'] ?? '')),
-                'mail' => htmlspecialchars(trim($_POST['mail'] ?? '')),
-                'tel' => htmlspecialchars(trim($_POST['tel'] ?? '')),
+                'nom'     => htmlspecialchars(trim($_POST['nom']     ?? '')),
+                'prenom'  => htmlspecialchars(trim($_POST['prenom']  ?? '')),
+                'mail'    => htmlspecialchars(trim($_POST['mail']    ?? '')),
+                'tel'     => htmlspecialchars(trim($_POST['tel']     ?? '')),
                 'adresse' => htmlspecialchars(trim($_POST['adresse'] ?? '')),
             ];
+
+            $errors = [];
+            if (strlen($data['nom']) < 2 || strlen($data['nom']) > 50)
+                $errors['nom'] = 'Le nom doit contenir entre 2 et 50 caractères.';
+            if (strlen($data['prenom']) < 2 || strlen($data['prenom']) > 50)
+                $errors['prenom'] = 'Le prénom doit contenir entre 2 et 50 caractères.';
+            if (empty($data['mail']) || !filter_var($data['mail'], FILTER_VALIDATE_EMAIL))
+                $errors['mail'] = 'Adresse email invalide.';
+            if (!empty($data['tel']) && !preg_match('/^[\d\s\-+().]{10,20}$/', $data['tel']))
+                $errors['tel'] = 'Numéro de téléphone invalide (10 à 20 caractères).';
+            if (!empty($data['adresse']) && strlen($data['adresse']) > 200)
+                $errors['adresse'] = "L'adresse ne doit pas dépasser 200 caractères.";
+
+            if (!empty($errors)) {
+                $doctor     = array_merge(['id_PK' => $doctorId], $data);
+                $validation_errors = $errors;
+                $admin      = $this->adminInfo;
+                $adminId    = $this->adminId;
+                $activePage = 'admin';
+                require __DIR__ . '/../views/backoffice/admin/doctors/edit.php';
+                return;
+            }
 
             $this->adminModel->updateDoctor($doctorId, $data);
             $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Médecin mis à jour avec succès.'];
@@ -138,33 +168,9 @@ class AdminController {
         $flash      = $_SESSION['flash'] ?? null;
         unset($_SESSION['flash']);
 
-        require __DIR__ . '/../views/backoffice/admin/doctors/patients.php';
+        require __DIR__ . '/../views/backoffice/admin/doctors/patients_list.php';
     }
 
-    // ── Patient Details (AJAX) ────────────────────────────────────
-
-    public function getDoctorPatientDetailsAjax(): void {
-        header('Content-Type: application/json; charset=utf-8');
-
-        $patientId = (int)($_GET['patient_id'] ?? 0);
-        $doctorId = (int)($_GET['doctor_id'] ?? 0);
-
-        if ($patientId <= 0 || $doctorId <= 0) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Patient ID and Doctor ID are required']);
-            exit;
-        }
-
-        // Get patient consultations and prescriptions
-        $consultations = $this->adminModel->getPatientConsultations($patientId, $doctorId);
-        $prescriptions = $this->adminModel->getPatientPrescriptions($patientId, $doctorId);
-
-        echo json_encode([
-            'consultations' => $consultations,
-            'prescriptions' => $prescriptions,
-        ]);
-        exit;
-    }
 
     // ── Doctor's Patients AJAX ────────────────────────────────────
 

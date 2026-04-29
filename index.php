@@ -157,6 +157,7 @@ match (true) {
         (new PatientController())->exportPDF();
     })(),
 
+
     // ── Demandes d'ordonnance ─────────────────────────────────
     $page === 'demandes' && ($action === '' || $action === 'list' || $action === 'view') => (function () {
         require_once __DIR__ . '/controllers/DemandeController.php';

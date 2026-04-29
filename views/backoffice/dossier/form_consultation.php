@@ -85,7 +85,7 @@ require __DIR__ . '/../layout/topbar.php';
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="field-label">Date & heure</label>
-                    <input type="datetime-local" name="date_consultation" required
+                    <input type="datetime-local" name="date_consultation"
                            value="<?= $mode === 'edit' ? date('Y-m-d\TH:i', strtotime($consultation['date_consultation'])) : date('Y-m-d\TH:i') ?>"
                            class="field-input"/>
                 </div>
@@ -110,7 +110,7 @@ require __DIR__ . '/../layout/topbar.php';
                     <input type="text" name="diagnostic"
                            value="<?= htmlspecialchars($consultation['diagnostic'] ?? '') ?>"
                            placeholder="Ex: Hypertension Artérielle" class="field-input"
-                           data-validate="text-only" oninput="validateField(this)" maxlength="150"/>
+                           data-validate="text-only" oninput="validateField(this)"/>
                 </div>
                 <div>
                     <label class="field-label">Compte-rendu clinique</label>
@@ -132,11 +132,11 @@ require __DIR__ . '/../layout/topbar.php';
                     <input type="text" name="tension_arterielle"
                            value="<?= htmlspecialchars($consultation['tension_arterielle'] ?? '') ?>"
                            placeholder="Ex: 12/8" class="field-input"
-                           data-validate="tension" oninput="validateField(this)" maxlength="10"/>
+                           data-validate="tension" oninput="validateField(this)"/>
                 </div>
                 <div>
                     <label class="field-label">Rythme cardiaque (bpm)</label>
-                    <input type="number" name="rythme_cardiaque" min="30" max="300"
+                    <input type="text" name="rythme_cardiaque"
                            value="<?= htmlspecialchars($consultation['rythme_cardiaque'] ?? '') ?>"
                            placeholder="72" class="field-input"
                            data-validate="number-range" data-min="30" data-max="300"
@@ -144,13 +144,13 @@ require __DIR__ . '/../layout/topbar.php';
                 </div>
                 <div>
                     <label class="field-label">Poids (kg)</label>
-                    <input type="number" step="0.1" name="poids"
+                    <input type="text" name="poids"
                            value="<?= htmlspecialchars($consultation['poids'] ?? '') ?>"
                            placeholder="75.5" class="field-input"/>
                 </div>
                 <div>
                     <label class="field-label">Saturation O² (%)</label>
-                    <input type="number" name="saturation_o2" min="0" max="100"
+                    <input type="text" name="saturation_o2"
                            value="<?= htmlspecialchars($consultation['saturation_o2'] ?? '') ?>"
                            placeholder="98" class="field-input"/>
                 </div>
@@ -173,7 +173,7 @@ require __DIR__ . '/../layout/topbar.php';
                 <?php if (!empty($antecedents)): ?>
                 <?php foreach ($antecedents as $ant): ?>
                 <div class="ant-row grid grid-cols-12 gap-2 items-center">
-                    <input type="number" name="ant_annee[]"
+                    <input type="text" name="ant_annee[]"
                            value="<?= htmlspecialchars($ant['annee'] ?? '') ?>"
                            placeholder="Année" class="field-input col-span-2"/>
                     <input type="text" name="ant_titre[]"
@@ -355,7 +355,7 @@ function addAntRow() {
     document.getElementById('ant-empty')?.classList.add('hidden');
     document.getElementById('ant-rows').insertAdjacentHTML('beforeend', `
         <div class="ant-row grid grid-cols-12 gap-2 items-center">
-            <input type="number" name="ant_annee[]" placeholder="Année" class="field-input col-span-2" min="1900" max="2099"/>
+            <input type="text" name="ant_annee[]" placeholder="Année" class="field-input col-span-2"/>
             <input type="text"   name="ant_titre[]" placeholder="Titre"       class="field-input col-span-4"/>
             <input type="text"   name="ant_desc[]"  placeholder="Description" class="field-input col-span-5"/>
             <button type="button" onclick="this.closest('.ant-row').remove()"

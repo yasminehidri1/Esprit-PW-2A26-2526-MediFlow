@@ -402,7 +402,7 @@
             </div>
             <div>
               <label class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-              <input type="email" id="modif_email" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Email" value="<?php echo htmlspecialchars($patient['mail']); ?>" />
+              <input type="text" id="modif_email" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Email" value="<?php echo htmlspecialchars($patient['mail']); ?>" />
               <span class="text-xs text-red-500 hidden" id="err_email"></span>
             </div>
             <div class="flex gap-3 pt-4">
@@ -517,10 +517,9 @@
                   <textarea id="ord_description"
                             class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all resize-none"
                             placeholder="Ex : Renouvellement de mon traitement Amlodipine 5mg, ordonnance expirée depuis le 15 avril..."
-                            maxlength="500" rows="4"></textarea>
+                            rows="4"></textarea>
                   <span id="ord_desc_icon" class="material-symbols-outlined absolute right-3 top-3 text-lg text-slate-300"></span>
                 </div>
-
                 <!-- Barre de progression -->
                 <div class="mt-2 space-y-1">
                   <div class="flex justify-between items-center">
@@ -572,12 +571,12 @@
           <form id="formContacterEquipe" class="space-y-4">
             <div>
               <label class="block text-sm font-semibold text-slate-700 mb-2">Sujet</label>
-              <input type="text" id="contact_sujet" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Sujet du message" maxlength="100" />
+              <input type="text" id="contact_sujet" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Sujet du message" />
               <span class="text-xs text-red-500 hidden" id="err_contact_sujet"></span>
             </div>
             <div>
               <label class="block text-sm font-semibold text-slate-700 mb-2">Message</label>
-              <textarea id="contact_message" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Votre message..." maxlength="1000" rows="4"></textarea>
+              <textarea id="contact_message" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Votre message..." rows="4"></textarea>
               <div class="flex justify-between items-center mt-1">
                 <span class="text-xs text-red-500 hidden" id="err_contact_message"></span>
                 <span class="text-xs text-slate-500"><span id="contact_msg_count">0</span>/1000</span>

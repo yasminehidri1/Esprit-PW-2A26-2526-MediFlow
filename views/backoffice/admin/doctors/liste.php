@@ -4,6 +4,22 @@
  */
 $activePage = 'admin';
 require __DIR__ . '/../helpers/avatar.php';
+
+$sortBy    = $_GET['sort']  ?? 'prenom';
+$sortOrder = $_GET['order'] ?? 'ASC';
+
+function sortUrl(string $col, string $currentSort, string $currentOrder): string {
+    $order = ($currentSort === $col && $currentOrder === 'ASC') ? 'DESC' : 'ASC';
+    return "?page=admin&action=doctors&sort={$col}&order={$order}";
+}
+function sortIcon(string $col, string $currentSort, string $currentOrder): string {
+    if ($currentSort !== $col) {
+        return '<span class="material-symbols-outlined text-sm text-slate-300 ml-1">unfold_more</span>';
+    }
+    return $currentOrder === 'ASC'
+        ? '<span class="material-symbols-outlined text-sm text-primary ml-1">arrow_upward</span>'
+        : '<span class="material-symbols-outlined text-sm text-primary ml-1">arrow_downward</span>';
+}
 ?>
 <!DOCTYPE html>
 <html class="light" lang="fr">
@@ -20,75 +36,44 @@ require __DIR__ . '/../helpers/avatar.php';
       theme: {
         extend: {
           "colors": {
-            "tertiary-container": "#00736a",
-            "on-primary-fixed-variant": "#00468c",
-            "surface": "#f7f9fb",
-            "surface-tint": "#005db7",
-            "on-secondary-container": "#475c80",
-            "surface-container-highest": "#e0e3e5",
-            "on-tertiary-container": "#87f8ea",
-            "background": "#f7f9fb",
-            "error": "#ba1a1a",
-            "on-primary-container": "#dae5ff",
-            "secondary-container": "#c0d5ff",
-            "on-tertiary-fixed": "#00201d",
-            "on-tertiary": "#ffffff",
-            "secondary-fixed-dim": "#b2c7f1",
-            "secondary": "#4a5f83",
-            "tertiary-fixed": "#84f5e8",
-            "on-error-container": "#93000a",
-            "inverse-on-surface": "#eff1f3",
-            "secondary-fixed": "#d6e3ff",
-            "surface-container-low": "#f2f4f6",
-            "on-primary-fixed": "#001b3d",
-            "inverse-surface": "#2d3133",
-            "on-surface-variant": "#424752",
-            "tertiary-fixed-dim": "#66d9cc",
-            "surface-bright": "#f7f9fb",
-            "outline": "#727783",
-            "surface-container-lowest": "#ffffff",
-            "tertiary": "#005851",
-            "primary-container": "#1565c0",
-            "on-error": "#ffffff",
-            "inverse-primary": "#a9c7ff",
-            "surface-container": "#eceef0",
-            "on-primary": "#ffffff",
-            "on-secondary-fixed-variant": "#32476a",
-            "on-secondary-fixed": "#021b3c",
-            "primary": "#004d99",
-            "error-container": "#ffdad6",
-            "outline-variant": "#c2c6d4",
-            "on-surface": "#191c1e",
-            "surface-dim": "#d8dadc",
-            "primary-fixed-dim": "#a9c7ff",
-            "primary-fixed": "#d6e3ff",
-            "surface-container-high": "#e6e8ea",
-            "on-secondary": "#ffffff",
-            "surface-variant": "#e0e3e5",
-            "on-tertiary-fixed-variant": "#005049",
+            "tertiary-container": "#00736a", "on-primary-fixed-variant": "#00468c",
+            "surface": "#f7f9fb", "surface-tint": "#005db7",
+            "on-secondary-container": "#475c80", "surface-container-highest": "#e0e3e5",
+            "on-tertiary-container": "#87f8ea", "background": "#f7f9fb",
+            "error": "#ba1a1a", "on-primary-container": "#dae5ff",
+            "secondary-container": "#c0d5ff", "on-tertiary-fixed": "#00201d",
+            "on-tertiary": "#ffffff", "secondary-fixed-dim": "#b2c7f1",
+            "secondary": "#4a5f83", "tertiary-fixed": "#84f5e8",
+            "on-error-container": "#93000a", "inverse-on-surface": "#eff1f3",
+            "secondary-fixed": "#d6e3ff", "surface-container-low": "#f2f4f6",
+            "on-primary-fixed": "#001b3d", "inverse-surface": "#2d3133",
+            "on-surface-variant": "#424752", "tertiary-fixed-dim": "#66d9cc",
+            "surface-bright": "#f7f9fb", "outline": "#727783",
+            "surface-container-lowest": "#ffffff", "tertiary": "#005851",
+            "primary-container": "#1565c0", "on-error": "#ffffff",
+            "inverse-primary": "#a9c7ff", "surface-container": "#eceef0",
+            "on-primary": "#ffffff", "on-secondary-fixed-variant": "#32476a",
+            "on-secondary-fixed": "#021b3c", "primary": "#004d99",
+            "error-container": "#ffdad6", "outline-variant": "#c2c6d4",
+            "on-surface": "#191c1e", "surface-dim": "#d8dadc",
+            "primary-fixed-dim": "#a9c7ff", "primary-fixed": "#d6e3ff",
+            "surface-container-high": "#e6e8ea", "on-secondary": "#ffffff",
+            "surface-variant": "#e0e3e5", "on-tertiary-fixed-variant": "#005049",
             "on-background": "#191c1e"
           },
-          "borderRadius": {
-            "DEFAULT": "0.5rem",
-            "lg": "0.5rem",
-            "xl": "0.75rem",
-            "full": "9999px"
-          },
-          "fontFamily": {
-            "headline": ["Manrope"],
-            "body": ["Inter"],
-            "label": ["Inter"]
-          }
+          "borderRadius": { "DEFAULT": "0.5rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+          "fontFamily": { "headline": ["Manrope"], "body": ["Inter"], "label": ["Inter"] }
         }
       }
     }
   </script>
   <style>
-    .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     body { font-family: 'Inter', sans-serif; }
     h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+    .row-hidden { display: none; }
+    .sort-link { display: flex; align-items: center; cursor: pointer; }
+    .sort-link:hover { color: #004d99; }
   </style>
 </head>
 <body class="bg-surface text-on-surface min-h-screen">
@@ -96,12 +81,12 @@ require __DIR__ . '/../helpers/avatar.php';
 <?php require __DIR__ . '/../layout/sidebar.php'; ?>
 <?php require __DIR__ . '/../layout/topbar.php'; ?>
 
-<!-- Main Content -->
 <main class="ml-64 pt-24 pb-12 px-8 min-h-screen">
+
   <!-- Header -->
-  <div class="mb-8">
-    <h2 class="text-3xl font-extrabold text-blue-900 dark:text-blue-100 tracking-tight mb-2 font-headline">Gestion des Médecins</h2>
-    <p class="text-slate-500 font-medium">Consultez la liste complète de tous les médecins du réseau.</p>
+  <div class="mb-7">
+    <h2 class="text-3xl font-extrabold text-blue-900 tracking-tight mb-1 font-headline">Gestion des Médecins</h2>
+    <p class="text-slate-500 text-sm font-medium"><?php echo number_format($totalCount); ?> médecin<?php echo $totalCount > 1 ? 's' : ''; ?> enregistré<?php echo $totalCount > 1 ? 's' : ''; ?> dans le réseau</p>
   </div>
 
   <!-- Flash Message -->
@@ -112,78 +97,119 @@ require __DIR__ . '/../helpers/avatar.php';
   </div>
   <?php endif; ?>
 
-  <!-- Search Bar -->
-  <div class="mb-6 bg-white rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] p-6 border border-slate-100">
-    <div class="flex gap-4">
+  <!-- Barre de recherche -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5 mb-6">
+    <div class="flex gap-3">
       <div class="flex-1 relative">
-        <span class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-lg">search</span>
+        <span class="material-symbols-outlined absolute left-3.5 top-3 text-slate-400 text-lg">search</span>
         <input
           type="text"
           id="searchInput"
-          placeholder="Rechercher un dossier, un médecin..."
-          class="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg text-sm placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          placeholder="Rechercher par nom, email, téléphone..."
+          class="w-full pl-11 pr-10 py-2.5 border border-slate-200 rounded-lg text-sm placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
         />
+        <button id="clearSearch" class="absolute right-3 top-3 text-slate-300 hover:text-slate-500 hidden transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+      <div class="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 whitespace-nowrap">
+        <span class="material-symbols-outlined text-sm text-slate-400">manage_search</span>
+        <span id="visibleCount"><?php echo count($doctors); ?></span>
+        <span class="text-slate-400">/ <?php echo number_format($totalCount); ?></span>
       </div>
     </div>
   </div>
 
   <!-- Table Card -->
-  <div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] overflow-hidden">
-    <div class="p-6 bg-slate-50/50 border-b border-slate-100">
-      <h3 class="text-lg font-bold text-blue-900 font-headline">Liste des Médecins (<?php echo number_format($totalCount); ?> total)</h3>
+  <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="px-6 py-4 bg-slate-50/60 border-b border-slate-100 flex justify-between items-center">
+      <h3 class="text-base font-bold text-blue-900 font-headline">Liste des Médecins</h3>
+      <span class="text-xs text-slate-400 font-medium">
+        Page <strong class="text-slate-600"><?php echo $page; ?></strong> / <?php echo max(1, $totalPages); ?>
+      </span>
     </div>
 
-    <!-- Table -->
     <div class="overflow-x-auto">
       <table class="w-full text-left">
         <thead>
-          <tr class="text-[11px] uppercase tracking-wider text-slate-400 font-bold border-b border-slate-50 bg-slate-50/50">
-            <th class="px-6 py-4">Médecin</th>
-            <th class="px-6 py-4">Email</th>
-            <th class="px-6 py-4">Téléphone</th>
-            <th class="px-6 py-4">Spécialité</th>
-            <th class="px-6 py-4">Patients</th>
-            <th class="px-6 py-4">Actions</th>
+          <tr class="text-[10px] uppercase tracking-widest text-slate-400 font-bold border-b border-slate-100 bg-slate-50/50">
+            <th class="px-6 py-3.5">
+              <a href="<?php echo sortUrl('prenom', $sortBy, $sortOrder); ?>" class="sort-link">
+                Médecin<?php echo sortIcon('prenom', $sortBy, $sortOrder); ?>
+              </a>
+            </th>
+            <th class="px-6 py-3.5">
+              <a href="<?php echo sortUrl('mail', $sortBy, $sortOrder); ?>" class="sort-link">
+                Email<?php echo sortIcon('mail', $sortBy, $sortOrder); ?>
+              </a>
+            </th>
+            <th class="px-6 py-3.5">Téléphone</th>
+            <th class="px-6 py-3.5">Rôle</th>
+            <th class="px-6 py-3.5">
+              <a href="<?php echo sortUrl('nb_patients', $sortBy, $sortOrder); ?>" class="sort-link">
+                Patients<?php echo sortIcon('nb_patients', $sortBy, $sortOrder); ?>
+              </a>
+            </th>
+            <th class="px-6 py-3.5 text-center">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
           <?php if (count($doctors) > 0): ?>
-            <?php foreach ($doctors as $doctor): ?>
-            <tr class="hover:bg-slate-50/80 transition-colors">
+            <?php
+            $maxPatients = max(array_column($doctors, 'nb_patients')) ?: 1;
+            foreach ($doctors as $doctor):
+              $pct = $maxPatients > 0 ? round(((int)$doctor['nb_patients'] / $maxPatients) * 100) : 0;
+            ?>
+            <tr class="hover:bg-blue-50/20 transition-colors doctor-row"
+                data-name="<?php echo htmlspecialchars(strtolower($doctor['prenom'] . ' ' . $doctor['nom'])); ?>"
+                data-mail="<?php echo htmlspecialchars(strtolower($doctor['mail'])); ?>"
+                data-tel="<?php echo htmlspecialchars(strtolower($doctor['tel'] ?? '')); ?>">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <?php echo getAvatarHtml($doctor['id_PK'], $doctor['prenom'], $doctor['nom']); ?>
                   <div>
                     <p class="text-sm font-bold text-on-surface"><?php echo htmlspecialchars($doctor['prenom'] . ' ' . $doctor['nom']); ?></p>
-                    <p class="text-xs text-slate-500">ID: #DR-<?php echo str_pad($doctor['id_PK'], 4, '0', STR_PAD_LEFT); ?></p>
+                    <p class="text-xs text-slate-400">#DR-<?php echo str_pad($doctor['id_PK'], 4, '0', STR_PAD_LEFT); ?></p>
                   </div>
                 </div>
               </td>
               <td class="px-6 py-4">
-                <span class="text-sm text-slate-600"><?php echo htmlspecialchars($doctor['mail']); ?></span>
+                <a href="mailto:<?php echo htmlspecialchars($doctor['mail']); ?>" class="text-sm text-slate-600 hover:text-primary transition-colors">
+                  <?php echo htmlspecialchars($doctor['mail']); ?>
+                </a>
               </td>
               <td class="px-6 py-4">
-                <span class="text-sm text-slate-600"><?php echo htmlspecialchars($doctor['tel'] ?? 'N/A'); ?></span>
+                <span class="text-sm text-slate-600"><?php echo htmlspecialchars($doctor['tel'] ?? '—'); ?></span>
               </td>
               <td class="px-6 py-4">
-                <span class="text-sm font-medium text-slate-600"><?php echo htmlspecialchars($doctor['role_libelle'] ?? 'N/A'); ?></span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                  <span class="material-symbols-outlined text-xs">medical_services</span>
+                  <?php echo htmlspecialchars($doctor['role_libelle'] ?? 'N/A'); ?>
+                </span>
               </td>
               <td class="px-6 py-4">
-                <span class="text-sm font-bold text-primary"><?php echo (int)$doctor['nb_patients']; ?></span>
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex gap-2">
-                  <button onclick="viewDoctorPatients(<?php echo $doctor['id_PK']; ?>, '<?php echo htmlspecialchars($doctor['prenom'] . ' ' . $doctor['nom']); ?>')" class="text-slate-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-lg" title="Voir les patients">
-                    <span class="material-symbols-outlined">visibility</span>
-                  </button>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm font-bold text-primary w-5"><?php echo (int)$doctor['nb_patients']; ?></span>
+                  <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[72px]">
+                    <div class="h-full bg-primary rounded-full" style="width: <?php echo $pct; ?>%"></div>
+                  </div>
                 </div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                <button
+                  onclick="viewDoctorPatients(<?php echo $doctor['id_PK']; ?>, '<?php echo htmlspecialchars(addslashes($doctor['prenom'] . ' ' . $doctor['nom'])); ?>')"
+                  class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary bg-blue-50 hover:bg-primary hover:text-white transition-all"
+                  title="Voir les patients">
+                  <span class="material-symbols-outlined text-sm">visibility</span>Patients
+                </button>
               </td>
             </tr>
             <?php endforeach; ?>
           <?php else: ?>
             <tr>
-              <td colspan="6" class="px-6 py-8 text-center text-slate-500">
-                <p>Aucun médecin trouvé.</p>
+              <td colspan="6" class="px-6 py-16 text-center">
+                <span class="material-symbols-outlined text-5xl text-slate-200 flex justify-center mb-3">person_search</span>
+                <p class="text-slate-500 font-medium">Aucun médecin trouvé.</p>
               </td>
             </tr>
           <?php endif; ?>
@@ -191,18 +217,40 @@ require __DIR__ . '/../helpers/avatar.php';
       </table>
     </div>
 
-    <!-- Pagination -->
-    <div class="px-6 py-4 border-t border-slate-50 flex justify-between items-center bg-slate-50/50">
-      <div class="text-sm text-slate-500">
-        Page <?php echo $page; ?> sur <?php echo $totalPages; ?> — <?php echo number_format($totalCount); ?> médecins
-      </div>
-      <div class="flex gap-2">
-        <?php if ($page > 1): ?>
-          <a href="?page=admin&action=doctors&p=<?php echo $page - 1; ?>" class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">← Précédent</a>
-        <?php endif; ?>
+    <!-- Pas de résultats de recherche -->
+    <div id="noSearchResults" class="hidden py-12 text-center">
+      <span class="material-symbols-outlined text-4xl text-slate-200 flex justify-center mb-2">search_off</span>
+      <p class="text-slate-500">Aucun résultat pour cette recherche.</p>
+    </div>
 
+    <!-- Pagination -->
+    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-wrap justify-between items-center gap-3">
+      <div class="text-sm text-slate-500">
+        <strong><?php echo number_format($totalCount); ?></strong> médecin<?php echo $totalCount > 1 ? 's' : ''; ?> au total
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <?php if ($page > 1): ?>
+          <a href="?page=admin&action=doctors&p=<?php echo $page - 1; ?>&sort=<?php echo urlencode($sortBy); ?>&order=<?php echo urlencode($sortOrder); ?>"
+             class="inline-flex items-center gap-1 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-sm">chevron_left</span>Précédent
+          </a>
+        <?php endif; ?>
+        <?php
+        $startPg = max(1, $page - 2);
+        $endPg   = min($totalPages, $page + 2);
+        for ($pg = $startPg; $pg <= $endPg; $pg++):
+          $isActive = ($pg === $page);
+        ?>
+          <a href="?page=admin&action=doctors&p=<?php echo $pg; ?>&sort=<?php echo urlencode($sortBy); ?>&order=<?php echo urlencode($sortOrder); ?>"
+             class="px-3.5 py-2 rounded-lg text-sm font-bold transition-colors <?php echo $isActive ? 'bg-primary text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'; ?>">
+            <?php echo $pg; ?>
+          </a>
+        <?php endfor; ?>
         <?php if ($page < $totalPages): ?>
-          <a href="?page=admin&action=doctors&p=<?php echo $page + 1; ?>" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors">Suivant →</a>
+          <a href="?page=admin&action=doctors&p=<?php echo $page + 1; ?>&sort=<?php echo urlencode($sortBy); ?>&order=<?php echo urlencode($sortOrder); ?>"
+             class="inline-flex items-center gap-1 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors">
+            Suivant<span class="material-symbols-outlined text-sm">chevron_right</span>
+          </a>
         <?php endif; ?>
       </div>
     </div>
@@ -210,360 +258,178 @@ require __DIR__ . '/../helpers/avatar.php';
 </main>
 
 <!-- Modal 1: Doctor's Patients -->
-<div id="doctorPatientsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+<div id="doctorPatientsModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-    <!-- Modal Header -->
-    <div class="sticky top-0 bg-gradient-to-r from-blue-900 to-blue-700 text-white p-6 flex justify-between items-center">
+    <div class="sticky top-0 bg-gradient-to-r from-blue-900 to-blue-700 text-white p-6 flex justify-between items-center shadow-lg">
       <div>
-        <h2 class="text-2xl font-bold font-headline" id="doctorPatientsTitle">Patients du Médecin</h2>
-        <p class="text-blue-100 text-sm mt-1">Liste complète des patients</p>
+        <h2 class="text-xl font-bold font-headline" id="doctorPatientsTitle">Patients du Médecin</h2>
+        <p class="text-blue-100 text-xs mt-1">Consultations et ordonnances par patient</p>
       </div>
       <button onclick="closeDoctorPatientsModal()" class="text-white hover:bg-blue-800 rounded-lg p-2 transition-colors">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
-
-    <!-- Modal Content -->
-    <div class="p-6">
-      <!-- Loading Spinner -->
-      <div id="loadingSpinnerPatients" class="flex items-center justify-center py-8">
-        <div class="animate-spin">
-          <span class="material-symbols-outlined text-4xl text-blue-600">hourglass_empty</span>
+    <div class="p-6 bg-gradient-to-b from-slate-50 to-white">
+      <div id="loadingSpinnerPatients" class="flex items-center justify-center py-12">
+        <div class="flex flex-col items-center gap-4">
+          <div class="animate-spin"><span class="material-symbols-outlined text-5xl text-blue-600">hourglass_empty</span></div>
+          <p class="text-slate-500 font-medium">Chargement des patients...</p>
         </div>
       </div>
-
-      <!-- Patients Table -->
       <div id="doctorPatientsContent" class="hidden overflow-x-auto">
         <table class="w-full text-left text-sm">
           <thead>
-            <tr class="text-[11px] uppercase tracking-wider text-slate-400 font-bold border-b border-slate-200 bg-slate-50">
+            <tr class="text-[11px] uppercase tracking-wider text-slate-400 font-bold border-b border-slate-200 bg-slate-100">
               <th class="px-4 py-3">Patient</th>
               <th class="px-4 py-3">Contact</th>
-              <th class="px-4 py-3">Consultations</th>
+              <th class="px-4 py-3 text-center">Consultations</th>
+              <th class="px-4 py-3 text-center">Ordonnances</th>
               <th class="px-4 py-3">Dernière Visite</th>
-              <th class="px-4 py-3 text-center">Détails</th>
             </tr>
           </thead>
-          <tbody id="patientsTableBody" class="divide-y divide-slate-50">
-            <!-- Will be populated by JavaScript -->
-          </tbody>
+          <tbody id="patientsTableBody" class="divide-y divide-slate-100"></tbody>
         </table>
       </div>
-
-      <!-- No Results Message -->
-      <div id="noResultsPatients" class="hidden text-center py-8">
+      <div id="noResultsPatients" class="hidden text-center py-12">
+        <span class="material-symbols-outlined text-5xl text-slate-300 mb-3 flex justify-center">person_off</span>
         <p class="text-slate-500 italic">Aucun patient trouvé pour ce médecin.</p>
       </div>
     </div>
-
-    <!-- Modal Footer -->
-    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
-      <button onclick="closeDoctorPatientsModal()" class="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium">
-        Fermer
-      </button>
+    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end">
+      <button onclick="closeDoctorPatientsModal()" class="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium text-sm">Fermer</button>
     </div>
   </div>
 </div>
 
 <!-- Modal 2: Patient Details -->
-<div id="patientDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+<div id="patientDetailsModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-    <!-- Modal Header -->
     <div class="sticky top-0 bg-gradient-to-r from-green-900 to-green-700 text-white p-6 flex justify-between items-center">
       <div>
-        <h2 class="text-2xl font-bold font-headline" id="patientDetailsTitle">Détails du Patient</h2>
-        <p class="text-green-100 text-sm mt-1">Consultations et ordonnances</p>
+        <h2 class="text-xl font-bold font-headline" id="patientDetailsTitle">Détails du Patient</h2>
+        <p class="text-green-100 text-xs mt-1">Consultations et ordonnances</p>
       </div>
       <button onclick="closePatientDetailsModal()" class="text-white hover:bg-green-800 rounded-lg p-2 transition-colors">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
-
-    <!-- Modal Content -->
     <div class="p-6">
-      <!-- Loading Spinner -->
       <div id="loadingSpinnerDetails" class="flex items-center justify-center py-8">
-        <div class="animate-spin">
-          <span class="material-symbols-outlined text-4xl text-green-600">hourglass_empty</span>
-        </div>
+        <div class="animate-spin"><span class="material-symbols-outlined text-4xl text-green-600">hourglass_empty</span></div>
       </div>
-
-      <!-- Content Container -->
       <div id="detailsContent" class="hidden">
-        <!-- Consultations Section -->
         <div class="mb-8">
           <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-blue-600">assignment</span>
-            Consultations Médicales
+            <span class="material-symbols-outlined text-blue-600">assignment</span>Consultations Médicales
           </h3>
-          <div id="consultationsContainer" class="space-y-4">
-            <!-- Will be populated by JavaScript -->
-          </div>
+          <div id="consultationsContainer" class="space-y-4"></div>
         </div>
-
-        <!-- Prescriptions Section -->
         <div>
           <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-green-600">description</span>
-            Ordonnances
+            <span class="material-symbols-outlined text-green-600">description</span>Ordonnances
           </h3>
-          <div id="prescriptionsContainer" class="space-y-4">
-            <!-- Will be populated by JavaScript -->
-          </div>
+          <div id="prescriptionsContainer" class="space-y-4"></div>
         </div>
       </div>
     </div>
-
-    <!-- Modal Footer -->
-    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
-      <button onclick="closePatientDetailsModal()" class="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium">
-        Fermer
-      </button>
+    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end">
+      <button onclick="closePatientDetailsModal()" class="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium text-sm">Fermer</button>
     </div>
   </div>
 </div>
 
 <script>
-// Real-time search functionality
-document.getElementById('searchInput').addEventListener('keyup', function() {
-  const searchTerm = this.value.toLowerCase();
-  const tableRows = document.querySelectorAll('tbody tr');
-  let visibleCount = 0;
+// ── Recherche en temps réel ───────────────────────────────────────────────
+const searchInput    = document.getElementById('searchInput');
+const clearBtn       = document.getElementById('clearSearch');
+const visibleCounter = document.getElementById('visibleCount');
+const noResults      = document.getElementById('noSearchResults');
 
-  tableRows.forEach(row => {
-    if (row.querySelector('td[colspan]')) {
-      // Skip the "no results" row
-      return;
-    }
+function filterTable() {
+  const term = searchInput.value.toLowerCase().trim();
+  const rows = document.querySelectorAll('.doctor-row');
+  let visible = 0;
 
-    const text = row.textContent.toLowerCase();
-    if (text.includes(searchTerm)) {
-      row.style.display = '';
-      visibleCount++;
-    } else {
-      row.style.display = 'none';
-    }
+  rows.forEach(row => {
+    const match = !term ||
+      row.dataset.name.includes(term) ||
+      row.dataset.mail.includes(term) ||
+      row.dataset.tel.includes(term);
+    row.classList.toggle('row-hidden', !match);
+    if (match) visible++;
   });
 
-  // Show or hide the "no results" message
-  const noResultsRow = document.querySelector('tbody tr td[colspan]');
-  if (noResultsRow) {
-    if (visibleCount === 0 && searchTerm.length > 0) {
-      noResultsRow.parentElement.style.display = '';
-    } else {
-      noResultsRow.parentElement.style.display = 'none';
-    }
-  }
-});
+  visibleCounter.textContent = visible;
+  clearBtn.classList.toggle('hidden', term === '');
+  noResults.classList.toggle('hidden', visible > 0 || rows.length === 0);
+}
 
-// Variables globales
-let currentDoctorId = null;
+searchInput.addEventListener('input', filterTable);
+clearBtn.addEventListener('click', () => { searchInput.value = ''; filterTable(); searchInput.focus(); });
 
+// ── Modal Patients ────────────────────────────────────────────────────────
 function viewDoctorPatients(doctorId, doctorName) {
-  currentDoctorId = doctorId;
-  const modal = document.getElementById('doctorPatientsModal');
-  const title = document.getElementById('doctorPatientsTitle');
-  const loadingSpinner = document.getElementById('loadingSpinnerPatients');
-  const modalContent = document.getElementById('doctorPatientsContent');
-  const noResultsMessage = document.getElementById('noResultsPatients');
+  const modal   = document.getElementById('doctorPatientsModal');
+  const spinner = document.getElementById('loadingSpinnerPatients');
+  const content = document.getElementById('doctorPatientsContent');
+  const empty   = document.getElementById('noResultsPatients');
 
   modal.classList.remove('hidden');
-  loadingSpinner.classList.remove('hidden');
-  modalContent.classList.add('hidden');
-  noResultsMessage.classList.add('hidden');
-  
-  title.textContent = `Patients - Dr. ${doctorName}`;
+  spinner.classList.remove('hidden');
+  content.classList.add('hidden');
+  empty.classList.add('hidden');
+  document.getElementById('doctorPatientsTitle').textContent = `Patients — Dr. ${doctorName}`;
 
   fetch(`index.php?page=admin&action=get_doctor_patients_ajax&doctor_id=${doctorId}`)
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
-      const patientsTableBody = document.getElementById('patientsTableBody');
-      
+      const tbody = document.getElementById('patientsTableBody');
       if (data.patients && data.patients.length > 0) {
-        patientsTableBody.innerHTML = data.patients.map(patient => `
-          <tr class="hover:bg-slate-50 transition-colors">
-            <td class="px-4 py-3">
+        tbody.innerHTML = data.patients.map(p => `
+          <tr class="hover:bg-blue-50/50 transition-colors">
+            <td class="px-4 py-3.5">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                  ${patient.prenom.charAt(0)}${patient.nom.charAt(0)}
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  ${p.prenom.charAt(0)}${p.nom.charAt(0)}
                 </div>
                 <div>
-                  <p class="font-bold text-slate-800">${patient.prenom} ${patient.nom}</p>
-                  <p class="text-xs text-slate-500">ID: #PAT-${String(patient.id_PK).padStart(4, '0')}</p>
+                  <p class="font-semibold text-slate-800 text-sm">${p.prenom} ${p.nom}</p>
+                  <p class="text-xs text-slate-400">#PAT-${String(p.id_PK).padStart(4,'0')}</p>
                 </div>
               </div>
             </td>
-            <td class="px-4 py-3">
-              <div class="text-sm">
-                <p class="text-slate-600">${patient.mail}</p>
-                <p class="text-xs text-slate-500">${patient.tel || 'N/A'}</p>
-              </div>
+            <td class="px-4 py-3.5 text-xs text-slate-600"><p>${p.mail}</p><p class="text-slate-400">${p.tel || 'N/A'}</p></td>
+            <td class="px-4 py-3.5 text-center">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">${p.nb_consultations}</span>
             </td>
-            <td class="px-4 py-3">
-              <span class="text-sm font-bold text-blue-600">${patient.nb_consultations}</span>
+            <td class="px-4 py-3.5 text-center">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-700 font-bold text-sm">${p.nb_ordonnances}</span>
             </td>
-            <td class="px-4 py-3">
-              <span class="text-sm text-slate-600">
-                ${patient.last_consultation ? new Date(patient.last_consultation).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Aucune'}
-              </span>
+            <td class="px-4 py-3.5 text-xs text-slate-600">
+              ${p.last_consultation ? new Date(p.last_consultation).toLocaleDateString('fr-FR', {year:'numeric',month:'short',day:'numeric'}) : '—'}
             </td>
-            <td class="px-4 py-3 text-center">
-              <button onclick="viewPatientDetails(${patient.id_PK}, '${patient.prenom} ${patient.nom}')" class="inline-flex items-center justify-center w-9 h-9 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">visibility</span>
-              </button>
-            </td>
-          </tr>
-        `).join('');
-        
-        modalContent.classList.remove('hidden');
+          </tr>`).join('');
+        content.classList.remove('hidden');
       } else {
-        noResultsMessage.classList.remove('hidden');
+        empty.classList.remove('hidden');
       }
-      
-      loadingSpinner.classList.add('hidden');
+      spinner.classList.add('hidden');
     })
-    .catch(error => {
-      console.error('Error:', error);
-      noResultsMessage.classList.remove('hidden');
-      loadingSpinner.classList.add('hidden');
-    });
+    .catch(() => { empty.classList.remove('hidden'); spinner.classList.add('hidden'); });
 }
 
 function closeDoctorPatientsModal() {
   document.getElementById('doctorPatientsModal').classList.add('hidden');
 }
-
-function viewPatientDetails(patientId, patientName) {
-  if (!currentDoctorId) return;
-
-  const modal = document.getElementById('patientDetailsModal');
-  const title = document.getElementById('patientDetailsTitle');
-  const loadingSpinner = document.getElementById('loadingSpinnerDetails');
-  const content = document.getElementById('detailsContent');
-
-  modal.classList.remove('hidden');
-  loadingSpinner.classList.remove('hidden');
-  content.classList.add('hidden');
-  
-  title.textContent = patientName;
-
-  fetch(`index.php?page=admin&action=doctor_patient_details_ajax&patient_id=${patientId}&doctor_id=${currentDoctorId}`)
-    .then(response => response.json())
-    .then(data => {
-      const consultationsContainer = document.getElementById('consultationsContainer');
-      if (data.consultations && data.consultations.length > 0) {
-        consultationsContainer.innerHTML = data.consultations.map(c => `
-          <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-600">
-            <div class="flex justify-between items-start mb-3">
-              <div>
-                <p class="font-bold text-slate-800">
-                  <span class="material-symbols-outlined text-sm align-middle mr-1">calendar_today</span>
-                  ${new Date(c.date_consultation).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </p>
-                <p class="text-sm text-slate-600 mt-1"><strong>Type:</strong> ${c.type_consultation}</p>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-bold ${c.statut === 'Complétée' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                ${c.statut}
-              </span>
-            </div>
-            <div class="space-y-2 text-sm">
-              ${c.diagnostic ? `<p><strong>Diagnostic:</strong> ${c.diagnostic}</p>` : ''}
-              ${c.compte_rendu ? `<p><strong>Compte Rendu:</strong> ${c.compte_rendu}</p>` : ''}
-              ${c.tension_arterielle ? `<p><strong>Tension Artérielle:</strong> ${c.tension_arterielle}</p>` : ''}
-              ${c.rythme_cardiaque ? `<p><strong>Rythme Cardiaque:</strong> ${c.rythme_cardiaque} bpm</p>` : ''}
-              ${c.poids ? `<p><strong>Poids:</strong> ${c.poids} kg</p>` : ''}
-              ${c.saturation_o2 ? `<p><strong>Saturation O2:</strong> ${c.saturation_o2}%</p>` : ''}
-            </div>
-          </div>
-        `).join('');
-      } else {
-        consultationsContainer.innerHTML = '<p class="text-slate-500 italic">Aucune consultation trouvée.</p>';
-      }
-
-      const prescriptionsContainer = document.getElementById('prescriptionsContainer');
-      if (data.prescriptions && data.prescriptions.length > 0) {
-        prescriptionsContainer.innerHTML = data.prescriptions.map(p => {
-          let medicaments = [];
-          try {
-            medicaments = JSON.parse(p.medicaments || '[]');
-          } catch (e) {
-            medicaments = [];
-          }
-          
-          return `
-            <div class="p-4 bg-green-50 rounded-lg border-l-4 border-green-600">
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <p class="font-bold text-slate-800">
-                    <span class="material-symbols-outlined text-sm align-middle mr-1">description</span>
-                    N° ${p.numero_ordonnance || 'N/A'}
-                  </p>
-                  <p class="text-sm text-slate-600 mt-1">
-                    <span class="material-symbols-outlined text-sm align-middle mr-1">event</span>
-                    ${new Date(p.date_emission).toLocaleDateString('fr-FR')}
-                  </p>
-                </div>
-                <span class="px-3 py-1 rounded-full text-xs font-bold ${
-                  p.statut === 'active' ? 'bg-green-100 text-green-800' : 
-                  p.statut === 'archivee' ? 'bg-gray-100 text-gray-800' : 
-                  'bg-red-100 text-red-800'
-                }">
-                  ${p.statut}
-                </span>
-              </div>
-              <div class="space-y-2 text-sm">
-                ${medicaments.length > 0 ? `
-                  <div>
-                    <strong>Médicaments:</strong>
-                    <ul class="ml-4 mt-1 space-y-1">
-                      ${medicaments.map(m => `<li class="text-slate-700">• ${m.nom || m.libelle || 'N/A'} - ${m.dosage || ''} ${m.quantite ? '(x' + m.quantite + ')' : ''}</li>`).join('')}
-                    </ul>
-                  </div>
-                ` : ''}
-                ${p.note_pharmacien ? `<p><strong>Note Pharmacien:</strong> ${p.note_pharmacien}</p>` : ''}
-              </div>
-            </div>
-          `;
-        }).join('');
-      } else {
-        prescriptionsContainer.innerHTML = '<p class="text-slate-500 italic">Aucune ordonnance trouvée.</p>';
-      }
-
-      loadingSpinner.classList.add('hidden');
-      content.classList.remove('hidden');
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      document.getElementById('consultationsContainer').innerHTML = '<p class="text-red-500">Erreur lors du chargement des données.</p>';
-      loadingSpinner.classList.add('hidden');
-      content.classList.remove('hidden');
-    });
-}
-
 function closePatientDetailsModal() {
   document.getElementById('patientDetailsModal').classList.add('hidden');
 }
 
-// Close modals on escape
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    closeDoctorPatientsModal();
-    closePatientDetailsModal();
-  }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeDoctorPatientsModal(); closePatientDetailsModal(); }
 });
-
-// Close modals when clicking outside
-document.getElementById('doctorPatientsModal')?.addEventListener('click', function(e) {
-  if (e.target === this) {
-    closeDoctorPatientsModal();
-  }
-});
-
-document.getElementById('patientDetailsModal')?.addEventListener('click', function(e) {
-  if (e.target === this) {
-    closePatientDetailsModal();
-  }
-});
+document.getElementById('doctorPatientsModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeDoctorPatientsModal(); });
+document.getElementById('patientDetailsModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closePatientDetailsModal(); });
 </script>
 
 </body>

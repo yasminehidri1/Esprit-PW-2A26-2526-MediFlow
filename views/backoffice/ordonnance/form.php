@@ -94,9 +94,9 @@ require __DIR__ . '/../layout/topbar.php';
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="field-label">Date d'émission</label>
-                    <input type="date" name="date_emission"
+                    <input type="text" name="date_emission"
                            value="<?= $mode === 'edit' ? htmlspecialchars($ordonnance['date_emission'] ?? '') : date('Y-m-d') ?>"
-                           class="field-input" required/>
+                           class="field-input" placeholder="AAAA-MM-JJ"/>
                 </div>
                 <?php if ($mode === 'edit'): ?>
                 <div>
@@ -150,7 +150,7 @@ require __DIR__ . '/../layout/topbar.php';
                             <label class="field-label">Nom du médicament *</label>
                             <input type="text" name="med_nom[]"
                                    value="<?= htmlspecialchars($med['nom'] ?? '') ?>"
-                                   placeholder="Ex: Amoxicilline" class="field-input" required/>
+                                   placeholder="Ex: Amoxicilline" class="field-input"/>
                         </div>
                         <div class="col-span-2 md:col-span-1">
                             <label class="field-label">Catégorie</label>
@@ -201,7 +201,7 @@ require __DIR__ . '/../layout/topbar.php';
                     <div class="grid grid-cols-2 gap-3">
                         <div class="col-span-2 md:col-span-1">
                             <label class="field-label">Nom du médicament *</label>
-                            <input type="text" name="med_nom[]" placeholder="Ex: Amoxicilline" class="field-input" required/>
+                            <input type="text" name="med_nom[]" placeholder="Ex: Amoxicilline" class="field-input"/>
                         </div>
                         <div class="col-span-2 md:col-span-1">
                             <label class="field-label">Catégorie</label>
@@ -373,7 +373,7 @@ function addMedCard() {
         <div class="grid grid-cols-2 gap-3">
             <div class="col-span-2 md:col-span-1">
                 <label class="field-label">Nom du médicament *</label>
-                <input type="text" name="med_nom[]" placeholder="Ex: Ibuprofène" class="field-input" required/>
+                <input type="text" name="med_nom[]" placeholder="Ex: Ibuprofène" class="field-input"/>
             </div>
             <div class="col-span-2 md:col-span-1">
                 <label class="field-label">Catégorie</label>

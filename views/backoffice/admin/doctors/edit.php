@@ -60,6 +60,18 @@ $activePage = 'admin';
 
     <!-- Form Card -->
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <?php if (!empty($validation_errors)): ?>
+      <div class="mx-6 mt-6 p-4 rounded-xl bg-red-50 border border-red-200">
+        <p class="font-bold text-red-700 mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">error</span>Erreurs de saisie
+        </p>
+        <ul class="text-sm text-red-600 list-disc list-inside space-y-1">
+          <?php foreach ($validation_errors as $msg): ?>
+          <li><?php echo htmlspecialchars($msg); ?></li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
+      <?php endif; ?>
       <form method="POST" class="p-6 lg:p-8 space-y-6" id="editDoctorForm" novalidate>
         <input type="hidden" name="id" value="<?php echo $doctor['id_PK']; ?>"/>
 
@@ -78,14 +90,14 @@ $activePage = 'admin';
               <!-- Nom -->
               <div>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Nom *</label>
-                <input type="text" name="nom" id="nom" value="<?php echo htmlspecialchars($doctor['nom'] ?? ''); ?>" required class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Ex: Dupont"/>
+                <input type="text" name="nom" id="nom" value="<?php echo htmlspecialchars($doctor['nom'] ?? ''); ?>" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Ex: Dupont"/>
                 <p class="text-xs text-red-500 mt-1 hidden" id="nomError"></p>
               </div>
 
               <!-- Prénom -->
               <div>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Prénom *</label>
-                <input type="text" name="prenom" id="prenom" value="<?php echo htmlspecialchars($doctor['prenom'] ?? ''); ?>" required class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Ex: Jean"/>
+                <input type="text" name="prenom" id="prenom" value="<?php echo htmlspecialchars($doctor['prenom'] ?? ''); ?>" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Ex: Jean"/>
                 <p class="text-xs text-red-500 mt-1 hidden" id="prenomError"></p>
               </div>
             </div>
@@ -104,14 +116,14 @@ $activePage = 'admin';
               <!-- Email -->
               <div>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Email *</label>
-                <input type="email" name="mail" id="mail" value="<?php echo htmlspecialchars($doctor['mail'] ?? ''); ?>" required class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Ex: jean@mediflow.com"/>
+                <input type="text" name="mail" id="mail" value="<?php echo htmlspecialchars($doctor['mail'] ?? ''); ?>" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Ex: jean@mediflow.com"/>
                 <p class="text-xs text-red-500 mt-1 hidden" id="mailError"></p>
               </div>
 
               <!-- Téléphone -->
               <div>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Téléphone</label>
-                <input type="tel" name="tel" id="tel" value="<?php echo htmlspecialchars($doctor['tel'] ?? ''); ?>" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Ex: +33 1 23 45 67 89"/>
+                <input type="text" name="tel" id="tel" value="<?php echo htmlspecialchars($doctor['tel'] ?? ''); ?>" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Ex: +33 1 23 45 67 89"/>
                 <p class="text-xs text-red-500 mt-1 hidden" id="telError"></p>
               </div>
             </div>

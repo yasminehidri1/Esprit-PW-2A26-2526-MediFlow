@@ -4,6 +4,7 @@
  * Uses PDO singleton pattern.
  */
 
+
 class Database {
     private static ?PDO $instance = null;
 

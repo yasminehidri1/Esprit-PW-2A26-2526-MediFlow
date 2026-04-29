@@ -76,9 +76,13 @@ class AdminModel {
     // ── Doctors ───────────────────────────────────────────────────
 
     /**
-     * Get all doctors with pagination.
+     * Get all doctors with pagination and sort.
      */
-    public function getAllDoctors(int $limit = 10, int $offset = 0): array {
+    public function getAllDoctors(int $limit = 10, int $offset = 0, string $sortBy = 'prenom', string $sortOrder = 'ASC'): array {
+        $allowed   = ['prenom', 'nom', 'mail', 'nb_patients', 'role_libelle'];
+        $sortBy    = in_array($sortBy, $allowed, true) ? $sortBy : 'prenom';
+        $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
+
         $sql = "
             SELECT u.id_PK, u.nom, u.prenom, u.mail, u.tel, u.adresse, u.id_role,
                    r.libelle AS role_libelle,
@@ -88,7 +92,7 @@ class AdminModel {
             LEFT JOIN consultation c ON c.id_medecin = u.id_PK
             WHERE r.libelle = 'Medecin'
             GROUP BY u.id_PK
-            ORDER BY u.prenom, u.nom
+            ORDER BY {$sortBy} {$sortOrder}
             LIMIT :lim OFFSET :off
         ";
         $stmt = $this->db->prepare($sql);
@@ -111,6 +115,56 @@ class AdminModel {
     }
 
     /**
+     * Get total count of patients.
+     */
+    public function getTotalPatients(): int {
+        $stmt = $this->db->query("
+            SELECT COUNT(DISTINCT u.id_PK) FROM utilisateurs u
+            JOIN roles r ON r.id_role = u.id_role
+            WHERE r.libelle = 'Patient'
+        ");
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Get consultation count per day for the last N days.
+     */
+    public function getConsultationsPerDay(int $days = 7): array {
+        $sql = "
+            SELECT DATE(date_consultation) AS day, COUNT(*) AS count
+            FROM consultation
+            WHERE date_consultation >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+            GROUP BY DATE(date_consultation)
+            ORDER BY day ASC
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':days', $days, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get top doctors by patient count.
+     */
+    public function getTopDoctors(int $limit = 5): array {
+        $sql = "
+            SELECT u.id_PK, u.nom, u.prenom,
+                   COALESCE(COUNT(DISTINCT c.id_patient), 0) AS nb_patients
+            FROM utilisateurs u
+            LEFT JOIN roles r ON r.id_role = u.id_role
+            LEFT JOIN consultation c ON c.id_medecin = u.id_PK
+            WHERE r.libelle = 'Medecin'
+            GROUP BY u.id_PK
+            ORDER BY nb_patients DESC
+            LIMIT :lim
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Get featured staff/personnel for dashboard (limited) - all staff, not just doctors.
      */
     public function getFeaturedStaff(int $limit = 3): array {
@@ -130,6 +184,79 @@ class AdminModel {
         $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    /**
+     * Breakdown of consultations by type (Urgence / Suivi / Contrôle / Standard).
+     */
+    public function getConsultationsByType(): array {
+        $stmt = $this->db->query("
+            SELECT
+                CASE
+                    WHEN LOWER(type_consultation) LIKE '%urgent%' THEN 'Urgence'
+                    WHEN LOWER(type_consultation) LIKE '%suivi%'  THEN 'Suivi'
+                    WHEN LOWER(type_consultation) LIKE '%annuel%'
+                      OR LOWER(type_consultation) LIKE '%contrôle%'
+                      OR LOWER(type_consultation) LIKE '%controle%' THEN 'Contrôle'
+                    ELSE 'Standard'
+                END AS type_label,
+                COUNT(*) AS count
+            FROM consultation
+            GROUP BY type_label
+            ORDER BY count DESC
+        ");
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Breakdown of prescriptions by status (active / archivee / annulee).
+     */
+    public function getPrescriptionsByStatus(): array {
+        $stmt = $this->db->query("
+            SELECT statut, COUNT(*) AS count
+            FROM ordonnance
+            GROUP BY statut
+            ORDER BY count DESC
+        ");
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Compare consultations: this week vs last week.
+     */
+    public function getWeeklyComparison(): array {
+        $stmt = $this->db->query("
+            SELECT
+                SUM(CASE WHEN date_consultation >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)  THEN 1 ELSE 0 END) AS cette_semaine,
+                SUM(CASE WHEN date_consultation >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+                          AND date_consultation <  DATE_SUB(CURDATE(), INTERVAL 7 DAY)  THEN 1 ELSE 0 END) AS semaine_passee
+            FROM consultation
+        ");
+        $row = $stmt->fetch();
+        $curr = (int)($row['cette_semaine']  ?? 0);
+        $prev = (int)($row['semaine_passee'] ?? 0);
+        $diff  = $curr - $prev;
+        $trend = $prev > 0 ? round(($diff / $prev) * 100) : ($curr > 0 ? 100 : 0);
+        return [
+            'cette_semaine'  => $curr,
+            'semaine_passee' => $prev,
+            'diff'           => $diff,
+            'trend_pct'      => $trend,
+        ];
+    }
+
+    /**
+     * Count consultations completed (with compte_rendu) vs pending.
+     */
+    public function getConsultationCompletion(): array {
+        $stmt = $this->db->query("
+            SELECT
+                SUM(CASE WHEN compte_rendu IS NOT NULL AND compte_rendu != '' THEN 1 ELSE 0 END) AS completees,
+                SUM(CASE WHEN compte_rendu IS     NULL OR  compte_rendu  = ''  THEN 1 ELSE 0 END) AS en_attente,
+                COUNT(*) AS total
+            FROM consultation
+        ");
+        return $stmt->fetch() ?: ['completees' => 0, 'en_attente' => 0, 'total' => 0];
     }
 
     // ── Consultations ─────────────────────────────────────────────
@@ -368,18 +495,20 @@ class AdminModel {
     // ── Doctor's Patient Management ───────────────────────────────
 
     /**
-     * Get all patients treated by a specific doctor.
+     * Get all patients treated by a specific doctor with consultation and prescription counts.
      */
     public function getPatientsByDoctor(int $doctorId): array {
         $sql = "
             SELECT DISTINCT
                    u.id_PK, u.nom, u.prenom, u.mail, u.tel, u.adresse,
-                   COALESCE(COUNT(c.id_consultation), 0) AS nb_consultations,
+                   COALESCE(COUNT(DISTINCT c.id_consultation), 0) AS nb_consultations,
+                   COALESCE(SUM(CASE WHEN o.id_ordonnance IS NOT NULL THEN 1 ELSE 0 END), 0) AS nb_ordonnances,
                    MAX(c.date_consultation) AS last_consultation
             FROM utilisateurs u
             INNER JOIN consultation c ON c.id_patient = u.id_PK
+            LEFT JOIN ordonnance o ON o.id_consultation = c.id_consultation
             WHERE c.id_medecin = :doctor_id AND u.id_role = 7
-            GROUP BY u.id_PK
+            GROUP BY u.id_PK, u.nom, u.prenom, u.mail, u.tel, u.adresse
             ORDER BY u.prenom, u.nom
         ";
         $stmt = $this->db->prepare($sql);

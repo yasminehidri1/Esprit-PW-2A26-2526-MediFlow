@@ -67,7 +67,7 @@ require __DIR__ . '/../layout/topbar.php';
             </h2>
 
             <!-- Hidden input that gets set when a card is clicked -->
-            <input type="hidden" name="id_patient" id="selected-patient-id" required/>
+            <input type="hidden" name="id_patient" id="selected-patient-id"/>
             <div id="patient-select-error" class="hidden text-xs text-error font-semibold mb-3 flex items-center gap-1">
                 <span class="material-symbols-outlined text-sm">error</span>
                 Veuillez sélectionner un patient.
@@ -125,12 +125,12 @@ require __DIR__ . '/../layout/topbar.php';
                 <div>
                     <label class="field-label">Date & heure *</label>
                     <input type="datetime-local" name="date_consultation" id="f-date"
-                           value="<?= date('Y-m-d\TH:i') ?>" class="field-input" required/>
+                           value="<?= date('Y-m-d\TH:i') ?>" class="field-input"/>
                     <span class="field-error">Champ requis.</span>
                 </div>
                 <div>
                     <label class="field-label">Type de consultation *</label>
-                    <select name="type_consultation" id="f-type" class="field-input" required>
+                    <select name="type_consultation" id="f-type" class="field-input">
                         <option value="">-- Choisir --</option>
                         <option>Contrôle annuel</option>
                         <option>Bilan Annuel</option>
@@ -149,8 +149,7 @@ require __DIR__ . '/../layout/topbar.php';
                 <input type="text" name="diagnostic" id="f-diagnostic"
                        class="field-input"
                        placeholder="Ex : Hypertension Artérielle"
-                       data-validate="text-only"
-                       maxlength="150"/>
+                       data-validate="text-only"/>
                 <span class="field-error">Lettres, espaces, tirets et apostrophes uniquement.</span>
             </div>
             <div class="mt-4">
@@ -171,28 +170,27 @@ require __DIR__ . '/../layout/topbar.php';
                     <label class="field-label">Tension artérielle</label>
                     <input type="text" name="tension_arterielle" id="f-tension"
                            class="field-input" placeholder="Ex : 12/8"
-                           data-validate="tension"
-                           maxlength="10"/>
+                           data-validate="tension"/>
                     <span class="field-error">Format attendu : chiffres/chiffres (ex: 12/8).</span>
                 </div>
                 <div>
                     <label class="field-label">Rythme cardiaque (bpm)</label>
-                    <input type="number" name="rythme_cardiaque" id="f-rythme"
-                           class="field-input" placeholder="72" min="30" max="300"
+                    <input type="text" name="rythme_cardiaque" id="f-rythme"
+                           class="field-input" placeholder="72"
                            data-validate="number-range" data-min="30" data-max="300"/>
                     <span class="field-error">Valeur attendue entre 30 et 300.</span>
                 </div>
                 <div>
                     <label class="field-label">Poids (kg)</label>
-                    <input type="number" step="0.1" name="poids" id="f-poids"
-                           class="field-input" placeholder="75.5" min="1" max="300"
+                    <input type="text" name="poids" id="f-poids"
+                           class="field-input" placeholder="75.5"
                            data-validate="number-range" data-min="1" data-max="300"/>
                     <span class="field-error">Valeur attendue entre 1 et 300 kg.</span>
                 </div>
                 <div>
                     <label class="field-label">Saturation O² (%)</label>
-                    <input type="number" name="saturation_o2" id="f-sato2"
-                           class="field-input" placeholder="98" min="50" max="100"
+                    <input type="text" name="saturation_o2" id="f-sato2"
+                           class="field-input" placeholder="98"
                            data-validate="number-range" data-min="50" data-max="100"/>
                     <span class="field-error">Valeur attendue entre 50 et 100 %.</span>
                 </div>
@@ -362,8 +360,8 @@ function addAntRow() {
     document.getElementById('ant-rows').insertAdjacentHTML('beforeend', `
         <div class="ant-row grid grid-cols-12 gap-2 items-center">
             <div class="col-span-2">
-                <input type="number" name="ant_annee[]" placeholder="Année"
-                       class="field-input text-xs" min="1900" max="2099" oninput="validateField(this)"/>
+                <input type="text" name="ant_annee[]" placeholder="Année"
+                       class="field-input text-xs" oninput="validateField(this)"/>
                 <span class="field-error"></span>
             </div>
             <div class="col-span-4">

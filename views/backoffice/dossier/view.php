@@ -385,7 +385,7 @@ require __DIR__ . '/../layout/topbar.php';
                     <label class="field-label">Date de consultation *</label>
                     <input type="datetime-local" name="date_consultation" id="modal-date-consult"
                            value="<?= date('Y-m-d\TH:i') ?>"
-                           class="field-input" required/>
+                           class="field-input"/>
                     <div id="error-date-consult" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">error</span>
                         <span id="error-date-text"></span>
@@ -397,7 +397,7 @@ require __DIR__ . '/../layout/topbar.php';
                 </div>
                 <div>
                     <label class="field-label">Type de consultation *</label>
-                    <select name="type_consultation" id="modal-type-consult" class="field-input" required>
+                    <select name="type_consultation" id="modal-type-consult" class="field-input">
                         <option value="">-- Choisir --</option>
                         <option>Contrôle annuel</option>
                         <option>Bilan Annuel</option>
@@ -422,7 +422,7 @@ require __DIR__ . '/../layout/topbar.php';
             <div>
                 <label class="field-label">Diagnostic</label>
                 <input type="text" name="diagnostic" id="modal-diagnostic" class="field-input" 
-                       placeholder="Ex: Hypertension Artérielle" maxlength="150"/>
+                       placeholder="Ex: Hypertension Artérielle"/>
                 <div id="error-diagnostic" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">error</span>
                     <span id="error-diagnostic-text"></span>
@@ -435,7 +435,7 @@ require __DIR__ . '/../layout/topbar.php';
             <div>
                 <label class="field-label">Compte-rendu</label>
                 <textarea name="compte_rendu" id="modal-compte-rendu" rows="3" class="field-input resize-none"
-                          placeholder="Observations cliniques..." maxlength="5000"></textarea>
+                          placeholder="Observations cliniques..."></textarea>
                 <div id="error-compte-rendu" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">error</span>
                     <span id="error-compte-text"></span>
@@ -455,7 +455,7 @@ require __DIR__ . '/../layout/topbar.php';
                     <div>
                         <label class="field-label">Tension artérielle</label>
                         <input type="text" name="tension_arterielle" id="modal-tension" class="field-input" 
-                               placeholder="120/80" maxlength="10"/>
+                               placeholder="120/80"/>
                         <div id="error-tension" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">error</span>
                             <span id="error-tension-text"></span>
@@ -467,8 +467,8 @@ require __DIR__ . '/../layout/topbar.php';
                     </div>
                     <div>
                         <label class="field-label">Rythme cardiaque (bpm)</label>
-                        <input type="number" name="rythme_cardiaque" id="modal-rythme" class="field-input" 
-                               placeholder="72" min="30" max="300"/>
+                        <input type="text" name="rythme_cardiaque" id="modal-rythme" class="field-input"
+                               placeholder="72"/>
                         <div id="error-rythme" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">error</span>
                             <span id="error-rythme-text"></span>
@@ -480,7 +480,7 @@ require __DIR__ . '/../layout/topbar.php';
                     </div>
                     <div>
                         <label class="field-label">Poids (kg)</label>
-                        <input type="number" step="0.1" name="poids" id="modal-poids" class="field-input" 
+                        <input type="text" name="poids" id="modal-poids" class="field-input"
                                placeholder="75.5"/>
                         <div id="error-poids" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">error</span>
@@ -493,8 +493,8 @@ require __DIR__ . '/../layout/topbar.php';
                     </div>
                     <div>
                         <label class="field-label">Saturation O² (%)</label>
-                        <input type="number" name="saturation_o2" id="modal-saturation" class="field-input" 
-                               placeholder="98" min="0" max="100"/>
+                        <input type="text" name="saturation_o2" id="modal-saturation" class="field-input"
+                               placeholder="98"/>
                         <div id="error-saturation" class="hidden text-xs text-error font-semibold mt-1 flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">error</span>
                             <span id="error-saturation-text"></span>
