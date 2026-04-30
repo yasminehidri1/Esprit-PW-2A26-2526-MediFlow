@@ -341,6 +341,122 @@ class App
             return;
         }
 
+        // ── Dossier Médical — Medecin routes ────────────────────────────────
+
+        // Admin subdomain (more specific, must come before generic /dossier/admin)
+        if (preg_match('#^/dossier/admin/doctors/patients(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->viewDoctorPatients();
+            return;
+        }
+        if (preg_match('#^/dossier/admin/doctors/patients/api(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->getDoctorPatientsAjax();
+            return;
+        }
+        if (preg_match('#^/dossier/admin/doctors/edit(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->editDoctor();
+            return;
+        }
+        if (preg_match('#^/dossier/admin/doctors/delete(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->deleteDoctor();
+            return;
+        }
+        if (preg_match('#^/dossier/admin/doctors(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->doctorsList();
+            return;
+        }
+        if (preg_match('#^/dossier/admin/consultations/view(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->viewConsultation();
+            return;
+        }
+        if (preg_match('#^/dossier/admin/consultations(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->listConsultations();
+            return;
+        }
+        if (preg_match('#^/dossier/admin/ordonnances/view(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->viewOrdonnance();
+            return;
+        }
+        if (preg_match('#^/dossier/admin/ordonnances(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->listOrdonnances();
+            return;
+        }
+        if (preg_match('#^/dossier/admin(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->dashboard();
+            return;
+        }
+
+        // Patient's own dossier
+        if (preg_match('#^/dossier/patient/update-profile(?:/|$)#', $path)) {
+            (new \Controllers\PatientDossierController())->updateProfile();
+            return;
+        }
+        if (preg_match('#^/dossier/patient/request-prescription(?:/|$)#', $path)) {
+            (new \Controllers\PatientDossierController())->requestPrescription();
+            return;
+        }
+        if (preg_match('#^/dossier/patient(?:/|$)#', $path)) {
+            (new \Controllers\PatientDossierController())->dashboard();
+            return;
+        }
+
+        // Ordonnances (Medecin)
+        if (preg_match('#^/dossier/ordonnance/add(?:/|$)#', $path)) {
+            (new \Controllers\OrdonnanceController())->add();
+            return;
+        }
+        if (preg_match('#^/dossier/ordonnance/edit(?:/|$)#', $path)) {
+            (new \Controllers\OrdonnanceController())->edit();
+            return;
+        }
+        if (preg_match('#^/dossier/ordonnance/delete(?:/|$)#', $path)) {
+            (new \Controllers\OrdonnanceController())->delete();
+            return;
+        }
+        if (preg_match('#^/dossier/ordonnance/view(?:/|$)#', $path)) {
+            (new \Controllers\OrdonnanceController())->view();
+            return;
+        }
+        if (preg_match('#^/dossier/ordonnances(?:/|$)#', $path)) {
+            (new \Controllers\OrdonnanceController())->listAll();
+            return;
+        }
+
+        // Demandes (Medecin)
+        if (preg_match('#^/dossier/demandes/statut(?:/|$)#', $path)) {
+            (new \Controllers\DemandeController())->updateStatut();
+            return;
+        }
+        if (preg_match('#^/dossier/demandes(?:/|$)#', $path)) {
+            (new \Controllers\DemandeController())->listDemandes();
+            return;
+        }
+
+        // Consultation CRUD (Medecin)
+        if (preg_match('#^/dossier/consultation/edit(?:/|$)#', $path)) {
+            (new \Controllers\DossierController())->editConsultation();
+            return;
+        }
+        if (preg_match('#^/dossier/consultation/delete(?:/|$)#', $path)) {
+            (new \Controllers\DossierController())->deleteConsultation();
+            return;
+        }
+        if (preg_match('#^/dossier/nouvelle-consultation(?:/|$)#', $path)) {
+            (new \Controllers\DossierController())->nouvelleConsultation();
+            return;
+        }
+
+        // Dossier view (patient detail)
+        if (preg_match('#^/dossier/view(?:/|$)#', $path)) {
+            (new \Controllers\DossierController())->viewDossier();
+            return;
+        }
+
+        // Patient list (Medecin)
+        if (preg_match('#^/dossier/patients(?:/|$)#', $path)) {
+            (new \Controllers\DossierController())->listPatients();
+            return;
+        }
+
         // ── Default: Landing page ────────────────────────────────────────────
         (new \Controllers\LandingController())->index();
     }

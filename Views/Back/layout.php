@@ -401,7 +401,78 @@ function groupOpen(string $prefix, string $currentPath): string {
         </details>
         <?php endif; ?>
 
+        <!-- ── Dossier Médical — Admin ── -->
+        <?php if (in_array($role, ['Admin', 'Administrateur'])): ?>
+        <details class="nav-group" <?= groupOpen('/integration/dossier/admin', $currentPath) ?>>
+            <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
+                <span class="material-symbols-outlined text-xl">folder_shared</span>
+                <span class="flex-1">Dossier Médical</span>
+                <span class="material-symbols-outlined text-base chevron">chevron_right</span>
+            </summary>
+            <div class="mt-1 ml-4 pl-3 border-l-2 border-tertiary-fixed space-y-0.5">
+                <a href="/integration/dossier/admin"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/dossier/admin', $currentPath, []) ?>">
+                    <span class="material-symbols-outlined text-base">dashboard</span>
+                    <span>Tableau de bord</span>
+                </a>
+                <a href="/integration/dossier/admin/doctors"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/dossier/admin/doctors', $currentPath, ['/integration/dossier/admin/doctors/edit','/integration/dossier/admin/doctors/patients']) ?>">
+                    <span class="material-symbols-outlined text-base">group</span>
+                    <span>Médecins</span>
+                </a>
+                <a href="/integration/dossier/admin/consultations"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/dossier/admin/consultations', $currentPath, ['/integration/dossier/admin/consultations/view']) ?>">
+                    <span class="material-symbols-outlined text-base">event_note</span>
+                    <span>Consultations</span>
+                </a>
+                <a href="/integration/dossier/admin/ordonnances"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/dossier/admin/ordonnances', $currentPath, ['/integration/dossier/admin/ordonnances/view']) ?>">
+                    <span class="material-symbols-outlined text-base">receipt_long</span>
+                    <span>Ordonnances</span>
+                </a>
+            </div>
+        </details>
+        <?php endif; ?>
+
+        <!-- ── Dossier Médical — Médecin ── -->
+        <?php if (in_array($role, ['Medecin'])): ?>
+        <details class="nav-group" <?= groupOpen('/integration/dossier', $currentPath) ?>>
+            <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
+                <span class="material-symbols-outlined text-xl">stethoscope</span>
+                <span class="flex-1">Dossier Médical</span>
+                <span class="material-symbols-outlined text-base chevron">chevron_right</span>
+            </summary>
+            <div class="mt-1 ml-4 pl-3 border-l-2 border-tertiary-fixed space-y-0.5">
+                <a href="/integration/dossier/patients"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/dossier/patients', $currentPath, ['/integration/dossier/view','/integration/dossier/nouvelle-consultation','/integration/dossier/consultation']) ?>">
+                    <span class="material-symbols-outlined text-base">groups</span>
+                    <span>Mes Patients</span>
+                </a>
+                <a href="/integration/dossier/ordonnances"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/dossier/ordonnances', $currentPath, ['/integration/dossier/ordonnance']) ?>">
+                    <span class="material-symbols-outlined text-base">receipt_long</span>
+                    <span>Ordonnances</span>
+                </a>
+                <a href="/integration/dossier/demandes"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/dossier/demandes', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">inbox</span>
+                    <span>Demandes</span>
+                </a>
+            </div>
+        </details>
+        <?php endif; ?>
+
+        <!-- ── Mon Dossier — Patient ── -->
+        <?php if (in_array($role, ['Patient'])): ?>
+        <a href="/integration/dossier/patient"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 <?= sidebarLink('/integration/dossier/patient', $currentPath) ?>">
+            <span class="material-symbols-outlined text-xl">folder_open</span>
+            <span>Mon Dossier Médical</span>
+        </a>
+        <?php endif; ?>
+
     </nav><!-- /nav -->
+
 
     <!-- User + logout -->
     <div class="flex-shrink-0 border-t border-outline-variant/30 p-4 space-y-1">

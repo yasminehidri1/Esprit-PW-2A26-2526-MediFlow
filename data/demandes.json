@@ -1,0 +1,42 @@
+[
+    {
+        "id_demande": 1,
+        "id_patient": 1,
+        "id_medecin": 2,
+        "description": "wfeeekhgub",
+        "statut": "traitee",
+        "created_at": "2026-04-21 21:34:16"
+    },
+    {
+        "id_demande": 2,
+        "id_patient": 1,
+        "id_medecin": 2,
+        "description": "[NORMALE] hhhhhhhhhh",
+        "statut": "refusee",
+        "created_at": "2026-04-23 13:54:27"
+    },
+    {
+        "id_demande": 3,
+        "id_patient": 1,
+        "id_medecin": 2,
+        "description": "[NORMALE] aaaaaaaaaa",
+        "statut": "traitee",
+        "created_at": "2026-04-23 15:08:15"
+    },
+    {
+        "id_demande": 4,
+        "id_patient": 1,
+        "id_medecin": 2,
+        "description": "[NORMALE] hjjjjjjjjjh",
+        "statut": "en_attente",
+        "created_at": "2026-04-23 16:46:22"
+    },
+    {
+        "id_demande": 5,
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "Bellaih aman",
+        "statut": "en_attente",
+        "created_at": "2026-04-30 13:40:43"
+    }
+]
