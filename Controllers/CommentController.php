@@ -294,7 +294,7 @@ class CommentController
     {
         $this->requireAuth();
         $role = $_SESSION['user']['role'] ?? '';
-        if (!in_array($role, ['Admin', 'Magazine'])) {
+        if (!in_array($role, ['Admin', 'redacteur'])) {
             http_response_code(403);
             die('Accès refusé. Cette section est réservée aux éditeurs du magazine.');
         }

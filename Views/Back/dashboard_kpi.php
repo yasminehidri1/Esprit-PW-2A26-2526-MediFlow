@@ -194,7 +194,7 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
   </a>
 </section>
 
-<?php elseif ($role === 'Equipment'): ?>
+<?php elseif ($role === 'Technicien'): ?>
 <!-- ═══════════════ EQUIPMENT MANAGER ═══════════════ -->
 <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
   <?php
@@ -261,7 +261,7 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
   </div>
 </section>
 
-<?php elseif ($role === 'Magazine'): ?>
+<?php elseif ($role === 'redacteur'): ?>
 <!-- ═══════════════ MAGAZINE EDITOR ═══════════════ -->
 <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
   <?php

@@ -56,6 +56,7 @@ class AdminController
             'edit' => $this->edit(),
             'update' => $this->update(),
             'delete' => $this->delete(),
+            'toggle_status' => $this->toggleStatus(),
             default => $this->list()
         };
     }
@@ -69,11 +70,30 @@ class AdminController
     {
         try {
             $search = trim($_GET['search'] ?? '');
-            $roleFilter = isset($_GET['role']) ? (int)$_GET['role'] : null;
+            $roleFilter = isset($_GET['role']) && $_GET['role'] !== '' ? (int)$_GET['role'] : null;
+            
+            // Pagination settings
+            $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+            $limit = 5; // Users per page
+            $offset = ($page - 1) * $limit;
+            
+            $totalUsers = $this->userModel->countSearchAndFilterUsers(
+                $search ?: null,
+                $roleFilter
+            );
+            
+            $totalPages = ceil($totalUsers / $limit);
+            // Adjust page if it exceeds total pages
+            if ($page > $totalPages && $totalPages > 0) {
+                $page = $totalPages;
+                $offset = ($page - 1) * $limit;
+            }
             
             $users = $this->userModel->searchAndFilterUsers(
                 $search ?: null,
-                ($roleFilter && $roleFilter > 0) ? $roleFilter : null
+                $roleFilter,
+                $limit,
+                $offset
             );
             
             $roles = $this->userModel->getAllRoles();
@@ -83,6 +103,12 @@ class AdminController
                 'roles' => $roles,
                 'search' => $search,
                 'roleFilter' => $roleFilter,
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'totalUsers' => $totalUsers,
+                    'totalPages' => $totalPages
+                ],
                 'message' => $_SESSION['message'] ?? null,
                 'error' => $_SESSION['error'] ?? null
             ];
@@ -286,6 +312,47 @@ class AdminController
             $_SESSION['error'] = 'Erreur lors de la suppression de l\'utilisateur.';
         }
 
+        header('Location: /integration/admin');
+        exit;
+    }
+
+    /**
+     * Toggle user status (suspend/unsuspend)
+     * 
+     * @return void
+     */
+    private function toggleStatus(): void
+    {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        
+        if ($id === 0) {
+            $_SESSION['error'] = 'ID utilisateur invalide.';
+            header('Location: /integration/admin');
+            exit;
+        }
+
+        // Prevent suspending oneself
+        if ($id === (int)$_SESSION['user']['id']) {
+            $_SESSION['error'] = 'Vous ne pouvez pas modifier votre propre statut.';
+            header('Location: /integration/admin');
+            exit;
+        }
+
+        $user = $this->userModel->getUserById($id);
+        if (!$user) {
+            $_SESSION['error'] = 'Utilisateur non trouvé.';
+            header('Location: /integration/admin');
+            exit;
+        }
+
+        $newStatus = ($user['status'] === 'suspended') ? 'active' : 'suspended';
+
+        if ($this->userModel->updateUserStatus($id, $newStatus)) {
+            $_SESSION['message'] = $newStatus === 'active' ? 'Utilisateur réactivé avec succès.' : 'Utilisateur suspendu avec succès.';
+        } else {
+            $_SESSION['error'] = 'Erreur lors de la modification du statut de l\'utilisateur.';
+        }
+        
         header('Location: /integration/admin');
         exit;
     }

@@ -281,6 +281,58 @@ function toggleLoginPwd() {
     inp.type = inp.type === 'password' ? 'text' : 'password';
     eye.textContent = inp.type === 'password' ? 'visibility' : 'visibility_off';
 }
+
+// Cookie Consent Logic
+document.addEventListener('DOMContentLoaded', () => {
+    const banner = document.getElementById('cookie-banner');
+    const consent = localStorage.getItem('mediflow_cookie_consent');
+    
+    if (!consent) {
+        // Show banner after a slight delay for smooth entry
+        setTimeout(() => {
+            banner.style.display = 'flex';
+            // Trigger animation
+            requestAnimationFrame(() => {
+                banner.classList.remove('translate-y-full');
+            });
+        }, 800);
+    }
+});
+
+function handleCookieConsent(action) {
+    const banner = document.getElementById('cookie-banner');
+    localStorage.setItem('mediflow_cookie_consent', action);
+    
+    // Animate out
+    banner.classList.add('translate-y-full');
+    setTimeout(() => {
+        banner.style.display = 'none';
+    }, 500);
+}
 </script>
+
+<!-- Cookie Consent Banner -->
+<div id="cookie-banner" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-50 transform translate-y-full transition-transform duration-500 ease-out p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-outline-variant/30" style="display: none;">
+    <div class="flex-1 flex items-start gap-5 max-w-4xl">
+        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+            <span class="material-symbols-outlined text-primary text-2xl">cookie</span>
+        </div>
+        <div>
+            <h3 class="font-headline text-lg font-bold text-on-surface mb-2">Nous respectons votre vie privée</h3>
+            <p class="text-sm text-on-surface-variant leading-relaxed">
+                MediFlow utilise des cookies pour améliorer votre expérience de navigation, analyser le trafic du site et personnaliser le contenu. En cliquant sur "Accepter", vous consentez à l'utilisation de tous les cookies. Vous pouvez également refuser les cookies non essentiels.
+            </p>
+        </div>
+    </div>
+    <div class="flex items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
+        <button onclick="handleCookieConsent('reject')" class="flex-1 md:flex-none px-6 py-3 rounded-xl border-2 border-outline-variant/50 text-on-surface font-semibold hover:bg-surface-container transition-all text-sm whitespace-nowrap">
+            Refuser
+        </button>
+        <button onclick="handleCookieConsent('accept')" class="flex-1 md:flex-none px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-container text-on-primary hover:shadow-lg font-semibold transition-all transform hover:-translate-y-0.5 text-sm whitespace-nowrap">
+            Accepter les cookies
+        </button>
+    </div>
+</div>
+
 </body>
 </html>

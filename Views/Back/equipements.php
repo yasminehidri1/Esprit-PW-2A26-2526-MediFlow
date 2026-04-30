@@ -124,6 +124,20 @@ function getImgUrl($eq) {
 .modal-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:10px;display:block;}
 </style>
 
+    <!-- Page Header -->
+    <section class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <h2 class="text-4xl font-extrabold text-on-surface font-headline tracking-tight mb-2">Équipements</h2>
+            <p class="text-secondary font-body max-w-md">Gérez l'inventaire des équipements médicaux et leur disponibilité.</p>
+        </div>
+        <div class="flex gap-3 flex-wrap">
+            <button onclick="ouvrirModaleAjout()" class="flex items-center gap-2 bg-primary px-4 py-2 rounded-xl text-sm font-bold text-white hover:bg-primary/90 transition-colors shadow-sm hover-lift">
+                <span class="material-symbols-outlined text-lg">add</span>
+                <span>Nouvel Équipement</span>
+            </button>
+        </div>
+    </section>
+
     <!-- Stats -->
     <div class="stats-row">
       <div class="stat-mini">

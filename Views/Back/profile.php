@@ -10,7 +10,7 @@ $errors = $errors ?? [];
 // Determine "back" destination per role
 $backUrl = match($role) {
     'Patient'          => '/integration/catalogue',
-    'Equipment'        => '/integration/equipements',
+    'Technicien'       => '/integration/equipements',
     'Admin'            => '/integration/dashboard',
     default            => '/integration/dashboard',
 };

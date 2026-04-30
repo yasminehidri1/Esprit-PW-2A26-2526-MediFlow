@@ -19,6 +19,7 @@ class Autoloader
      */
     public static function register(): void
     {
+        // PSR-4 namespaced classes (Core\, Controllers\, Models\)
         spl_autoload_register(function ($class) {
             $prefixes = [
                 'Core\\' => __DIR__ . DIRECTORY_SEPARATOR,
@@ -39,6 +40,29 @@ class Autoloader
                 }
 
                 return;
+            }
+        });
+
+        // Fallback: load non-namespaced classes from Controllers/ and Models/
+        // (e.g. Product, Order, ProductController, OrderController, config)
+        spl_autoload_register(function ($class) {
+            // Skip namespaced classes — already handled above
+            if (strpos($class, '\\') !== false) {
+                return;
+            }
+
+            $searchDirs = [
+                __DIR__ . '/../Models/',
+                __DIR__ . '/../Controllers/',
+                __DIR__ . '/../',
+            ];
+
+            foreach ($searchDirs as $dir) {
+                $file = $dir . $class . '.php';
+                if (file_exists($file)) {
+                    require_once $file;
+                    return;
+                }
             }
         });
     }

@@ -109,14 +109,24 @@
    Navigation helpers
    ────────────────────────────────────────────── */
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-$role        = $_SESSION['user']['role'] ?? '';
+$role        = trim($_SESSION['user']['role'] ?? '');
 $userName    = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? 'User'));
 $userInitial = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1));
 
 /* Returns Tailwind classes for a sidebar link */
-function sidebarLink(string $href, string $currentPath): string {
-    $active = rtrim($currentPath, '/') === rtrim($href, '/')
-           || (strlen($href) > 20 && str_starts_with(rtrim($currentPath, '/'), rtrim($href, '/')));
+function sidebarLink(string $href, string $currentPath, array $excludes = []): string {
+    $currentPathClean = rtrim($currentPath, '/');
+    $hrefClean = rtrim($href, '/');
+
+    foreach ($excludes as $exclude) {
+        if ($currentPathClean === rtrim($exclude, '/') || str_starts_with($currentPathClean, rtrim($exclude, '/') . '/')) {
+            return 'text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary';
+        }
+    }
+
+    $active = $currentPathClean === $hrefClean
+           || (strlen($hrefClean) > 20 && str_starts_with($currentPathClean, $hrefClean . '/'));
+           
     return $active ? 'nav-link-active' : 'text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary';
 }
 
@@ -169,7 +179,7 @@ function groupOpen(string $prefix, string $currentPath): string {
                     <span>All Users</span>
                 </a>
                 <a href="/integration/admin?action=create"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary">
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/admin?action=create', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">person_add</span>
                     <span>Add User</span>
                 </a>
@@ -194,7 +204,7 @@ function groupOpen(string $prefix, string $currentPath): string {
         <?php endif; ?>
 
         <!-- ── Magazine (Admin + Magazine) ── -->
-        <?php if (in_array($role, ['Admin', 'Magazine'])): ?>
+        <?php if (in_array($role, ['Admin', 'redacteur'])): ?>
         <details class="nav-group" <?= groupOpen('/integration/magazine/admin', $currentPath) ?>>
             <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
                 <span class="material-symbols-outlined text-xl">newspaper</span>
@@ -218,7 +228,7 @@ function groupOpen(string $prefix, string $currentPath): string {
                     <span>Comments</span>
                 </a>
                 <a href="/integration/magazine/admin/article-form"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary">
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/magazine/admin/article-form', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">add_circle</span>
                     <span>New Article</span>
                 </a>
@@ -232,7 +242,7 @@ function groupOpen(string $prefix, string $currentPath): string {
         <?php endif; ?>
 
         <!-- ── Equipment (Admin + Equipment) ── -->
-        <?php if (in_array($role, ['Admin', 'Equipment'])): ?>
+        <?php if (in_array($role, ['Admin', 'Technicien'])): ?>
         <details class="nav-group" <?= groupOpen('/integration/equipements', $currentPath) || groupOpen('/integration/historique', $currentPath) ? 'open' : '' ?>>
             <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
                 <span class="material-symbols-outlined text-xl">medical_services</span>
@@ -335,11 +345,60 @@ function groupOpen(string $prefix, string $currentPath): string {
         </details>
         <?php endif; ?>
 
-        <?php if ($role === 'Stock medicament'): ?>
-        <a href="/integration/stock" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150">
-            <span class="material-symbols-outlined text-xl">inventory_2</span>
-            <span>Stock Médicament</span>
-        </a>
+        <!-- ── Stock Médicament (Pharmacien) ── -->
+        <?php if (in_array($role, ['Admin', 'pharmacien'])): ?>
+        <details class="nav-group" <?= groupOpen('/integration/stock', $currentPath) ?>>
+            <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
+                <span class="material-symbols-outlined text-xl">inventory_2</span>
+                <span class="flex-1">Stock Médicament</span>
+                <span class="material-symbols-outlined text-base chevron">chevron_right</span>
+            </summary>
+            <div class="mt-1 ml-4 pl-3 border-l-2 border-primary-fixed space-y-0.5">
+                <a href="/integration/stock/products"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/stock/products', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">medication</span>
+                    <span>Produits</span>
+                </a>
+                <a href="/integration/stock/orders"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/stock/orders', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">receipt_long</span>
+                    <span>Commandes</span>
+                </a>
+                <a href="/integration/stock/cart"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/stock/cart', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">shopping_cart</span>
+                    <span>Panier</span>
+                </a>
+            </div>
+        </details>
+        <?php endif; ?>
+
+        <!-- ── Fournisseur — CRUD produits ── -->
+        <?php if (in_array($role, ['Admin', 'Fournisseur'])): ?>
+        <details class="nav-group" <?= groupOpen('/integration/fournisseur', $currentPath) ?>>
+            <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
+                <span class="material-symbols-outlined text-xl">local_shipping</span>
+                <span class="flex-1">Fournisseur</span>
+                <span class="material-symbols-outlined text-base chevron">chevron_right</span>
+            </summary>
+            <div class="mt-1 ml-4 pl-3 border-l-2 border-tertiary-fixed space-y-0.5">
+                <a href="/integration/fournisseur/products"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/fournisseur/products', $currentPath, ['/integration/fournisseur/products/create']) ?>">
+                    <span class="material-symbols-outlined text-base">inventory_2</span>
+                    <span>Catalogue produits</span>
+                </a>
+                <a href="/integration/fournisseur/products/create"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/fournisseur/products/create', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">add_box</span>
+                    <span>Ajouter produit</span>
+                </a>
+                <a href="/integration/fournisseur/orders"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/fournisseur/orders', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">receipt</span>
+                    <span>Commandes reçues</span>
+                </a>
+            </div>
+        </details>
         <?php endif; ?>
 
     </nav><!-- /nav -->
@@ -384,14 +443,7 @@ function groupOpen(string $prefix, string $currentPath): string {
 
         <!-- Right: notification + user -->
         <div class="flex items-center gap-4">
-            <!-- Magazine quick actions for magazine/admin roles -->
-            <?php if (in_array($role, ['Admin', 'Magazine'])): ?>
-            <a href="/integration/magazine/admin/article-form"
-               class="hidden md:flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm">
-                <span class="material-symbols-outlined text-base">add</span>
-                New Article
-            </a>
-            <?php endif; ?>
+
 
             <!-- Notification bell -->
             <button class="relative p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 rounded-xl transition-all">
@@ -436,8 +488,11 @@ function groupOpen(string $prefix, string $currentPath): string {
     <!-- Page content -->
     <div class="flex-1 p-8 space-y-8">
         <?php
-        if (isset($currentView)) {
-            /* Check for Front/ views (patient: catalogue, mes-reservations, reservation) */
+        // ── Stock views embarquées (Admin dual-mode) ──────────────────────────
+        if (isset($stockViewPath) && file_exists($stockViewPath)) {
+            include $stockViewPath;
+        } elseif (isset($currentView)) {
+            /* Front/ views (patient) */
             if (str_starts_with($currentView, '../Front/')) {
                 $frontPath = __DIR__ . '/' . $currentView . '.php';
                 if (file_exists($frontPath)) {
@@ -446,7 +501,7 @@ function groupOpen(string $prefix, string $currentPath): string {
                     echo '<p class="text-red-500">Front view not found: ' . htmlspecialchars($currentView) . '</p>';
                 }
             } else {
-                /* Back-office views (articles, dashboard_magazine, equipements, etc.) */
+                /* Back-office views */
                 $magPath = __DIR__ . '/' . $currentView . '.php';
                 if (file_exists($magPath)) {
                     include $magPath;
@@ -455,7 +510,7 @@ function groupOpen(string $prefix, string $currentPath): string {
                 }
             }
         } else {
-            /* User module: DashboardController sets $data, no $currentView */
+            /* Dashboard */
             if (!isset($data)) $data = [];
             include __DIR__ . '/dashboard_kpi.php';
         }

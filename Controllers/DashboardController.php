@@ -35,7 +35,7 @@ class DashboardController
         $this->requireAuth();
 
         $userId = $_SESSION['user']['id'];
-        $role   = $_SESSION['user']['role'] ?? '';
+        $role   = trim($_SESSION['user']['role'] ?? '');
 
         // Base data always needed
         $data = [
@@ -67,7 +67,7 @@ class DashboardController
             $data['nbTotal']        = count($myRes);
             $data['latestRes']      = array_slice($myRes, 0, 3);
 
-        } elseif ($role === 'Equipment') {
+        } elseif ($role === 'Technicien') {
             // Equipment manager sees inventory stats
             require_once __DIR__ . '/../Models/Equipement.php';
             require_once __DIR__ . '/../Models/Reservation.php';
@@ -84,7 +84,7 @@ class DashboardController
             $data['resEnCours']  = count(array_filter($allRes, fn($r) => ($r['statut']??'') === 'en_cours'));
             $data['latestEq']    = array_slice(array_reverse($allEq), 0, 4);
 
-        } elseif ($role === 'Magazine') {
+        } elseif ($role === 'redacteur') {
             // Magazine editor sees article + comment stats
             require_once __DIR__ . '/../Models/Post.php';
             require_once __DIR__ . '/../Models/Comment.php';
@@ -96,6 +96,41 @@ class DashboardController
             $data['postStats']    = $postStats;
             $data['commentStats'] = $commentStats;
             $data['recentPosts']  = $postModel->getRecent(5);
+
+        } elseif ($role === 'Fournisseur') {
+            // Fournisseur — catalogue produits + commandes passées
+            require_once __DIR__ . '/../Models/Product.php';
+            require_once __DIR__ . '/../Models/Order.php';
+            require_once __DIR__ . '/../config.php';
+            $productModel = new \Product();
+            $orderModel   = new \Order();
+            $allProducts  = $productModel->getAll();
+            $lowStock     = $productModel->getLowStock();
+            $allOrders    = $orderModel->getAllOrders();
+
+            $data['totalProduits']   = count($allProducts);
+            $data['stocksCritiques'] = count($lowStock);
+            $data['totalCommandes']  = count($allOrders);
+            $data['commandesEnAttente'] = count(array_filter($allOrders, fn($c) => ($c['statut'] ?? '') === 'en_attente'));
+            $data['recentProducts']  = array_slice($allProducts, 0, 5);
+
+        } elseif ($role === 'pharmacien') {
+            // Stock medicament — commandes à traiter + alertes stock
+            require_once __DIR__ . '/../Models/Product.php';
+            require_once __DIR__ . '/../Models/Order.php';
+            require_once __DIR__ . '/../config.php';
+            $productModel = new \Product();
+            $orderModel   = new \Order();
+            $allProducts  = $productModel->getAll();
+            $lowStock     = $productModel->getLowStock();
+            $allOrders    = $orderModel->getAllOrders();
+
+            $data['totalProduits']      = count($allProducts);
+            $data['stocksCritiques']    = count($lowStock);
+            $data['totalCommandes']     = count($allOrders);
+            $data['commandesEnAttente'] = count(array_filter($allOrders, fn($c) => ($c['statut'] ?? '') === 'en_attente'));
+            $data['commandesValidees']  = count(array_filter($allOrders, fn($c) => ($c['statut'] ?? '') === 'validée'));
+            $data['lowStockItems']      = array_slice($lowStock, 0, 5);
 
         } else {
             // Other roles — generic placeholder until their module is built

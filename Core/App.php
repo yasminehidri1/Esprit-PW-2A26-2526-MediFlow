@@ -265,6 +265,82 @@ class App
             return;
         }
 
+        // ── Stock Médicament module — Pharmacien ──────────────────────────────
+        // Commandes
+        if (preg_match('#^/stock/orders/create(?:/|$)#', $path)) {
+            (new \Controllers\StockMedicamentController())->orderCreate();
+            return;
+        }
+        if (preg_match('#^/stock/orders/cancel(?:/|$)#', $path)) {
+            (new \Controllers\StockMedicamentController())->orderCancel();
+            return;
+        }
+        if (preg_match('#^/stock/orders/view(?:/|$)#', $path)) {
+            (new \Controllers\StockMedicamentController())->orderView();
+            return;
+        }
+        if (preg_match('#^/stock/orders(?:/|$)#', $path)) {
+            (new \Controllers\StockMedicamentController())->orderList();
+            return;
+        }
+        // Panier
+        if (preg_match('#^/stock/cart(?:/|$)#', $path)) {
+            (new \Controllers\StockMedicamentController())->cart();
+            return;
+        }
+        // Produits (lecture seule)
+        if (preg_match('#^/stock/products/search(?:/|$)#', $path)) {
+            (new \Controllers\StockMedicamentController())->productSearch();
+            return;
+        }
+        if (preg_match('#^/stock/products/filter(?:/|$)#', $path)) {
+            (new \Controllers\StockMedicamentController())->productFilter();
+            return;
+        }
+        if (preg_match('#^/stock/products(?:/|$)#', $path)) {
+            (new \Controllers\StockMedicamentController())->productList();
+            return;
+        }
+
+        // ── Fournisseur module — CRUD produits + confirmation commandes ──────────
+        if (preg_match('#^/fournisseur/products/delete(?:/|$)#', $path)) {
+            (new \Controllers\FournisseurController())->productDelete();
+            return;
+        }
+        if (preg_match('#^/fournisseur/products/edit(?:/|$)#', $path)) {
+            (new \Controllers\FournisseurController())->productEdit();
+            return;
+        }
+        if (preg_match('#^/fournisseur/products/create(?:/|$)#', $path)) {
+            (new \Controllers\FournisseurController())->productCreate();
+            return;
+        }
+        if (preg_match('#^/fournisseur/products/search(?:/|$)#', $path)) {
+            (new \Controllers\FournisseurController())->productSearch();
+            return;
+        }
+        if (preg_match('#^/fournisseur/products/filter(?:/|$)#', $path)) {
+            (new \Controllers\FournisseurController())->productFilter();
+            return;
+        }
+        if (preg_match('#^/fournisseur/products(?:/|$)#', $path)) {
+            (new \Controllers\FournisseurController())->productList();
+            return;
+        }
+        // Fournisseur — confirmation commandes
+        if (preg_match('#^/fournisseur/orders/status(?:/|$)#', $path)) {
+            (new \Controllers\FournisseurController())->orderChangeStatus();
+            return;
+        }
+        if (preg_match('#^/fournisseur/orders/view(?:/|$)#', $path)) {
+            (new \Controllers\FournisseurController())->orderView();
+            return;
+        }
+        if (preg_match('#^/fournisseur/orders(?:/|$)#', $path)) {
+            (new \Controllers\FournisseurController())->orderList();
+            return;
+        }
+
         // ── Default: Landing page ────────────────────────────────────────────
         (new \Controllers\LandingController())->index();
     }

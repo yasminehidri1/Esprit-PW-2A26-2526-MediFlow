@@ -18,13 +18,14 @@ class UserModel
 
     // Role to matricule prefix mapping
     private const ROLE_PREFIXES = [
-        'Admin' => 'AD',
-        'Medecin' => 'MD',
-        'Patient' => 'PT',
-        'Pharmacien' => 'PH',
-        'Rendez-vous' => 'RDV',
-        'Equipment' => 'EQ',
-        'Magazine' => 'MG'
+        'Admin'        => 'AD',
+        'Medecin'      => 'MD',
+        'Patient'      => 'PT',
+        'pharmacien'   => 'PH',
+        'receptionist' => 'RC',
+        'Technicien'   => 'TC',
+        'redacteur'    => 'RD',
+        'Fournisseur'  => 'FR',
     ];
 
     private const DEFAULT_MATRICULE_START = 100;
@@ -80,7 +81,7 @@ class UserModel
         $query = "
             SELECT 
                 u.id_PK, u.matricule, u.nom, u.prenom, u.mail, u.tel, 
-                u.adresse, u.id_role, r.libelle as role_name
+                u.adresse, u.id_role, u.status, r.libelle as role_name
             FROM utilisateurs u
             LEFT JOIN roles r ON u.id_role = r.id_role
             WHERE u.id_PK = :userId
@@ -106,18 +107,20 @@ class UserModel
     }
 
     /**
-     * Search and filter users by term and/or role
+     * Search and filter users by term and/or role with pagination
      * 
      * @param string|null $search Search term for name, email, phone, matricule
      * @param int|null $roleId Filter by role ID
+     * @param int|null $limit Maximum number of results to return
+     * @param int|null $offset Offset for pagination
      * @return array Filtered users
      */
-    public function searchAndFilterUsers(?string $search = null, ?int $roleId = null): array
+    public function searchAndFilterUsers(?string $search = null, ?int $roleId = null, ?int $limit = null, ?int $offset = null): array
     {
         $query = "
             SELECT 
                 u.id_PK, u.matricule, u.nom, u.prenom, u.mail, u.tel, 
-                u.adresse, u.id_role, r.libelle as role_name
+                u.adresse, u.id_role, u.status, r.libelle as role_name
             FROM utilisateurs u
             LEFT JOIN roles r ON u.id_role = r.id_role
             WHERE 1=1
@@ -144,9 +147,57 @@ class UserModel
         
         $query .= " ORDER BY u.nom ASC, u.prenom ASC";
         
+        if ($limit !== null) {
+            $query .= " LIMIT " . (int)$limit;
+            if ($offset !== null) {
+                $query .= " OFFSET " . (int)$offset;
+            }
+        }
+        
         $stmt = $this->db->prepare($query);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Count users matching search and filter criteria for pagination
+     * 
+     * @param string|null $search Search term
+     * @param int|null $roleId Filter by role ID
+     * @return int Total number of matching users
+     */
+    public function countSearchAndFilterUsers(?string $search = null, ?int $roleId = null): int
+    {
+        $query = "
+            SELECT COUNT(*) as total
+            FROM utilisateurs u
+            WHERE 1=1
+        ";
+        
+        $params = [];
+        
+        if (!empty($search)) {
+            $searchTerm = "%$search%";
+            $query .= " AND (
+                u.matricule LIKE :search OR
+                u.prenom LIKE :search OR 
+                u.nom LIKE :search OR 
+                u.mail LIKE :search OR 
+                u.tel LIKE :search
+            )";
+            $params['search'] = $searchTerm;
+        }
+        
+        if ($roleId !== null && $roleId > 0) {
+            $query .= " AND u.id_role = :roleId";
+            $params['roleId'] = $roleId;
+        }
+        
+        $stmt = $this->db->prepare($query);
+        $stmt->execute($params);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return (int)($result['total'] ?? 0);
     }
 
     /**
@@ -206,6 +257,7 @@ class UserModel
             
             return $result ? (int)$this->db->lastInsertId() : null;
         } catch (\PDOException $e) {
+            error_log("createUser Error: " . $e->getMessage());
             return null;
         }
     }
@@ -286,6 +338,28 @@ class UserModel
         }
     }
 
+    /**
+     * Update user status (active/suspended)
+     * 
+     * @param int $userId
+     * @param string $status
+     * @return bool True on success, false on failure
+     */
+    public function updateUserStatus(int $userId, string $status): bool
+    {
+        try {
+            $query = "UPDATE utilisateurs SET status = :status WHERE id_PK = :userId";
+            $stmt = $this->db->prepare($query);
+            return $stmt->execute([
+                'status' => $status,
+                'userId' => $userId
+            ]);
+        } catch (\PDOException $e) {
+            error_log('Error updating status: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     // ===== HELPER METHODS =====
 
     /**
@@ -299,7 +373,9 @@ class UserModel
     {
         $roleName = $this->getRoleName($roleId);
         $prefix = self::ROLE_PREFIXES[$roleName] ?? self::UNKNOWN_ROLE_PREFIX;
-        $nextNumber = self::DEFAULT_MATRICULE_START + $this->countUsersWithRole($roleId);
+        
+        $maxNumber = $this->getMaxMatriculeNumber($roleId, $prefix);
+        $nextNumber = $maxNumber + 1;
         
         return $prefix . $nextNumber;
     }
@@ -320,18 +396,30 @@ class UserModel
     }
 
     /**
-     * Count users assigned to a specific role
+     * Get the highest matricule number currently in use for a role
      * 
      * @param int $roleId
-     * @return int Number of users with this role
+     * @param string $prefix
+     * @return int Highest number used
      */
-    private function countUsersWithRole(int $roleId): int
+    private function getMaxMatriculeNumber(int $roleId, string $prefix): int
     {
-        $query = "SELECT COUNT(*) as count FROM utilisateurs WHERE id_role = :id_role";
+        $query = "SELECT matricule FROM utilisateurs WHERE id_role = :id_role AND matricule LIKE :prefix ORDER BY LENGTH(matricule) DESC, matricule DESC LIMIT 1";
         $stmt = $this->db->prepare($query);
-        $stmt->execute([':id_role' => $roleId]);
+        $stmt->execute([
+            ':id_role' => $roleId, 
+            ':prefix' => $prefix . '%'
+        ]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return (int)$result['count'];
+        
+        if ($result && !empty($result['matricule'])) {
+            $numStr = substr($result['matricule'], strlen($prefix));
+            if (is_numeric($numStr)) {
+                return (int)$numStr;
+            }
+        }
+        
+        return self::DEFAULT_MATRICULE_START - 1;
     }
 }
 
