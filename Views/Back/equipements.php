@@ -1,4 +1,8 @@
 <?php
+// Charger les clés API depuis le fichier de config sécurisé
+if (file_exists(__DIR__ . '/../../config_keys.php')) require_once __DIR__ . '/../../config_keys.php';
+if (!defined('OPENROUTER_API_KEY')) define('OPENROUTER_API_KEY', '');
+
 // $data injected by PatientEquipmentController::gestionEquipements()
 $equipements     = $data['equipements'] ?? [];
 $user            = $data['currentUser']  ?? ($_SESSION['user'] ?? []);
@@ -445,7 +449,7 @@ function getImgUrl($eq) {
   let imageBase64 = null;
   let imageMime   = null;
 
-  const OPENROUTER_KEY = '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';
+  const OPENROUTER_KEY = '<?= OPENROUTER_API_KEY ?>';
 
   const AI_STEPS = [
     "Identification de l'équipement médical...",
