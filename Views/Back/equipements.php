@@ -24,7 +24,6 @@ function getCatIcon($c) {
     return ['Cardiologie'=>'monitor_heart','Réanimation'=>'air','Gériatrie'=>'chair','Radiologie'=>'radiology','Mobilité'=>'accessibility_new','Respiratoire'=>'air'][$c] ?? 'medical_services';
 }
 
-// Résolution image locale
 function getImgUrl($eq) {
     $exts = ['jpg','jpeg','png','webp'];
     foreach ($exts as $ext) {
@@ -52,17 +51,14 @@ function getImgUrl($eq) {
 .stat-mini-num{font-family:'Manrope',sans-serif;font-size:26px;font-weight:900;color:#111827;line-height:1;}
 .stat-mini-lbl{font-size:12px;color:#6b7280;margin-top:2px;}
 
-/* ── Filter bar ── */
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
 .filter-bar button{padding:7px 18px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:13px;font-weight:600;color:#374151;cursor:pointer;transition:all .15s;}
 .filter-bar button.active,.filter-bar button:hover{background:#004d99;border-color:#004d99;color:#fff;}
 
-/* ── Equipment grid ── */
 .eq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:32px;}
 @media(max-width:1100px){.eq-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:700px){.eq-grid{grid-template-columns:1fr;}}
 
-/* ── Equipment card ── */
 .eq-card{background:#fff;border:1px solid #e8eaf0;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .22s,transform .22s;}
 .eq-card:hover{box-shadow:0 8px 30px rgba(26,54,110,.10);transform:translateY(-2px);}
 .eq-card-img{height:180px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
@@ -81,26 +77,62 @@ function getImgUrl($eq) {
 .eq-card-cat .material-symbols-outlined{font-size:14px;}
 .eq-card-prix{font-size:15px;font-weight:700;color:#1a56db;margin-top:4px;}
 .eq-card-actions{display:flex;gap:8px;padding:12px 16px;border-top:1px solid #f3f4f6;}
-.btn-eq-edit{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;color:#1a56db;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .18s;}
+.btn-eq-edit{width:38px;height:38px;display:flex;align-items:center;justify-content:center;padding:0;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;color:#1a56db;cursor:pointer;transition:background .18s;flex-shrink:0;}
 .btn-eq-edit:hover{background:#dbeafe;}
 .btn-eq-edit .material-symbols-outlined{font-size:16px;}
 .btn-eq-del{width:38px;height:38px;border-radius:8px;background:#fff5f5;border:1px solid #fecaca;color:#dc2626;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s;}
 .btn-eq-del:hover{background:#fee2e2;}
 .btn-eq-del .material-symbols-outlined{font-size:17px;}
 
-/* ── Empty state ── */
 .empty-eq{grid-column:1/-1;text-align:center;padding:60px 20px;color:#9ca3af;}
 .empty-eq .material-symbols-outlined{font-size:56px;display:block;margin-bottom:12px;color:#d1d5db;}
 .empty-eq h3{font-family:'Manrope',sans-serif;font-size:18px;color:#374151;margin-bottom:8px;}
 
-/* ── Upload zone ── */
 .upload-zone{border:2px dashed #c7d2fe;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;margin-bottom:4px;}
 .upload-zone:hover,.upload-zone.has-file{border-color:#004d99;background:#f0f5ff;}
 .upload-zone input[type="file"]{display:none;}
 .upload-icon-big{font-size:32px;color:#1a56db;display:block;margin-bottom:6px;}
 .upload-preview-img{width:70px;height:70px;object-fit:cover;border-radius:8px;margin:0 auto 6px;display:block;border:2px solid #16a34a;}
 
-/* ── Modal ── */
+/* ✅ Zone analyse IA */
+.ai-analyzing {
+  display:none;
+  margin-top:12px;
+  padding:12px 16px;
+  background:#f0f6ff;
+  border:1px solid #bfdbfe;
+  border-radius:10px;
+  align-items:center;
+  gap:10px;
+  animation: fadeIn .3s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.ai-analyzing.show { display:flex; }
+.ai-spinner{width:18px;height:18px;border:2.5px solid #bfdbfe;border-top-color:#1d4ed8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-success {
+  display:none;
+  margin-top:10px;
+  padding:10px 14px;
+  background:#f0fdf4;
+  border:1px solid #bbf7d0;
+  border-radius:10px;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  color:#15803d;
+  font-weight:600;
+}
+.ai-success.show { display:flex; }
+.ai-badge {
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:20px;
+  background:linear-gradient(135deg,#004d99,#0ea5e9);
+  color:#fff;font-size:11px;font-weight:700;
+  margin-bottom:8px;
+}
+.ai-badge .material-symbols-outlined{font-size:13px;}
+
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
 .modal-box{background:#fff;border-radius:16px;padding:28px 32px 24px;width:540px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.18);animation:slideUp .22s ease;}
@@ -111,8 +143,14 @@ function getImgUrl($eq) {
 .modal-close:hover{background:#f3f4f6;color:#374151;}
 .modal-field{display:flex;flex-direction:column;margin-bottom:14px;}
 .modal-field label{font-size:12px;font-weight:600;color:#6b7280;margin-bottom:5px;}
-.modal-input{padding:9px 13px;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13.5px;font-family:'Inter',sans-serif;color:#111827;outline:none;transition:border-color .15s,box-shadow .15s;width:100%;}
+.modal-input{padding:9px 13px;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13.5px;font-family:'Inter',sans-serif;color:#111827;outline:none;transition:border-color .15s,box-shadow .15s,background .2s;width:100%;}
 .modal-input:focus{border-color:#004d99;box-shadow:0 0 0 3px rgba(0,77,153,.10);}
+/* ✅ Champ rempli par l'IA */
+.modal-input.ai-filled {
+  border-color:#16a34a;
+  background:#f0fdf4;
+  box-shadow:0 0 0 3px rgba(22,163,74,.10);
+}
 .modal-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:0;}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #f3f4f6;}
 .btn-save{display:flex;align-items:center;gap:6px;padding:10px 22px;background:#004d99;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;}
@@ -190,13 +228,9 @@ function getImgUrl($eq) {
             $eqJson   = htmlspecialchars(json_encode($eq), ENT_QUOTES);
           ?>
           <div class="eq-card" data-statut="<?= $eq['statut'] ?>" id="eq-<?= $eq['id'] ?>">
-
-            <!-- Image -->
             <div class="eq-card-img">
               <?php if ($imgUrl): ?>
-                <img src="<?= $imgUrl ?>"
-                     alt="<?= htmlspecialchars($eq['nom']) ?>"
-                     loading="lazy"
+                <img src="<?= $imgUrl ?>" alt="<?= htmlspecialchars($eq['nom']) ?>" loading="lazy"
                      onerror="this.parentElement.innerHTML='<div class=\'no-img\'><span class=\'material-symbols-outlined\'>hide_image</span><span>Pas d\'image</span></div>'"/>
               <?php else: ?>
                 <div class="no-img">
@@ -206,8 +240,6 @@ function getImgUrl($eq) {
               <?php endif; ?>
               <span class="eq-badge <?= $eq['statut'] ?>"><?= $statLbl ?></span>
             </div>
-
-            <!-- Corps -->
             <div class="eq-card-body">
               <div class="eq-card-ref"><?= htmlspecialchars($eq['reference']) ?></div>
               <div class="eq-card-nom"><?= htmlspecialchars($eq['nom']) ?></div>
@@ -215,40 +247,27 @@ function getImgUrl($eq) {
                 <span class="material-symbols-outlined"><?= $catIco ?></span>
                 <?= htmlspecialchars($eq['categorie']) ?>
               </div>
-              <div class="eq-card-prix">
-                <?= $prixDT ?> DT / jour
-              </div>
+              <div class="eq-card-prix"><?= $prixDT ?> DT / jour</div>
             </div>
-
-            <!-- Actions -->
             <div class="eq-card-actions">
-              <!-- ✏️ Modifier -->
-              <button class="btn-eq-edit" type="button"
-                      title="Modifier cet équipement"
-                      onclick='ouvrirModaleModifier(<?= $eqJson ?>)'>
+              <button class="btn-eq-edit" type="button" onclick='ouvrirModaleModifier(<?= $eqJson ?>)' title="Modifier">
                 <span class="material-symbols-outlined">edit</span>
-                Modifier
               </button>
-              <!-- 🗑️ Supprimer -->
               <button class="btn-eq-del" type="button"
-                      title="Supprimer cet équipement"
                       onclick="supprimerEquipement(<?= (int)$eq['id'] ?>, '<?= htmlspecialchars($eq['nom'], ENT_QUOTES) ?>')">
                 <span class="material-symbols-outlined">delete</span>
               </button>
             </div>
-
           </div>
         <?php endforeach; ?>
       <?php endif; ?>
 
-    </div><!-- /eq-grid -->
+    </div>
 
   </main>
 </div>
 
-<!-- ══════════════════════════════════════════
-     MODALE — AJOUTER UN ÉQUIPEMENT
-════════════════════════════════════════════ -->
+<!-- ══ MODALE AJOUTER ══ -->
 <div id="modal-ajout" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
@@ -258,11 +277,52 @@ function getImgUrl($eq) {
       </button>
     </div>
 
+    <!-- ✅ Section upload image EN PREMIER avec analyse IA -->
+    <span class="modal-section-label">
+      <span class="ai-badge">
+        <span class="material-symbols-outlined">auto_awesome</span>
+        Analyse IA
+      </span>
+      Photo de l'équipement — L'IA remplit les champs automatiquement
+    </span>
+
+    <div class="upload-zone" id="upload-zone-ajout"
+         onclick="document.getElementById('aj-image').click()">
+      <input type="file" id="aj-image" accept=".jpg,.jpeg,.png,.webp"
+             onchange="previewEtAnalyser(this)"/>
+      <div id="upload-placeholder-ajout">
+        <span class="material-symbols-outlined upload-icon-big">add_photo_alternate</span>
+        <div style="font-size:13px;font-weight:600;color:#374151;">Uploadez une photo</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:4px;">L'IA identifie l'équipement et remplit les champs ✨</div>
+      </div>
+      <div id="upload-preview-ajout" style="display:none;">
+        <img id="upload-img-ajout" class="upload-preview-img" src="" alt="Aperçu"/>
+        <div id="upload-name-ajout" style="font-size:12px;color:#16a34a;font-weight:600;"></div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:2px;">Cliquez pour changer</div>
+      </div>
+    </div>
+
+    <!-- Spinner analyse IA -->
+    <div class="ai-analyzing" id="ai-analyzing">
+      <div class="ai-spinner"></div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#1d4ed8;" id="ai-step">Analyse de l'image en cours...</div>
+        <div style="font-size:11px;color:#6b7280;margin-top:2px;">L'IA identifie l'équipement et suggère les informations</div>
+      </div>
+    </div>
+
+    <!-- Message succès IA -->
+    <div class="ai-success" id="ai-success">
+      <span class="material-symbols-outlined" style="font-size:18px;">check_circle</span>
+      <span>Champs remplis automatiquement par l'IA — Vérifiez et corrigez si nécessaire</span>
+    </div>
+
+    <hr class="modal-divider"/>
     <span class="modal-section-label">Informations</span>
 
     <div class="modal-field">
       <label for="aj-nom">Nom de l'équipement <span style="color:#dc2626;">*</span></label>
-      <input id="aj-nom" class="modal-input" type="text" placeholder="Ex: Fauteuil roulant électrique"/>
+      <input id="aj-nom" class="modal-input" type="text" placeholder="L'IA remplit ce champ automatiquement..."/>
     </div>
 
     <div class="modal-row">
@@ -272,14 +332,14 @@ function getImgUrl($eq) {
       </div>
       <div class="modal-field">
         <label for="aj-prix">Prix / jour (DT) <span style="color:#dc2626;">*</span></label>
-        <input id="aj-prix" class="modal-input" type="text" placeholder="Ex: 15"/>
+        <input id="aj-prix" class="modal-input" type="text" placeholder="L'IA suggère un prix..."/>
       </div>
     </div>
 
     <div class="modal-field">
       <label for="aj-categorie">Catégorie <span style="color:#dc2626;">*</span></label>
       <select id="aj-categorie" class="modal-input">
-        <option value="">-- Choisir --</option>
+        <option value="">-- L'IA sélectionne automatiquement --</option>
         <option value="Mobilité">Mobilité</option>
         <option value="Respiratoire">Respiratoire</option>
         <option value="Cardiologie">Cardiologie</option>
@@ -287,25 +347,6 @@ function getImgUrl($eq) {
         <option value="Gériatrie">Gériatrie</option>
         <option value="Radiologie">Radiologie</option>
       </select>
-    </div>
-
-    <hr class="modal-divider"/>
-    <span class="modal-section-label">Photo de l'équipement</span>
-
-    <div class="upload-zone" id="upload-zone-ajout"
-         onclick="document.getElementById('aj-image').click()">
-      <input type="file" id="aj-image" accept=".jpg,.jpeg,.png,.webp"
-             onchange="previewImage(this, 'ajout')"/>
-      <div id="upload-placeholder-ajout">
-        <span class="material-symbols-outlined upload-icon-big">add_photo_alternate</span>
-        <div style="font-size:13px;font-weight:600;color:#374151;">Cliquez pour télécharger une photo</div>
-        <div style="font-size:11px;color:#9ca3af;margin-top:4px;">JPG, JPEG, PNG, WEBP — max 5 Mo</div>
-      </div>
-      <div id="upload-preview-ajout" style="display:none;">
-        <img id="upload-img-ajout" class="upload-preview-img" src="" alt="Aperçu"/>
-        <div id="upload-name-ajout" style="font-size:12px;color:#16a34a;font-weight:600;"></div>
-        <div style="font-size:11px;color:#16a34a;margin-top:2px;">✅ Cliquez pour changer</div>
-      </div>
     </div>
 
     <div class="modal-footer">
@@ -318,9 +359,7 @@ function getImgUrl($eq) {
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     MODALE — MODIFIER UN ÉQUIPEMENT
-════════════════════════════════════════════ -->
+<!-- ══ MODALE MODIFIER ══ -->
 <div id="modal-modifier" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
@@ -329,16 +368,12 @@ function getImgUrl($eq) {
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
-
     <input type="hidden" id="mod-id"/>
-
     <span class="modal-section-label">Informations</span>
-
     <div class="modal-field">
       <label for="mod-nom">Nom <span style="color:#dc2626;">*</span></label>
       <input id="mod-nom" class="modal-input" type="text"/>
     </div>
-
     <div class="modal-row">
       <div class="modal-field">
         <label for="mod-reference">Référence <span style="color:#dc2626;">*</span></label>
@@ -349,7 +384,6 @@ function getImgUrl($eq) {
         <input id="mod-prix" class="modal-input" type="text"/>
       </div>
     </div>
-
     <div class="modal-row">
       <div class="modal-field">
         <label for="mod-categorie">Catégorie <span style="color:#dc2626;">*</span></label>
@@ -365,20 +399,16 @@ function getImgUrl($eq) {
       <div class="modal-field">
         <label for="mod-statut">Statut</label>
         <select id="mod-statut" class="modal-input">
-          <option value="disponible"> Disponible</option>
+          <option value="disponible">Disponible</option>
           <option value="loue">🔴 Loué</option>
           <option value="maintenance">🔧 Maintenance</option>
         </select>
       </div>
     </div>
-
     <hr class="modal-divider"/>
     <span class="modal-section-label">Changer la photo</span>
-
-    <div class="upload-zone" id="upload-zone-mod"
-         onclick="document.getElementById('mod-image').click()">
-      <input type="file" id="mod-image" accept=".jpg,.jpeg,.png,.webp"
-             onchange="previewImage(this, 'modifier')"/>
+    <div class="upload-zone" id="upload-zone-mod" onclick="document.getElementById('mod-image').click()">
+      <input type="file" id="mod-image" accept=".jpg,.jpeg,.png,.webp" onchange="previewImage(this, 'modifier')"/>
       <div id="upload-placeholder-mod">
         <span class="material-symbols-outlined upload-icon-big">add_photo_alternate</span>
         <div style="font-size:12px;color:#6b7280;">Cliquez pour changer la photo (optionnel)</div>
@@ -388,7 +418,6 @@ function getImgUrl($eq) {
         <div id="upload-name-mod" style="font-size:12px;color:#16a34a;font-weight:600;"></div>
       </div>
     </div>
-
     <div class="modal-footer">
       <button class="btn-cancel" onclick="fermerModaleModifier()" type="button">Annuler</button>
       <button class="btn-save" id="btn-save-modifier" type="button">
@@ -400,31 +429,245 @@ function getImgUrl($eq) {
 </div>
 
 <div class="toast-container" style="position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:9999;"></div>
+
 <script>
   const API_EQ = '/integration/equipment/api/equipements';
   const TODAY  = '<?= $today ?>';
 
-  /* ════════════════════════════
-     PRÉVISUALISATION IMAGE
-  ════════════════════════════ */
+  /* ════════════════════════════════════════════════════
+     ✅ FONCTIONNALITÉ MÉTIER — ANALYSE IA DE L'IMAGE
+     Quand l'admin uploade une photo :
+     1. Prévisualisation immédiate
+     2. Envoi à OpenRouter (openrouter/free — sélection auto du meilleur modèle vision gratuit)
+     3. Réponse JSON : nom, référence, catégorie, prix
+     4. Remplissage automatique des champs avec animation
+  ════════════════════════════════════════════════════ */
+  let imageBase64 = null;
+  let imageMime   = null;
+
+  const OPENROUTER_KEY = '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';
+
+  const AI_STEPS = [
+    "Identification de l'équipement médical...",
+    'Détermination de la catégorie...',
+    'Estimation du prix de location en DT...',
+    'Génération de la référence...',
+    'Finalisation...'
+  ];
+
+  async function previewEtAnalyser(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    imageMime = file.type || 'image/jpeg';
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const dataUrl = e.target.result;
+      imageBase64   = dataUrl.split(',')[1];
+
+      // Afficher l'aperçu
+      document.getElementById('upload-img-ajout').src           = dataUrl;
+      document.getElementById('upload-name-ajout').textContent  = file.name;
+
+      // ✅ Référence extraite du nom du fichier (ex: EQ-1108.jpg → EQ-1108)
+      const fileRef = file.name.replace(/\.[^/.]+$/, '').toUpperCase();
+      remplirChamp('aj-reference', fileRef);
+      document.getElementById('upload-placeholder-ajout').style.display = 'none';
+      document.getElementById('upload-preview-ajout').style.display     = 'block';
+      document.getElementById('upload-zone-ajout').classList.add('has-file');
+
+      // Cacher ancien succès/erreur
+      document.getElementById('ai-success').classList.remove('show');
+
+      // Lancer l'analyse IA
+      await analyserAvecIA();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function analyserAvecIA() {
+    const analyzing = document.getElementById('ai-analyzing');
+    const stepEl    = document.getElementById('ai-step');
+    const success   = document.getElementById('ai-success');
+
+    analyzing.classList.add('show');
+    success.classList.remove('show');
+
+    // Animer les étapes
+    let stepIdx = 0;
+    const interval = setInterval(() => {
+      stepEl.textContent = AI_STEPS[stepIdx % AI_STEPS.length];
+      stepIdx++;
+    }, 900);
+
+    try {
+      // API OpenRouter - essaie plusieurs modeles vision gratuits
+      var VISION_MODELS = [
+        'openrouter/free',
+        'google/gemma-4-31b-it:free',
+        'google/gemma-4-26b-a4b-it:free',
+        'qwen/qwen2.5-vl-32b-instruct:free',
+        'nvidia/nemotron-3-nano-12b-v2:free',
+        'qwen/qwen2.5-vl-7b-instruct:free'
+      ];
+
+      var promptText = 'Tu es un expert en equipements medicaux tunisiens. ' +
+        'Analyse cette image et retourne UNIQUEMENT un objet JSON valide, sans texte avant ou apres, sans backticks. ' +
+        'Format exact : {"nom":"nom en francais","categorie":"Mobilite","prix":50} ' +
+        'Regles : nom = nom precis en francais, ' +
+        'categorie = EXACTEMENT parmi : Mobilite, Respiratoire, Cardiologie, Reanimation, Geriatrie, Radiologie, ' +
+        'prix = entier entre 5 et 500 en DT/jour. ' +
+        'Si pas un equipement medical : {"erreur":"pas un equipement medical"}';
+
+      var imageDataUrl = 'data:' + imageMime + ';base64,' + imageBase64;
+
+      var msgBody = {
+        max_tokens: 300,
+        temperature: 0.1,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: { url: imageDataUrl } },
+            { type: 'text', text: promptText }
+          ]
+        }]
+      };
+
+      var rawText = '';
+      var lastErr = '';
+      for (var mi = 0; mi < VISION_MODELS.length; mi++) {
+        var currentModel = VISION_MODELS[mi];
+        try {
+          var reqBody = Object.assign({ model: currentModel }, msgBody);
+          var resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + OPENROUTER_KEY,
+              'HTTP-Referer': window.location.origin,
+              'X-Title': 'MediFlow Equipment Analyzer'
+            },
+            body: JSON.stringify(reqBody)
+          });
+          if (!resp.ok) {
+            lastErr = 'HTTP ' + resp.status + ' (' + currentModel + ')';
+            // Attendre 500ms avant de réessayer si rate limit
+            if (resp.status === 429) await new Promise(r => setTimeout(r, 800));
+            continue;
+          }
+          var d = await resp.json();
+          var txt = '';
+          if (d && d.choices && d.choices[0] && d.choices[0].message) {
+            txt = d.choices[0].message.content || '';
+          }
+          if (txt && txt.trim().length > 5) { rawText = txt; break; }
+          lastErr = 'Reponse vide (' + currentModel + ')';
+        } catch(fetchErr) { lastErr = fetchErr.message; }
+      }
+
+      clearInterval(interval);
+
+      if (!rawText) throw new Error('Tous les modeles ont echoue : ' + lastErr);
+
+      // ✅ Nettoyage robuste
+      let cleanText = rawText
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
+
+      // Extraire le JSON
+      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error('Réponse brute :', rawText);
+        throw new Error('Aucun JSON trouvé dans la réponse');
+      }
+
+      let result;
+      try {
+        result = JSON.parse(jsonMatch[0]);
+      } catch(parseErr) {
+        console.error('JSON invalide :', jsonMatch[0]);
+        throw new Error('JSON malformé reçu');
+      }
+
+      analyzing.classList.remove('show');
+
+      if (result.erreur) {
+        showToast('⚠️ ' + result.erreur, 'error');
+        return;
+      }
+
+      // Valider que les champs essentiels existent
+      if (!result.nom) throw new Error('Champ "nom" manquant dans la réponse');
+
+      // ✅ Remplir les champs avec animation verte
+      remplirChamp('aj-nom',       String(result.nom       || ''));
+      // Référence déjà remplie depuis le nom du fichier
+      remplirChamp('aj-prix',      String(result.prix      || ''));
+
+      // Sélectionner la catégorie — correspondance avec ou sans accents
+      const select = document.getElementById('aj-categorie');
+      const catMap = {
+        'mobilite':'Mobilité','mobilité':'Mobilité','mobility':'Mobilité','mobile':'Mobilité',
+        'respiratoire':'Respiratoire','respiratory':'Respiratoire','respiration':'Respiratoire','pulmonaire':'Respiratoire',
+        'cardiologie':'Cardiologie','cardiology':'Cardiologie','cardiaque':'Cardiologie','cardiac':'Cardiologie',
+        'reanimation':'Réanimation','réanimation':'Réanimation','icu':'Réanimation','soins intensifs':'Réanimation',
+        'geriatrie':'Gériatrie','gériatrie':'Gériatrie','geriatrics':'Gériatrie','geriatrique':'Gériatrie',
+        'radiologie':'Radiologie','radiology':'Radiologie','radio':'Radiologie','imagerie':'Radiologie'
+      };
+      const catRaw = (result.categorie || '').toLowerCase().trim()
+        .replace(/[àáâã]/g,'a').replace(/[éèêë]/g,'e').replace(/[îï]/g,'i')
+        .replace(/[ôõ]/g,'o').replace(/[ùûü]/g,'u');
+      let catFound = null;
+      for (const key in catMap) {
+        const keyN = key.replace(/[àáâã]/g,'a').replace(/[éèêë]/g,'e').replace(/[îï]/g,'i').replace(/[ôõ]/g,'o').replace(/[ùûü]/g,'u');
+        if (catRaw === keyN || catRaw.includes(keyN) || keyN.includes(catRaw)) {
+          catFound = catMap[key]; break;
+        }
+      }
+      if (catFound) {
+        select.value = catFound;
+        select.classList.add('ai-filled');
+        setTimeout(() => select.classList.remove('ai-filled'), 3000);
+      }
+
+      success.classList.add('show');
+      showToast('✅ Champs remplis automatiquement par l\'IA !', 'success');
+
+    } catch(err) {
+      clearInterval(interval);
+      analyzing.classList.remove('show');
+      console.error('Erreur IA complète :', err);
+      showToast('Erreur analyse IA : ' + err.message, 'error');
+    }
+  }
+
+  // Remplir un champ avec animation verte
+  function remplirChamp(id, valeur) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.value = valeur;
+    input.classList.add('ai-filled');
+    setTimeout(() => input.classList.remove('ai-filled'), 3000);
+  }
+
+  /* ── Preview image (modifier) ── */
   function previewImage(input, mode) {
     const file = input.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
-      const suffix = mode === 'ajout' ? 'ajout' : 'mod';
-      document.getElementById('upload-img-'   + suffix).src         = e.target.result;
-      document.getElementById('upload-name-'  + suffix).textContent  = file.name;
-      document.getElementById('upload-placeholder-' + suffix).style.display = 'none';
-      document.getElementById('upload-preview-'     + suffix).style.display = 'block';
-      document.getElementById('upload-zone-'  + suffix).classList.add('has-file');
+      document.getElementById('upload-img-mod').src          = e.target.result;
+      document.getElementById('upload-name-mod').textContent = file.name;
+      document.getElementById('upload-placeholder-mod').style.display = 'none';
+      document.getElementById('upload-preview-mod').style.display     = 'block';
+      document.getElementById('upload-zone-mod').classList.add('has-file');
     };
     reader.readAsDataURL(file);
   }
 
-  /* ════════════════════════════
-     AFFICHER / EFFACER ERREUR
-  ════════════════════════════ */
+  /* ── Erreurs ── */
   function afficherErr(id, msg) {
     const input = document.getElementById(id);
     if (!input) return;
@@ -437,7 +680,6 @@ function getImgUrl($eq) {
     span.style.cssText = 'color:#dc2626;font-size:11px;font-weight:600;display:block;margin-top:4px;';
     input.insertAdjacentElement('afterend', span);
   }
-
   function effacerErr(id) {
     const input = document.getElementById(id);
     if (!input) return;
@@ -446,33 +688,26 @@ function getImgUrl($eq) {
     input.parentElement.querySelector('.msg-erreur')?.remove();
   }
 
-  /* ════════════════════════════
-     VALIDATION COMMUNE
-  ════════════════════════════ */
+  /* ── Validation ── */
   function validerChamps(prefix) {
     let ok = true;
     document.querySelectorAll(`#modal-${prefix === 'aj' ? 'ajout' : 'modifier'} .msg-erreur`).forEach(e => e.remove());
     document.querySelectorAll(`#modal-${prefix === 'aj' ? 'ajout' : 'modifier'} .modal-input`).forEach(i => {
       i.style.borderColor = ''; i.style.boxShadow = '';
     });
-
     const nom  = document.getElementById(prefix + '-nom').value.trim();
     const ref  = document.getElementById(prefix + '-reference').value.trim();
     const prix = document.getElementById(prefix + '-prix').value.trim();
     const cat  = document.getElementById(prefix + '-categorie').value;
-
-    if (!nom || nom.length < 2)                                       { afficherErr(prefix+'-nom',       'Nom obligatoire (min 2 caractères).'); ok = false; }
-    if (!ref || ref.length < 2)                                       { afficherErr(prefix+'-reference',  'Référence obligatoire.'); ok = false; }
-    if (!prix || isNaN(parseFloat(prix)) || parseFloat(prix) <= 0)   { afficherErr(prefix+'-prix',       'Prix doit être un nombre positif.'); ok = false; }
-    if (!cat)                                                          { afficherErr(prefix+'-categorie',  'Veuillez sélectionner une catégorie.'); ok = false; }
-
+    if (!nom || nom.length < 2)                                     { afficherErr(prefix+'-nom',      'Nom obligatoire.'); ok = false; }
+    if (!ref || ref.length < 2)                                     { afficherErr(prefix+'-reference', 'Référence obligatoire.'); ok = false; }
+    if (!prix || isNaN(parseFloat(prix)) || parseFloat(prix) <= 0) { afficherErr(prefix+'-prix',      'Prix doit être positif.'); ok = false; }
+    if (!cat)                                                        { afficherErr(prefix+'-categorie', 'Catégorie obligatoire.'); ok = false; }
     if (!ok) showToast('Veuillez corriger les erreurs.', 'error');
     return ok;
   }
 
-  /* ════════════════════════════
-     MODALE AJOUT
-  ════════════════════════════ */
+  /* ── Modale ajout ── */
   function ouvrirModaleAjout() {
     ['aj-nom','aj-reference','aj-prix'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('aj-categorie').value = '';
@@ -480,127 +715,97 @@ function getImgUrl($eq) {
     document.getElementById('upload-placeholder-ajout').style.display = 'block';
     document.getElementById('upload-preview-ajout').style.display     = 'none';
     document.getElementById('upload-zone-ajout').classList.remove('has-file');
+    document.getElementById('ai-analyzing').classList.remove('show');
+    document.getElementById('ai-success').classList.remove('show');
     document.querySelectorAll('#modal-ajout .msg-erreur').forEach(e => e.remove());
-    document.querySelectorAll('#modal-ajout .modal-input').forEach(i => { i.style.borderColor=''; i.style.boxShadow=''; });
+    imageBase64 = null; imageMime = null;
     document.getElementById('modal-ajout').classList.add('open');
   }
-
   function fermerModaleAjout() {
     document.getElementById('modal-ajout').classList.remove('open');
   }
 
-  /* Enregistrer ajout */
   document.getElementById('btn-save-ajout').addEventListener('click', async () => {
     if (!validerChamps('aj')) return;
-
     const btn = document.getElementById('btn-save-ajout');
-    btn.disabled    = true;
-    btn.textContent = 'Enregistrement...';
-
+    btn.disabled = true; btn.textContent = 'Enregistrement...';
     const formData = new FormData();
     formData.append('nom',       document.getElementById('aj-nom').value.trim());
     formData.append('reference', document.getElementById('aj-reference').value.trim());
     formData.append('prix_jour', document.getElementById('aj-prix').value.trim());
     formData.append('categorie', document.getElementById('aj-categorie').value);
     formData.append('statut',    'disponible');
-
     const imgFile = document.getElementById('aj-image').files[0];
     if (imgFile) formData.append('image', imgFile);
-
     try {
       const res  = await fetch(API_EQ, { method: 'POST', body: formData });
       const text = await res.text();
       let json;
-      try { json = JSON.parse(text); }
-      catch(e) { showToast('Erreur PHP : ' + text.substring(0, 120), 'error'); btn.disabled=false; btn.innerHTML='<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">save</span> Enregistrer'; return; }
-
+      try { json = JSON.parse(text); } catch(e) { showToast('Erreur PHP : ' + text.substring(0, 120), 'error'); btn.disabled=false; btn.innerHTML='<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">save</span> Enregistrer'; return; }
       if (json.success) {
-        showToast(' Équipement ajouté avec succès !', 'success');
+        showToast('Équipement ajouté !', 'success');
         fermerModaleAjout();
         setTimeout(() => location.reload(), 1400);
       } else {
-        showToast('Erreur : ' + (json.message || 'Inconnue'), 'error');
+        showToast('Erreur : ' + (json.message || ''), 'error');
         btn.disabled = false;
         btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">save</span> Enregistrer';
       }
     } catch(e) {
-      showToast('Erreur réseau : ' + e.message, 'error');
+      showToast('Erreur réseau.', 'error');
       btn.disabled = false;
       btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">save</span> Enregistrer';
     }
   });
 
-  /* Effacer erreurs temps réel */
   ['aj-nom','aj-reference','aj-prix'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', () => effacerErr(id));
   });
 
-  /* ════════════════════════════
-     MODALE MODIFIER
-  ════════════════════════════ */
+  /* ── Modale modifier ── */
   function ouvrirModaleModifier(eq) {
-    document.getElementById('mod-id').value         = eq.id;
-    document.getElementById('mod-nom').value        = eq.nom        || '';
-    document.getElementById('mod-reference').value  = eq.reference  || '';
-    document.getElementById('mod-prix').value       = eq.prix_jour  || '';
-    document.getElementById('mod-categorie').value  = eq.categorie  || '';
-    document.getElementById('mod-statut').value     = eq.statut     || 'disponible';
-    document.getElementById('mod-image').value      = '';
+    document.getElementById('mod-id').value        = eq.id;
+    document.getElementById('mod-nom').value       = eq.nom       || '';
+    document.getElementById('mod-reference').value = eq.reference || '';
+    document.getElementById('mod-prix').value      = eq.prix_jour || '';
+    document.getElementById('mod-categorie').value = eq.categorie || '';
+    document.getElementById('mod-statut').value    = eq.statut    || 'disponible';
+    document.getElementById('mod-image').value     = '';
     document.getElementById('upload-placeholder-mod').style.display = 'block';
     document.getElementById('upload-preview-mod').style.display     = 'none';
     document.getElementById('upload-zone-mod').classList.remove('has-file');
     document.querySelectorAll('#modal-modifier .msg-erreur').forEach(e => e.remove());
-    document.querySelectorAll('#modal-modifier .modal-input').forEach(i => { i.style.borderColor=''; i.style.boxShadow=''; });
     document.getElementById('modal-modifier').classList.add('open');
   }
-
   function fermerModaleModifier() {
     document.getElementById('modal-modifier').classList.remove('open');
   }
 
-  /* Enregistrer modification */
   document.getElementById('btn-save-modifier').addEventListener('click', async () => {
     if (!validerChamps('mod')) return;
-
     const id  = document.getElementById('mod-id').value;
     const btn = document.getElementById('btn-save-modifier');
-
-    // Si une nouvelle image est sélectionnée → FormData (POST pour image)
     const imgFile = document.getElementById('mod-image').files[0];
-
     if (imgFile) {
-      // Upload via FormData
-      btn.disabled    = true;
-      btn.textContent = 'Enregistrement...';
-
+      btn.disabled = true; btn.textContent = 'Enregistrement...';
       const formData = new FormData();
       formData.append('nom',       document.getElementById('mod-nom').value.trim());
       formData.append('reference', document.getElementById('mod-reference').value.trim());
       formData.append('prix_jour', document.getElementById('mod-prix').value.trim());
       formData.append('categorie', document.getElementById('mod-categorie').value);
       formData.append('statut',    document.getElementById('mod-statut').value);
-      formData.append('_method',   'PUT'); // indicateur pour le controller
       formData.append('image',     imgFile);
-
-      // Supprimer l'ancien et recréer
       await fetch(`${API_EQ}?id=${id}`, { method: 'DELETE' });
       const res  = await fetch(API_EQ, { method: 'POST', body: formData });
       const text = await res.text();
       try {
         const json = JSON.parse(text);
-        if (json.success) {
-          showToast(' Équipement modifié !', 'success');
-          fermerModaleModifier();
-          setTimeout(() => location.reload(), 1400);
-        } else {
-          showToast('Erreur : ' + (json.message || ''), 'error');
-        }
+        if (json.success) { showToast('Équipement modifié !', 'success'); fermerModaleModifier(); setTimeout(() => location.reload(), 1400); }
+        else showToast('Erreur : ' + (json.message || ''), 'error');
       } catch(e) { showToast('Erreur serveur.', 'error'); }
       btn.disabled = false;
       btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">save</span> Enregistrer';
-
     } else {
-      // Modification sans nouvelle image → PUT JSON
       const data = {
         reference: document.getElementById('mod-reference').value.trim(),
         nom:       document.getElementById('mod-nom').value.trim(),
@@ -610,75 +815,53 @@ function getImgUrl($eq) {
         image:     null,
       };
       try {
-        const res  = await fetch(`${API_EQ}?id=${id}`, {
-          method: 'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)
-        });
+        const res  = await fetch(`${API_EQ}?id=${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
         const json = await res.json();
-        if (json.success) {
-          showToast(' Équipement modifié !', 'success');
-          fermerModaleModifier();
-          setTimeout(() => location.reload(), 1400);
-        } else {
-          showToast('Erreur : ' + (json.message || ''), 'error');
-        }
+        if (json.success) { showToast('Équipement modifié !', 'success'); fermerModaleModifier(); setTimeout(() => location.reload(), 1400); }
+        else showToast('Erreur : ' + (json.message || ''), 'error');
       } catch(e) { showToast('Erreur réseau.', 'error'); }
     }
   });
 
-  /* Effacer erreurs temps réel */
   ['mod-nom','mod-reference','mod-prix'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', () => effacerErr(id));
   });
 
-  /* ════════════════════════════
-     SUPPRIMER UN ÉQUIPEMENT
-  ════════════════════════════ */
+  /* ── Supprimer ── */
   async function supprimerEquipement(id, nom) {
-    if (!confirm(`⚠️ Supprimer l'équipement "${nom}" ?\nCette action est irréversible.`)) return;
+    if (!confirm(`⚠️ Supprimer "${nom}" ? Action irréversible.`)) return;
     try {
       const res  = await fetch(`${API_EQ}?id=${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (json.success) {
         showToast('Équipement supprimé.', 'success');
         const card = document.getElementById('eq-' + id);
-        if (card) {
-          card.style.transition = 'opacity .3s, transform .3s';
-          card.style.opacity    = '0';
-          card.style.transform  = 'scale(.95)';
-          setTimeout(() => { card.remove(); }, 300);
-        }
-      } else {
-        showToast('Erreur : ' + (json.message || ''), 'error');
-      }
+        if (card) { card.style.transition='opacity .3s,transform .3s'; card.style.opacity='0'; card.style.transform='scale(.95)'; setTimeout(()=>card.remove(),300); }
+      } else showToast('Erreur : ' + (json.message || ''), 'error');
     } catch(e) { showToast('Erreur réseau.', 'error'); }
   }
 
-  /* ════════════════════════════
-     FILTRES PAR STATUT
-  ════════════════════════════ */
+  /* ── Filtres ── */
   document.querySelectorAll('[data-filter-eq]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('[data-filter-eq]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const filter = btn.dataset.filterEq;
       document.querySelectorAll('.eq-card').forEach(card => {
-        const statut = card.dataset.statut;
-        card.style.display = (filter === 'all' || statut === filter) ? '' : 'none';
+        card.style.display = (filter === 'all' || card.dataset.statut === filter) ? '' : 'none';
       });
     });
   });
 
-  /* ════════════════════════════
-     RECHERCHE EN TEMPS RÉEL
-  ════════════════════════════ */
-  document.getElementById('search-input').addEventListener('input', function() {
+  /* ── Recherche ── */
+  document.getElementById('search-input')?.addEventListener('input', function() {
     const q = this.value.toLowerCase();
     document.querySelectorAll('.eq-card').forEach(card => {
       card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
   });
 
-  /* Fermer modales en cliquant dehors */
+  /* ── Fermer modales ── */
   ['modal-ajout','modal-modifier'].forEach(id => {
     document.getElementById(id).addEventListener('click', function(e) {
       if (e.target === this) this.classList.remove('open');
