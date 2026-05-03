@@ -343,7 +343,7 @@ class RendezVousModel
     {
         // JOIN sur utilisateurs — les médecins ont id_role = 2
         $stmt = $this->pdo->query(
-            "SELECT DISTINCT u.id_PK AS id, u.nom, u.prenom
+            "SELECT DISTINCT u.id_PK AS id, u.nom, u.prenom, u.mail
              FROM rendez_vous r
              LEFT JOIN utilisateurs u ON u.id_PK = r.medecin_id
              ORDER BY u.nom ASC"
@@ -532,5 +532,27 @@ class RendezVousModel
         }
         return $par_jour;
     }
+    public function addRdv(int $medecin_id, string $nom, string $prenom, string $cin, string $genre, string $date, string $heure): int|false
+    {
+        $result = $this->insertRdv($medecin_id, $nom, $prenom, $cin, $genre, $date, $heure);
+        return $result ? (int)$result : false;
+    }
+    public function creneauDejaReserve(int $medecin_id, string $date, string $heure): bool
+{
+    $pdo = \config::getConnexion();
+    $stmt = $pdo->prepare("
+        SELECT COUNT(*) FROM rendez_vous
+        WHERE medecin_id = :mid
+          AND date_rdv   = :date
+          AND heure_rdv  = :heure
+          AND statut    != 'annule'
+    ");
+    $stmt->execute([
+        ':mid'   => $medecin_id,
+        ':date'  => $date,
+        ':heure' => $heure,
+    ]);
+    return (int)$stmt->fetchColumn() > 0;
+}
 }
 ?>

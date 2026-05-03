@@ -16,6 +16,15 @@ class RendezVousController
         $this->model = new RendezVousModel();
     }
 
+    /**
+     * Retourne le chemin de base du projet dynamiquement.
+     * Fonctionne peu importe le nom du dossier.
+     */
+    private function basePath(): string
+    {
+        return rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    }
+
     private function render(string $view, array $data = []): void
     {
         extract($data);
@@ -28,8 +37,10 @@ class RendezVousController
     {
         $this->ensureSession();
         $this->requireAuth();
-        if ($_SESSION['user']['id_role'] != 1) { // 1 = Admin
-            header('Location: /integration/rdv/dashboard');
+        // Vérification du rôle via 'role' stocké en session
+        $role = strtolower(trim($_SESSION['user']['role'] ?? $_SESSION['user']['role_name'] ?? ''));
+        if ($role !== 'admin') {
+            header('Location: ' . $this->basePath() . '/rdv/dashboard');
             exit;
         }
 
@@ -54,7 +65,7 @@ class RendezVousController
         // Handle actions from old dashboard
         if (isset($_GET['supprimer'])) {
             $this->model->supprimerRdv(intval($_GET['supprimer']), $medecin_id);
-            header("Location: /integration/rdv/dashboard?succes=" . urlencode("Rendez-vous supprimé."));
+            header("Location: " . $this->basePath() . "/rdv/dashboard?succes=" . urlencode("Rendez-vous supprimé."));
             exit;
         }
 
@@ -116,17 +127,17 @@ class RendezVousController
         // ACTIONS FROM OLD PLANNING
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'ajouter_evenement') {
             $this->model->ajouterEvenement($medecin_id);
-            header("Location: /integration/rdv/planning?succes=1");
+            header("Location: " . $this->basePath() . "/rdv/planning?succes=1");
             exit;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'modifier_evenement') {
             $this->model->modifierEvenement($medecin_id);
-            header("Location: /integration/rdv/planning?succes=1");
+            header("Location: " . $this->basePath() . "/rdv/planning?succes=1");
             exit;
         }
         if (isset($_GET['supprimer_event'])) {
             $this->model->supprimerEvenement(intval($_GET['supprimer_event']), $medecin_id);
-            header("Location: /integration/rdv/planning?succes=1");
+            header("Location: " . $this->basePath() . "/rdv/planning?succes=1");
             exit;
         }
 
@@ -319,13 +330,13 @@ class RendezVousController
             $rdv_id          = intval($_POST['rdv_id']);
             
             $this->model->updateRdv($rdv_id, $nouvelle_date, $nouvelle_heure, $nouveau_statut);
-            header('Location: /integration/rdv/dashboard?succes=' . urlencode('Rendez-vous modifié.'));
+            header('Location: ' . $this->basePath() . '/rdv/dashboard?succes=' . urlencode('Rendez-vous modifié.'));
             exit;
         }
 
         $rdv = $id ? $this->model->getRdvById($id) : null;
         if (!$rdv || $rdv['medecin_id'] != $medecin_id) {
-            header('Location: /integration/rdv/dashboard');
+            header('Location: ' . $this->basePath() . '/rdv/dashboard');
             exit;
         }
         $this->render('modifier-rdv', compact('rdv','id'));
@@ -373,7 +384,7 @@ class RendezVousController
 
         $medecin_id = intval($_GET['medecin_id'] ?? 0);
         if ($medecin_id === 0) {
-            header('Location: /integration/rdv/annuaire');
+            header('Location: ' . $this->basePath() . '/rdv/annuaire');
             exit;
         }
 
@@ -381,7 +392,7 @@ class RendezVousController
         $stmt->execute([':id'=>$medecin_id]);
         $medecin = $stmt->fetch();
         if (!$medecin) {
-            header('Location: /integration/rdv/annuaire');
+            header('Location: ' . $this->basePath() . '/rdv/annuaire');
             exit;
         }
 
@@ -452,7 +463,7 @@ class RendezVousController
 
         require_once __DIR__ . '/../config.php';
         $pdo = \config::getConnexion();
-        $stmt = $pdo->prepare("SELECT id_PK AS id, nom, prenom FROM utilisateurs WHERE id_PK=:id");
+        $stmt = $pdo->prepare("SELECT id_PK AS id, nom, prenom, mail FROM utilisateurs WHERE id_PK=:id");
         $stmt->execute([':id'=>$medecin_id]);
         $medecin = $stmt->fetch();
 
@@ -473,7 +484,7 @@ class RendezVousController
         $this->ensureSession();
         $this->requireAuth();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /integration/rdv/annuaire');
+            header('Location: ' . $this->basePath() . '/rdv/annuaire');
             exit;
         }
         $medecin_id = intval($_POST['medecin_id']  ?? 0);
@@ -492,19 +503,42 @@ class RendezVousController
         if (!$date || $date < date('Y-m-d'))                             $erreurs[] = 'Date invalide.';
         if (!$heure)                                                      $erreurs[] = 'Heure requise.';
 
-        if (!empty($erreurs)) {
+        /*if (!empty($erreurs)) {
             $_SESSION['rdv_erreurs'] = $erreurs;
-            header("Location: /integration/rdv/form?medecin_id=$medecin_id&date=$date&heure=$heure");
+            header("Location: " . $this->basePath() . "/rdv/form?medecin_id=$medecin_id&date=$date&heure=$heure");
             exit;
         }
 
         $res = $this->model->addRdv($medecin_id, $nom, $prenom, $cin, $genre, $date, $heure);
         if ($res) {
-            header('Location: /integration/rdv/confirmation?id=' . $res);
+            header('Location: ' . $this->basePath() . '/rdv/confirmation?id=' . $res);
         } else {
-            header('Location: /integration/rdv/annuaire');
+            header('Location: ' . $this->basePath() . '/rdv/annuaire');
         }
         exit;
+        */
+        // APRÈS
+if (!empty($erreurs)) {
+    $_SESSION['rdv_erreurs'] = $erreurs;
+    header("Location: " . $this->basePath() . "/rdv/reserver?medecin_id=$medecin_id&date_rdv=$date&heure_rdv=$heure");
+    exit;
+}
+
+// ✅ Vérification de disponibilité du créneau
+if ($this->model->creneauDejaReserve($medecin_id, $date, $heure)) {
+    $_SESSION['rdv_erreurs'] = ['Ce créneau est déjà réservé. Veuillez choisir une autre heure.'];
+    header("Location: " . $this->basePath() . "/rdv/reserver?medecin_id=$medecin_id&date_rdv=$date&heure_rdv=$heure");
+    exit;
+}
+
+$res = $this->model->addRdv($medecin_id, $nom, $prenom, $cin, $genre, $date, $heure);
+if ($res) {
+    header('Location: ' . $this->basePath() . '/rdv/confirmation?id=' . $res);
+} else {
+    $_SESSION['rdv_erreurs'] = ['Une erreur est survenue. Veuillez réessayer.'];
+    header("Location: " . $this->basePath() . "/rdv/reserver?medecin_id=$medecin_id&date_rdv=$date&heure_rdv=$heure");
+}
+exit;
     }
 
     /* --- PATIENT - Confirmation --- */
