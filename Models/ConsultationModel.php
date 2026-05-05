@@ -37,7 +37,7 @@ class ConsultationModel {
                  ORDER BY date_consultation DESC LIMIT 1) AS derniere_consult_id
             FROM utilisateurs u
             JOIN roles r ON r.id_role = u.id_role
-            LEFT JOIN consultation c
+            JOIN consultation c
                 ON c.id_patient = u.id_PK AND c.id_medecin = :mid
             WHERE r.libelle = 'Patient'
             GROUP BY u.id_PK
@@ -54,8 +54,15 @@ class ConsultationModel {
     }
 
     /** Total count of patients for pagination. */
-    public function countPatients(): int {
-        $stmt = $this->db->query("SELECT COUNT(*) FROM utilisateurs u JOIN roles r ON r.id_role = u.id_role WHERE r.libelle = 'Patient'");
+    public function countPatients(int $medecinId): int {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(DISTINCT u.id_PK) 
+            FROM utilisateurs u 
+            JOIN roles r ON r.id_role = u.id_role 
+            JOIN consultation c ON c.id_patient = u.id_PK 
+            WHERE r.libelle = 'Patient' AND c.id_medecin = :mid
+        ");
+        $stmt->execute([':mid' => $medecinId]);
         return (int) $stmt->fetchColumn();
     }
 

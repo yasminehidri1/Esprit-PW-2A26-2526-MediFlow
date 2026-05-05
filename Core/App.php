@@ -344,12 +344,12 @@ class App
         // ── Dossier Médical — Medecin routes ────────────────────────────────
 
         // Admin subdomain (more specific, must come before generic /dossier/admin)
-        if (preg_match('#^/dossier/admin/doctors/patients(?:/|$)#', $path)) {
-            (new \Controllers\DossierAdminController())->viewDoctorPatients();
-            return;
-        }
         if (preg_match('#^/dossier/admin/doctors/patients/api(?:/|$)#', $path)) {
             (new \Controllers\DossierAdminController())->getDoctorPatientsAjax();
+            return;
+        }
+        if (preg_match('#^/dossier/admin/doctors/patients(?:/|$)#', $path)) {
+            (new \Controllers\DossierAdminController())->viewDoctorPatients();
             return;
         }
         if (preg_match('#^/dossier/admin/doctors/edit(?:/|$)#', $path)) {

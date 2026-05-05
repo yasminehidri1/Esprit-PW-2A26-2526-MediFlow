@@ -389,6 +389,7 @@ class AdminModel {
         return $stmt->fetch() ?: null;
     }
 
+
     /**
      * Update a doctor's information.
      */

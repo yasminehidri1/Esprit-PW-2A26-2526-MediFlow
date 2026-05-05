@@ -420,16 +420,6 @@ function groupOpen(string $prefix, string $currentPath): string {
                     <span class="material-symbols-outlined text-base">group</span>
                     <span>Médecins</span>
                 </a>
-                <a href="/integration/dossier/admin/consultations"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/dossier/admin/consultations', $currentPath, ['/integration/dossier/admin/consultations/view']) ?>">
-                    <span class="material-symbols-outlined text-base">event_note</span>
-                    <span>Consultations</span>
-                </a>
-                <a href="/integration/dossier/admin/ordonnances"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/dossier/admin/ordonnances', $currentPath, ['/integration/dossier/admin/ordonnances/view']) ?>">
-                    <span class="material-symbols-outlined text-base">receipt_long</span>
-                    <span>Ordonnances</span>
-                </a>
             </div>
         </details>
         <?php endif; ?>

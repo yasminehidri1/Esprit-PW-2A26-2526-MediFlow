@@ -20,7 +20,25 @@ class OrdonnanceController {
     }
 
     public function listAll(): void {
+        $patientId = (int)($_GET['patient_id'] ?? 0);
         $grouped   = $this->ordonnanceModel->getAllGroupedByPatient($this->medecinId);
+
+        if ($patientId > 0) {
+            $patientGroup = array_filter($grouped, fn($g) => $g['id_patient'] == $patientId);
+            if (empty($patientGroup)) {
+                $consultations = $this->consultationModel->getConsultationsByPatient($patientId, $this->medecinId);
+                if (!empty($consultations)) {
+                    $latestConsultId = $consultations[0]['id_consultation'];
+                    $this->redirect("/integration/dossier/ordonnance/add?consult_id=" . $latestConsultId);
+                } else {
+                    $_SESSION['flash'] = ['type' => 'info', 'msg' => 'Ce patient n\'a pas encore de consultation pour créer une ordonnance.'];
+                    $this->redirect("/integration/dossier/patients");
+                }
+            } else {
+                $grouped = $patientGroup;
+            }
+        }
+
         $totalOrdo = array_sum(array_map(fn($g) => count($g['ordonnances']), $grouped));
         $medecin   = $this->medecinInfo;
         $medecinId = $this->medecinId;

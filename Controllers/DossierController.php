@@ -54,7 +54,7 @@ class DossierController {
         $search     = trim($_GET['q'] ?? '');
 
         $patients   = $this->consultationModel->getAllPatients($this->medecinId, $perPage, $offset);
-        $totalCount = $this->consultationModel->countPatients();
+        $totalCount = $this->consultationModel->countPatients($this->medecinId);
         $totalPages = (int) ceil($totalCount / $perPage);
         $stats      = $this->consultationModel->getTodayStats($this->medecinId);
 
