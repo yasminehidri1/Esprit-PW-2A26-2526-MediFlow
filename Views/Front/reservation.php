@@ -869,10 +869,9 @@ document.getElementById('card-number')?.addEventListener('input', function(){
   // Validation
   var clean = this.value.replace(/\s/g,'');
   var complete = clean.length === maxLen;
-  var valid    = complete && luhn(clean);
+  var valid    = complete; // ✅ Accepter tout numéro avec le bon nombre de chiffres
   var errMsg   = '';
   if(!complete)    errMsg = 'Numéro incomplet (' + clean.length + '/' + maxLen + ' chiffres)';
-  else if(!valid)  errMsg = 'Numéro de carte invalide';
   setCardField('card-number','icon-number','err-number', valid, errMsg);
   document.getElementById('hint-number').textContent = clean.length + '/' + maxLen;
   updateProgress();
