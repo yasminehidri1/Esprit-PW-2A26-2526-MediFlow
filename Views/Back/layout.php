@@ -506,11 +506,8 @@ function groupOpen(string $prefix, string $currentPath): string {
         <div class="flex items-center gap-4">
 
 
-            <!-- Notification bell -->
-            <button class="relative p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 rounded-xl transition-all">
-                <span class="material-symbols-outlined text-xl">notifications</span>
-                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-            </button>
+            <!-- Cloche notifications dynamique -->
+            <?php include __DIR__ . '/partials/_notifications.php'; ?>
 
             <!-- User pill -->
             <a href="/integration/profile" class="flex items-center gap-3 pl-4 border-l border-outline-variant/30 hover:opacity-80 transition-opacity">

@@ -16,22 +16,23 @@ class RendezVousModel
     // ============================================================
     //  CREATE — Insérer un nouveau rendez-vous
     // ============================================================
-    public function insertRdv($medecin_id, $nom, $prenom, $cin, $genre, $date, $heure)
+    public function insertRdv($medecin_id, $nom, $prenom, $cin, $genre, $date, $heure, $patient_email = null)
     {
         $sql = "INSERT INTO rendez_vous
-                    (medecin_id, patient_nom, patient_prenom, cin, genre, date_rdv, heure_rdv, statut)
+                    (medecin_id, patient_nom, patient_prenom, cin, genre, date_rdv, heure_rdv, statut, patient_email)
                 VALUES
-                    (:medecin_id, :nom, :prenom, :cin, :genre, :date, :heure, 'en_attente')";
+                    (:medecin_id, :nom, :prenom, :cin, :genre, :date, :heure, 'en_attente', :patient_email)";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            ':medecin_id' => $medecin_id,
-            ':nom'        => $nom,
-            ':prenom'     => $prenom,
-            ':cin'        => $cin,
-            ':genre'      => $genre,
-            ':date'       => $date,
-            ':heure'      => $heure,
+            ':medecin_id'    => $medecin_id,
+            ':nom'           => $nom,
+            ':prenom'        => $prenom,
+            ':cin'           => $cin,
+            ':genre'         => $genre,
+            ':date'          => $date,
+            ':heure'         => $heure,
+            ':patient_email' => $patient_email,
         ]);
 
         return $this->pdo->lastInsertId();
@@ -532,9 +533,9 @@ class RendezVousModel
         }
         return $par_jour;
     }
-    public function addRdv(int $medecin_id, string $nom, string $prenom, string $cin, string $genre, string $date, string $heure): int|false
+    public function addRdv(int $medecin_id, string $nom, string $prenom, string $cin, string $genre, string $date, string $heure, ?string $patient_email = null): int|false
     {
-        $result = $this->insertRdv($medecin_id, $nom, $prenom, $cin, $genre, $date, $heure);
+        $result = $this->insertRdv($medecin_id, $nom, $prenom, $cin, $genre, $date, $heure, $patient_email);
         return $result ? (int)$result : false;
     }
     public function creneauDejaReserve(int $medecin_id, string $date, string $heure): bool
