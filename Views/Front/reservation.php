@@ -504,7 +504,7 @@ $imgUrl = $eq ? getEqImageUrl($eq) : '';
                 <div class="card-field" style="margin-bottom:0;" id="field-prenom">
                   <label>PRÉNOM DU TITULAIRE</label>
                   <div style="position:relative;">
-                    <input class="card-input" id="card-prenom" type="text" placeholder="Mohamed"/>
+                    <input class="card-input" id="card-prenom" type="text" placeholder="Mohamed" value="<?= htmlspecialchars($user['prenom'] ?? '') ?>"/>
                     <span id="icon-prenom" class="material-symbols-outlined"
                           style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;display:none;"></span>
                   </div>
@@ -513,7 +513,7 @@ $imgUrl = $eq ? getEqImageUrl($eq) : '';
                 <div class="card-field" style="margin-bottom:0;" id="field-cnom">
                   <label>NOM DU TITULAIRE</label>
                   <div style="position:relative;">
-                    <input class="card-input" id="card-nom" type="text" placeholder="Ben Ali"/>
+                    <input class="card-input" id="card-nom" type="text" placeholder="Ben Ali" value="<?= htmlspecialchars($user['nom'] ?? '') ?>"/>
                     <span id="icon-cnom" class="material-symbols-outlined"
                           style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;display:none;"></span>
                   </div>
@@ -773,6 +773,11 @@ function setPayment(mode) {
   // Afficher le formulaire carte seulement si paiement en ligne
   if(mode === 'enligne') {
     cardForm.classList.add('show');
+    // ✅ Valider automatiquement le nom/prenom pré-remplis
+    setTimeout(function(){
+      document.getElementById('card-prenom')?.dispatchEvent(new Event('input'));
+      document.getElementById('card-nom')?.dispatchEvent(new Event('input'));
+    }, 100);
     var nbAnn = document.getElementById('nb-annulation');
     if(nbAnn) nbAnn.style.display = 'flex';
   } else {
@@ -966,7 +971,10 @@ function valider(){
     const cv = document.getElementById('card-cvc')?.value;
     const cp = document.getElementById('card-prenom')?.value.trim();
     const cn2= document.getElementById('card-nom')?.value.trim();
-    if(!cn||cn.length<16){showToast('Numéro de carte invalide (16 chiffres requis).','error');ok=false;}
+    // AMEX = 15 chiffres, VISA/MC = 16 chiffres
+    var cardType = /^3[47]/.test(cn) ? 'amex' : 'other';
+    var requiredLen = cardType === 'amex' ? 15 : 16;
+    if(!cn||cn.length<requiredLen){showToast('Numéro de carte invalide (' + requiredLen + ' chiffres requis).','error');ok=false;}
     if(!ex||ex.length<5){showToast('Date d\'expiration invalide (MM/AA).','error');ok=false;}
     if(!cv||cv.length<3){showToast('Code CVC invalide (3 chiffres requis).','error');ok=false;}
     if(!cp){showToast('Prénom du titulaire requis.','error');ok=false;}
