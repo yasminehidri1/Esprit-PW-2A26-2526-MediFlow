@@ -367,4 +367,41 @@ class Post {
     public function getByCategory($categorie, $page = 1, $perPage = 10) {
         return $this->getAll(['categorie' => $categorie, 'statut' => 'publie'], $page, $perPage);
     }
+
+    /**
+     * Aggregate: published posts per day for last N days
+     * Returns rows: [ ['day' => 'YYYY-MM-DD', 'count' => int], ... ]
+     */
+    public function getPublishedCountsByDay(int $days = 30): array {
+        $days = max(1, min(365, $days));
+        $sql = "SELECT DATE(p.date_publication) as day, COUNT(*) as count
+                FROM {$this->table} p
+                WHERE p.statut = 'publie'
+                  AND p.date_publication >= (CURDATE() - INTERVAL :days DAY)
+                GROUP BY DATE(p.date_publication)
+                ORDER BY day ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':days', $days, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Aggregate: top published posts by a metric.
+     * $metric: views|likes (maps to views_count|likes_count)
+     */
+    public function getTopPublishedBy(string $metric, int $limit = 5): array {
+        $limit = max(1, min(50, $limit));
+        $col = $metric === 'likes' ? 'likes_count' : 'views_count';
+
+        $sql = "SELECT p.id, p.titre, p.categorie, p.{$col} as metric_value
+                FROM {$this->table} p
+                WHERE p.statut = 'publie'
+                ORDER BY p.{$col} DESC, p.date_publication DESC
+                LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

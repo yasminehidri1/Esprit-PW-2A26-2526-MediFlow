@@ -88,6 +88,64 @@
   }
   body { font-family: 'Inter', sans-serif; }
   h1,h2,h3,h4,h5,h6,.font-headline { font-family: 'Manrope', sans-serif; }
+  
+  /* Custom Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideInRight {
+    from { 
+      opacity: 0;
+      transform: translateX(100px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes slideOutRight {
+    from { 
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to { 
+      opacity: 0;
+      transform: translateX(100px);
+    }
+  }
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .animate-in {
+    animation: fadeIn 0.2s ease-in-out forwards;
+  }
+  .animate-in.fade-in {
+    animation: fadeIn 0.2s ease-in-out forwards;
+  }
+  .animate-in.slide-in-from-right-4 {
+    animation: slideInRight 0.3s ease-out forwards;
+  }
+  .animate-out {
+    animation: fadeIn 0.2s ease-in-out reverse;
+  }
+  .animate-out.fade-out {
+    animation: fadeIn 0.2s ease-in-out reverse;
+  }
+  .animate-out.slide-out-to-right-4 {
+    animation: slideOutRight 0.3s ease-in forwards;
+  }
+  .scale-in-95 {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
 </style>
 <link rel="stylesheet" href="/integration/assets/css_magazine/style.css"/>
 </head>
@@ -173,6 +231,11 @@ $currentAction = $_GET['action'] ?? 'home';
         <a href="/integration/magazine/admin" class="text-slate-500 hover:bg-slate-50/50 p-2 rounded-lg transition-all active:scale-[0.95]" title="Admin Panel">
           <span class="material-symbols-outlined">admin_panel_settings</span>
         </a>
+        <!-- Saved Articles Toggle -->
+        <button id="savedArticlesToggle" class="relative text-slate-500 hover:bg-slate-50/50 p-2 rounded-lg transition-all active:scale-[0.95]" title="Saved Articles">
+          <span class="material-symbols-outlined">bookmarks</span>
+          <span id="savedCountBadge" class="absolute top-1 right-1 w-4 h-4 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center hidden">0</span>
+        </button>
         <!-- Avatar placeholder -->
         <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold text-sm border-2 border-primary/10">
           U
@@ -181,6 +244,62 @@ $currentAction = $_GET['action'] ?? 'home';
     </div>
   </div>
 </nav>
+
+<!-- Saved Articles Drawer -->
+<div id="savedArticlesDrawer" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-[70] transform translate-x-full transition-transform duration-500 ease-in-out border-l border-surface-container">
+    <div class="flex flex-col h-full">
+        <div class="p-6 border-b border-surface-container flex justify-between items-center bg-surface-container-low">
+            <h3 class="text-xl font-headline font-bold text-blue-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">bookmarks</span>
+                Reading List
+            </h3>
+            <button id="closeSavedDrawer" class="p-2 hover:bg-surface-container rounded-full transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div id="savedArticlesList" class="flex-1 overflow-y-auto p-6 space-y-6">
+            <!-- Saved items will appear here -->
+            <div class="text-center py-12 opacity-50">
+                <span class="material-symbols-outlined text-6xl mb-4">bookmark_border</span>
+                <p class="text-sm font-medium">Your reading list is empty.</p>
+            </div>
+        </div>
+        <div class="p-6 border-t border-surface-container bg-surface-container-low text-center">
+            <p class="text-xs text-slate-400">Articles are saved to your browser local storage.</p>
+        </div>
+    </div>
+</div>
+<div id="drawerOverlay" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[65] hidden opacity-0 transition-opacity duration-500"></div>
+
+<!-- Social Share Tooltip (Floating) -->
+<div id="shareTooltip" class="fixed z-[100] hidden pointer-events-auto">
+    <div class="flex items-center gap-1 bg-blue-900 text-white rounded-full px-2 py-1.5 shadow-2xl animate-tooltipIn">
+        <button id="shareTwitter" class="p-2 hover:bg-white/20 rounded-full transition-colors" title="Share on Twitter">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </button>
+        <button id="shareLinkedIn" class="p-2 hover:bg-white/20 rounded-full transition-colors" title="Share on LinkedIn">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+        </button>
+        <div class="w-px h-4 bg-white/20 mx-1"></div>
+        <button id="copySelection" class="p-2 hover:bg-white/20 rounded-full transition-colors" title="Copy selection">
+            <span class="material-symbols-outlined text-[18px]">content_copy</span>
+        </button>
+    </div>
+    <div class="w-3 h-3 bg-blue-900 rotate-45 mx-auto -mt-1.5 shadow-2xl"></div>
+</div>
+
+<style>
+@keyframes tooltipIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-slideIn { animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-tooltipIn { animation: tooltipIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+</style>
 
 <!-- Mobile Search Overlay -->
 <div id="searchOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] hidden">
@@ -281,6 +400,7 @@ $currentAction = $_GET['action'] ?? 'home';
   </a>
 </div>
 
-<script src="/integration/assets/js_magazine/frontOffice.js"></script>
+<script src="/integration/assets/js_magazine/frontOffice.js?v=<?= time() ?>"></script>
+
 </body>
 </html>

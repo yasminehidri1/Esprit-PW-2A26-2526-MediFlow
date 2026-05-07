@@ -307,24 +307,7 @@ $catBadge = [
     </div>
 
     <!-- Newsletter Signup -->
-    <div class="bg-primary rounded-xl p-8 text-white relative overflow-hidden">
-      <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-      <div class="absolute -left-6 -bottom-8 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
-      <h4 class="font-headline text-xl font-bold mb-3 relative z-10">
-        Medical Excellence in your inbox.
-      </h4>
-      <p class="text-on-primary-container text-sm mb-6 relative z-10 opacity-90">
-        Receive our weekly selection of the most impactful healthcare research and insights.
-      </p>
-      <div class="space-y-3 relative z-10">
-        <input class="w-full bg-white/10 border-none rounded-lg py-3 px-4 text-sm placeholder:text-white/60 focus:ring-2 focus:ring-tertiary-fixed/30 text-white"
-               placeholder="Your email address" type="email"/>
-        <button class="w-full bg-tertiary-fixed text-on-tertiary-fixed font-headline font-bold py-3 rounded-lg hover:bg-tertiary-fixed-dim transition-all active:scale-[0.98]">
-          Subscribe
-        </button>
-      </div>
-      <p class="text-[10px] mt-4 text-center text-white/50">Your privacy is guaranteed.</p>
-    </div>
+    <?php include __DIR__ . '/_newsletter_box.php'; ?>
 
     <!-- Category Tags Cloud -->
     <div class="p-2">

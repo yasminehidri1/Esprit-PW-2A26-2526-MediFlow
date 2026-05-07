@@ -7,6 +7,8 @@ $currentUserId = $_SESSION['user']['id'] ?? null;
 $currentUserName = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? ''));
 $currentUserInitials = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1) . substr($_SESSION['user']['nom'] ?? 'U', 0, 1));
 $isLoggedIn = !empty($currentUserId);
+$userRole = $_SESSION['user']['role'] ?? '';
+$isAdmin = strtolower($userRole) === 'admin';
 
 if (!function_exists('estimateReadTime')) {
     function estimateReadTime($text) {
@@ -87,12 +89,83 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
           </span>
         </p>
       </div>
-      <!-- Share -->
-      <button onclick="navigator.clipboard.writeText(window.location.href); showToast('Link copied!')"
-              class="text-slate-400 hover:text-primary p-2 rounded-lg hover:bg-surface-container transition-all" title="Copy link">
-        <span class="material-symbols-outlined">share</span>
-      </button>
+      <!-- Actions -->
+      <div class="flex items-center gap-2">
+        <button id="saveForLaterBtn" data-post-id="<?= $post['id'] ?>" data-post-title="<?= htmlspecialchars($post['titre']) ?>" data-post-image="<?= htmlspecialchars($post['image_url'] ?? '') ?>"
+                class="text-slate-400 hover:text-primary p-2 rounded-lg hover:bg-surface-container transition-all" title="Save for later">
+          <span class="material-symbols-outlined bookmark-icon">bookmark_border</span>
+        </button>
+        
+        <!-- Share Menu -->
+        <div class="relative group">
+          <button class="text-slate-400 hover:text-primary p-2 rounded-lg hover:bg-surface-container transition-all" title="Share article">
+            <span class="material-symbols-outlined">share</span>
+          </button>
+          <div class="absolute right-0 mt-2 w-56 bg-white border border-surface-container rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div class="p-4 space-y-2">
+              <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Share on</p>
+              
+              <!-- Copy Link -->
+              <button onclick="navigator.clipboard.writeText(window.location.href); showNotification('success', 'Link copied to clipboard!')"
+                      class="w-full flex items-center gap-3 px-3 py-2 text-sm text-on-surface hover:bg-surface-container rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">content_copy</span>
+                <span>Copy Link</span>
+              </button>
+              
+              <!-- Facebook -->
+              <a href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode(($_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $_SERVER['REQUEST_URI']) ?>" target="_blank" rel="noopener"
+                 class="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#1877f2] hover:bg-surface-container rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                <span>Facebook</span>
+              </a>
+              
+              <!-- Twitter -->
+              <a href="https://twitter.com/intent/tweet?url=<?= urlencode(($_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $_SERVER['REQUEST_URI']) ?>&text=<?= urlencode($post['titre']) ?>" target="_blank" rel="noopener"
+                 class="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#000000] hover:bg-surface-container rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 002.856-3.51 10 10 0 01-2.806.856 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                <span>Twitter/X</span>
+              </a>
+              
+              <!-- LinkedIn -->
+              <a href="https://www.linkedin.com/sharing/share-offsite/?url=<?= urlencode(($_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $_SERVER['REQUEST_URI']) ?>" target="_blank" rel="noopener"
+                 class="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#0a66c2] hover:bg-surface-container rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.475-2.236-1.986-2.236-1.081 0-1.722.722-2.004 1.418-.103.249-.129.597-.129.946v5.441h-3.554s.05-8.814 0-9.752h3.554v1.375c.43-.664 1.199-1.61 2.922-1.61 2.134 0 3.732 1.39 3.732 4.377v5.61zM5.337 8.855c-1.144 0-1.915-.762-1.915-1.715 0-.953.77-1.715 1.926-1.715 1.155 0 1.916.762 1.916 1.715 0 .953-.771 1.715-1.927 1.715zm1.582 11.597H3.714V9.505h3.205v10.947zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>
+                <span>LinkedIn</span>
+              </a>
+              
+              <!-- WhatsApp -->
+              <a href="https://api.whatsapp.com/send?text=<?= urlencode($post['titre'] . ' - ' . (($_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $_SERVER['REQUEST_URI'])) ?>" target="_blank" rel="noopener"
+                 class="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#25d366] hover:bg-surface-container rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.6915026,2.4744748 C15.6684016,0.4953846 12.7909947,-0.1139597 9.97368649,0.0152448903 C4.74438975,0.245686705 0.436075697,4.52428005 0.206284687,9.75357992 C0.0861826966,13.0151496 1.15792661,16.1685148 3.23073512,18.1899299 L2.45651486,22.0348371 C2.25490699,23.0762508 3.13008928,23.9720311 4.17160257,23.7704232 L8.01671231,22.9962029 C9.73358339,23.8231998 11.6743595,24.2831279 13.6399903,24.2831279 C18.8692904,24.2831279 23.1775285,19.9749899 23.4073194,14.7456898 C23.5274215,11.9283815 22.714604,9.05097138 20.691503,7.03187234 L17.6915026,2.4744748 Z M13.6399903,21.7019025 C12.1339945,21.7019025 10.6725456,21.3076949 9.41266819,20.5892521 L8.81150773,20.2380505 L5.92360586,20.9155239 L6.60107925,18.0276421 L6.24947761,17.4264816 C5.44066916,16.1256014 5.04039603,14.5890051 5.17076933,13.0151496 C5.35728356,9.80160857 7.96126944,7.19762268 11.1748381,7.07752057 C14.3884068,6.9574185 17.0924033,9.56140442 17.2089175,12.7752731 C17.3290196,16.1256014 14.7250337,21.7019025 13.6399903,21.7019025 Z M18.5825355,14.0273449 C18.3809276,13.8257371 17.9865199,13.6241292 17.3744079,13.4225214 C16.7622960,13.220913 15.0454252,12.5034402 14.6510175,12.3018323 C14.2566099,12.1002245 13.9954704,12.1002245 13.7938625,12.5034402 C13.5922546,12.9066558 12.9801426,13.8257371 12.8100325,14.0273449 C12.6399225,14.2289527 12.4698124,14.2289527 12.2682045,14.0273449 C11.0283272,13.6241292 9.54564852,12.6112849 8.54853118,11.3704098 C8.14512346,10.8146442 8.54564852,10.3626048 8.94905624,9.95918702 C9.15066411,9.75757915 9.15066411,9.55597128 8.94905624,9.35436341 C8.74744837,9.15275554 7.83635996,7.43589051 7.63475209,7.03187234 C7.4331442,6.62785416 7.23153632,6.68882267 7.02992845,6.68882267 C6.86981839,6.68882267 6.66821052,6.68882267 6.46660265,6.68882267 C6.2650948,6.68882267 5.96333673,6.88042954 5.5689292,7.29444772 C4.97710863,7.89629631 3.49443486,9.40896008 3.49443486,11.1258309 C3.49443486,12.8427018 5.7710098,14.4866152 6.17442752,15.0424808 C6.57784524,15.5983463 9.92296869,20.9155239 15.0454252,23.3427597 C15.6575372,23.6631039 16.1436995,23.8647117 16.5381071,24.0047147 C17.1504222,24.1946211 17.7627373,24.1560308 18.2488997,23.960124 C18.8608116,23.7585162 20.5778802,22.5177411 20.9723879,21.163882 C21.1739957,20.5518702 21.1739957,20.0657078 20.9723879,19.8641 C20.7707801,19.6624921 20.0532872,19.3421459 18.5825355,14.0273449 Z"/></svg>
+                <span>WhatsApp</span>
+              </a>
+              
+              <!-- Email -->
+              <a href="mailto:?subject=<?= urlencode($post['titre']) ?>&body=<?= urlencode('Check this article: ' . (($_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $_SERVER['REQUEST_URI'])) ?>"
+                 class="w-full flex items-center gap-3 px-3 py-2 text-sm text-orange-600 hover:bg-surface-container rounded-lg transition-colors">
+                <span class="material-symbols-outlined">mail</span>
+                <span>Email</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <?php if ($isAdmin): ?>
+        <!-- Admin Actions -->
+        <div class="ml-auto flex items-center gap-2 border-l border-surface-container pl-2">
+          <a href="/integration/magazine/admin/article-form?id=<?= $post['id'] ?>"
+             class="text-slate-400 hover:text-primary p-2 rounded-lg hover:bg-surface-container transition-all" title="Edit article">
+            <span class="material-symbols-outlined">edit</span>
+          </a>
+          <button onclick="showDeleteModal(<?= $post['id'] ?>)"
+                  class="text-slate-400 hover:text-error p-2 rounded-lg hover:bg-red-50 transition-all" title="Delete article">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </div>
+        <?php endif; ?>
+      </div>
     </div>
+
 
     <!-- Cover Image -->
     <?php if (!empty($post['image_url'])): ?>
@@ -220,6 +293,14 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
                 <span class="material-symbols-outlined text-sm">delete</span>
               </button>
             </div>
+            <?php elseif ($isAdmin): ?>
+            <!-- Admin can delete any comment -->
+            <div class="flex items-center gap-1">
+              <button class="comment-delete-btn p-1.5 text-slate-400 hover:text-error hover:bg-error-container/20 rounded-lg transition-all"
+                      data-comment-id="<?= $comment['id'] ?>" data-post-id="<?= $post['id'] ?>" title="Delete comment (Admin)">
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </div>
             <?php endif; ?>
           </div>
 
@@ -293,17 +374,41 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
     <?php endif; ?>
 
     <!-- Newsletter -->
-    <div class="bg-primary rounded-xl p-8 text-white relative overflow-hidden">
-      <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-      <h4 class="font-headline text-xl font-bold mb-3 relative z-10">Medical Excellence in your inbox.</h4>
-      <p class="text-on-primary-container text-sm mb-6 relative z-10 opacity-90">Our weekly selection of the most impactful health research.</p>
-      <div class="space-y-3 relative z-10">
-        <input class="w-full bg-white/10 border-none rounded-lg py-3 px-4 text-sm placeholder:text-white/60 focus:ring-2 focus:ring-tertiary-fixed/30"
-               placeholder="Your email address" type="email"/>
-        <button class="w-full bg-tertiary-fixed text-on-tertiary-fixed font-headline font-bold py-3 rounded-lg hover:bg-tertiary-fixed-dim transition-all active:scale-[0.98]">
-          Subscribe
+    <?php include __DIR__ . '/_newsletter_box.php'; ?>
+
+    <!-- AI Summary Trigger (Sidebar) -->
+    <div class="flex flex-col items-center py-8 px-6 bg-gradient-to-b from-blue-50/50 to-indigo-50/50 rounded-xl border border-blue-100/50 text-center relative overflow-hidden group">
+        <!-- Decorative bg -->
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors"></div>
+        
+        <!-- AI Summary Result Container (Hidden by default) -->
+        <div id="summaryResultContainer" class="hidden w-full mb-6 relative z-10">
+            <div class="bg-gradient-to-br from-blue-50/80 via-indigo-50/60 to-blue-50/40 backdrop-blur-xl border border-blue-200/40 shadow-xl shadow-blue-900/5 rounded-2xl p-6 space-y-4 transform transition-all duration-500">
+                <!-- Header -->
+                <div class="flex items-center gap-3 pb-3 border-b border-blue-200/30">
+                    <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/20">
+                        <span class="material-symbols-outlined text-white text-lg">auto_awesome</span>
+                    </div>
+                    <h5 class="font-headline font-bold text-blue-900 text-sm">AI Summary</h5>
+                </div>
+                
+                <!-- Content -->
+                <div id="summaryContent" class="space-y-3">
+                    <!-- Thinking message or summary will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-blue-600 mb-4 shadow-sm relative z-10 border border-blue-50">
+            <span class="material-symbols-outlined">auto_awesome</span>
+        </div>
+        <h4 class="font-headline text-lg font-bold text-blue-900 mb-2 relative z-10">Too long to read?</h4>
+        <p class="text-slate-500 text-xs mb-6 relative z-10">Get a concise AI-generated summary of this article in seconds.</p>
+        <button id="summarizeBtn" onclick="handleAISummarize(this)" data-post-id="<?= $post['id'] ?>"
+                class="w-full flex justify-center items-center gap-2 py-3 bg-blue-900 text-white rounded-xl font-headline font-bold text-sm shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition-all group relative z-10">
+            <span class="material-symbols-outlined text-[18px] group-hover:rotate-12 transition-transform">bolt</span>
+            Generate Summary
         </button>
-      </div>
     </div>
 
     <!-- Tags -->
@@ -326,3 +431,246 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
   </aside>
 
 </div>
+
+<!-- AI Summary Inline Logic -->
+<script>
+const thinkingMessages = [
+    'Analyzing article content...',
+    'Processing medical insights...',
+    'Synthesizing key findings...',
+    'Generating summary...',
+    'Polishing insights...'
+];
+
+window.handleAISummarize = async function(btn) {
+    if (btn.dataset.loading) return;
+
+    const summaryContainer = document.getElementById('summaryResultContainer');
+    const summaryContent = document.getElementById('summaryContent');
+    const postId = btn.getAttribute('data-post-id');
+    const originalHTML = btn.innerHTML;
+    
+    btn.dataset.loading = 'true';
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Generating...';
+    btn.classList.add('opacity-80');
+    btn.disabled = true;
+
+    // Show container with thinking message
+    summaryContainer.classList.remove('hidden');
+    
+    let messageIndex = 0;
+    const messageInterval = setInterval(() => {
+        summaryContent.innerHTML = `
+            <div class="flex items-center gap-3 py-3">
+                <div class="flex gap-1">
+                    <div class="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0s;"></div>
+                    <div class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce" style="animation-delay: 0.1s;"></div>
+                    <div class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay: 0.2s;"></div>
+                </div>
+                <p class="text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">${thinkingMessages[messageIndex]}</p>
+            </div>
+        `;
+        messageIndex = (messageIndex + 1) % thinkingMessages.length;
+    }, 1000);
+
+    try {
+        const res = await fetch(`/integration/magazine/summarize?id=${postId}`);
+        const text = await res.text();
+        
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseErr) {
+            clearInterval(messageInterval);
+            summaryContent.innerHTML = `
+                <div class="flex items-start gap-3 py-2">
+                    <span class="material-symbols-outlined text-red-500 text-lg flex-shrink-0">error_outline</span>
+                    <div>
+                        <p class="text-sm font-bold text-red-700">Invalid Response from Server</p>
+                        <p class="text-xs text-red-600 mt-1.5 opacity-80">Response: ${text.substring(0, 100)}</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        clearInterval(messageInterval);
+
+        if (data.success) {
+            summaryContent.innerHTML = '';
+            
+            const lines = data.summary.split('\n').filter(l => l.trim() !== '');
+            let lineIdx = 0;
+
+            function typeLine() {
+                if (lineIdx < lines.length) {
+                    const line = lines[lineIdx].trim();
+                    if (line === '') {
+                        lineIdx++;
+                        setTimeout(typeLine, 50);
+                        return;
+                    }
+
+                    let wrapper;
+
+                    if (line.startsWith('-') || line.startsWith('*')) {
+                        wrapper = document.createElement('div');
+                        wrapper.className = 'flex gap-3 items-start group/item';
+                        wrapper.innerHTML = `
+                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mt-0.5 group-hover/item:scale-110 transition-transform">
+                                <span class="text-blue-600 font-bold text-sm">✓</span>
+                            </div>
+                            <p class="text-sm font-medium text-blue-900 leading-relaxed flex-1">${line.replace(/^[-*]\s*/, '')}</p>
+                        `;
+                        summaryContent.appendChild(wrapper);
+                    } else {
+                        wrapper = document.createElement('p');
+                        wrapper.className = 'text-sm text-blue-800 leading-relaxed font-medium';
+                        wrapper.textContent = line;
+                        summaryContent.appendChild(wrapper);
+                    }
+
+                    wrapper.style.opacity = '0';
+                    wrapper.style.transform = 'translateY(12px)';
+                    wrapper.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    
+                    setTimeout(() => {
+                        wrapper.style.opacity = '1';
+                        wrapper.style.transform = 'translateY(0)';
+                        lineIdx++;
+                        setTimeout(typeLine, 250);
+                    }, 50);
+                } else {
+                    // Add footer with dismiss button
+                    const footer = document.createElement('div');
+                    footer.className = 'flex justify-between items-center mt-5 pt-4 border-t border-blue-200/30';
+                    footer.innerHTML = `
+                        <p class="text-xs text-blue-600/70 italic">Generated by AI for educational purposes</p>
+                        <button class="px-4 py-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 rounded-lg transition-all">✕ Dismiss</button>
+                    `;
+                    footer.querySelector('button').onclick = () => {
+                        summaryContainer.classList.add('hidden');
+                        summaryContent.innerHTML = '';
+                    };
+                    summaryContent.appendChild(footer);
+                }
+            }
+            typeLine();
+        } else {
+            summaryContent.innerHTML = `
+                <div class="flex items-start gap-3 py-2">
+                    <span class="material-symbols-outlined text-red-500 text-lg flex-shrink-0">error_outline</span>
+                    <div>
+                        <p class="text-sm font-bold text-red-700">${data.error}</p>
+                        ${data.details ? `<p class="text-xs text-red-600 mt-1.5 opacity-80">${data.details}</p>` : ''}
+                    </div>
+                </div>
+            `;
+            console.error('AI error response:', data);
+        }
+    } catch (err) {
+        clearInterval(messageInterval);
+        summaryContent.innerHTML = `
+            <div class="flex items-start gap-3 py-2">
+                <span class="material-symbols-outlined text-red-500 text-lg flex-shrink-0">cloud_off</span>
+                <div>
+                    <p class="text-sm font-bold text-red-700">Network Error</p>
+                    <p class="text-xs text-red-600 mt-1.5 opacity-80">${err.message}</p>
+                </div>
+            </div>
+        `;
+        console.error('AI fetch error:', err);
+    } finally {
+        delete btn.dataset.loading;
+        btn.innerHTML = originalHTML;
+        btn.classList.remove('opacity-80');
+        btn.disabled = false;
+    }
+};
+
+// ============================================================
+// NOTIFICATION & MODAL SYSTEM
+// ============================================================
+
+function showNotification(type, message) {
+    // Remove existing notification if any
+    const existing = document.getElementById('notificationCenter');
+    if (existing) existing.remove();
+    
+    const bgColor = type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
+                    type === 'error' ? 'bg-gradient-to-r from-red-500 to-rose-500' :
+                    type === 'warning' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+                    'bg-gradient-to-r from-blue-500 to-indigo-500';
+    
+    const icon = type === 'success' ? 'check_circle' :
+                 type === 'error' ? 'error' :
+                 type === 'warning' ? 'warning' :
+                 'info';
+    
+    const notification = document.createElement('div');
+    notification.id = 'notificationCenter';
+    notification.className = `fixed top-6 right-6 ${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 z-50 animate-in fade-in slide-in-from-right-4 duration-300`;
+    notification.innerHTML = `
+        <span class="material-symbols-outlined">${icon}</span>
+        <span class="font-medium">${message}</span>
+        <button onclick="this.parentElement.remove()" class="ml-2 hover:opacity-80 transition-opacity">
+            <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.remove('animate-in', 'fade-in', 'slide-in-from-right-4');
+            notification.classList.add('animate-out', 'fade-out', 'slide-out-to-right-4');
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 4000);
+}
+
+function showDeleteModal(postId) {
+    const modal = document.createElement('div');
+    modal.id = 'deleteModal';
+    modal.className = 'fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-in fade-in duration-200';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-in scale-in-95 duration-200">
+            <!-- Header with icon -->
+            <div class="bg-gradient-to-r from-red-500 to-rose-500 text-white p-6 rounded-t-2xl flex items-center gap-4">
+                <span class="material-symbols-outlined text-4xl">warning</span>
+                <div>
+                    <h3 class="font-headline font-bold text-lg">Delete Article?</h3>
+                    <p class="text-sm text-white/90">This action cannot be undone</p>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6">
+                <p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+                    Are you sure you want to delete this article? It will be permanently removed from the magazine and cannot be recovered.
+                </p>
+                
+                <!-- Actions -->
+                <div class="flex gap-3">
+                    <button onclick="document.getElementById('deleteModal').remove()" 
+                            class="flex-1 px-4 py-2.5 bg-surface-container text-on-surface-variant font-semibold rounded-xl hover:bg-surface-container-high transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="window.location.href='/integration/magazine/admin/delete?id=${postId}'" 
+                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-red-500/30 transition-all">
+                        <span class="flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-lg">delete</span>
+                            Delete
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+}
+</script>

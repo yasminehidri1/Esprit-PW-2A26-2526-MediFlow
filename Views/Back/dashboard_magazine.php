@@ -47,6 +47,54 @@
             </div>
         </div>
 
+        <!-- Analytics (Last 30 days) -->
+        <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12 lg:col-span-7 bg-surface-container-low rounded-xl p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-extrabold text-on-surface flex items-center gap-2">
+                        <span class="material-symbols-outlined text-tertiary text-lg">timeline</span>
+                        Published posts (last 30 days)
+                    </h3>
+                </div>
+                <div class="h-[240px]">
+                    <canvas id="publishedChart"></canvas>
+                </div>
+            </div>
+            <div class="col-span-12 lg:col-span-5 bg-surface-container-low rounded-xl p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-extrabold text-on-surface flex items-center gap-2">
+                        <span class="material-symbols-outlined text-tertiary text-lg">forum</span>
+                        Comments (last 30 days)
+                    </h3>
+                </div>
+                <div class="h-[240px]">
+                    <canvas id="commentsChart"></canvas>
+                </div>
+            </div>
+            <div class="col-span-12 lg:col-span-5 bg-surface-container-low rounded-xl p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-extrabold text-on-surface flex items-center gap-2">
+                        <span class="material-symbols-outlined text-tertiary text-lg">donut_large</span>
+                        Articles by category
+                    </h3>
+                </div>
+                <div class="h-[240px]">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+            <div class="col-span-12 lg:col-span-7 bg-surface-container-low rounded-xl p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-extrabold text-on-surface flex items-center gap-2">
+                        <span class="material-symbols-outlined text-tertiary text-lg">leaderboard</span>
+                        Top posts by views
+                    </h3>
+                </div>
+                <div class="h-[240px]">
+                    <canvas id="topViewedChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Publications -->
         <div class="bg-surface-container-low rounded-xl p-6 space-y-4">
             <div class="flex items-center justify-between">
@@ -59,55 +107,133 @@
                 </a>
             </div>
 
-            <div class="space-y-1">
-                <?php if (!empty($recentPosts)): ?>
+            <?php if (empty($recentPosts)): ?>
+                <div class="text-center py-8 text-on-surface-variant">
+                    <span class="material-symbols-outlined text-4xl mb-2">edit_note</span>
+                    <p>No articles yet. Create your first post!</p>
+                </div>
+            <?php else: ?>
+                <!-- Mobile (cards) -->
+                <div class="space-y-2 md:hidden">
                     <?php foreach ($recentPosts as $post): ?>
-                    <div id="post-row-<?= $post['id'] ?>"
-                         class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg hover:bg-blue-50 transition-colors">
-                        <div class="flex items-center gap-4">
-                            <?php if (!empty($post['image_url'])): ?>
-                            <img alt="Post Thumbnail" class="w-14 h-14 rounded-lg object-cover pointer-events-none" src="<?= htmlspecialchars($post['image_url']) ?>"/>
-                            <?php else: ?>
-                            <div class="w-14 h-14 rounded-lg bg-primary-fixed flex items-center justify-center flex-shrink-0 pointer-events-none">
-                                <span class="material-symbols-outlined text-primary">article</span>
+                        <div class="p-4 bg-surface-container-lowest rounded-lg border border-surface-container-high/40">
+                            <div class="flex items-start gap-3">
+                                <?php if (!empty($post['image_url'])): ?>
+                                    <img alt="Post Thumbnail" class="w-12 h-12 rounded-lg object-cover pointer-events-none" src="<?= htmlspecialchars($post['image_url']) ?>"/>
+                                <?php else: ?>
+                                    <div class="w-12 h-12 rounded-lg bg-primary-fixed flex items-center justify-center flex-shrink-0 pointer-events-none">
+                                        <span class="material-symbols-outlined text-primary">article</span>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-bold text-tertiary"><?= htmlspecialchars($post['categorie']) ?></p>
+                                    <h3 class="font-bold text-on-surface truncate"><?= htmlspecialchars($post['titre']) ?></h3>
+                                    <p class="text-[11px] text-on-surface-variant">
+                                        <?= date('M d, Y', strtotime($post['date_creation'])) ?> • <?= number_format((int)($post['views_count'] ?? 0)) ?> views • <?= number_format((int)($post['likes_count'] ?? 0)) ?> likes
+                                    </p>
+                                </div>
                             </div>
-                            <?php endif; ?>
-                            <div>
-                                <h3 class="font-bold text-on-surface"><?= htmlspecialchars($post['titre']) ?></h3>
-                                <p class="text-xs text-on-surface-variant flex items-center gap-2">
-                                    <span class="font-semibold text-tertiary"><?= htmlspecialchars($post['categorie']) ?></span>
-                                    • <?= date('M d, Y', strtotime($post['date_creation'])) ?>
-                                    • By <?= htmlspecialchars(($post['prenom'] ?? '') . ' ' . ($post['nom'] ?? '')) ?>
-                                </p>
+                            <div class="flex items-center justify-end gap-2 mt-3">
+                                <a href="/integration/magazine/admin/comments?post_id=<?= $post['id'] ?>" class="p-2 text-on-surface-variant hover:text-tertiary hover:bg-tertiary-fixed/20 rounded-md transition-all" title="Comments">
+                                    <span class="material-symbols-outlined">forum</span>
+                                </a>
+                                <a href="/integration/magazine/admin/article-form?id=<?= $post['id'] ?>" class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-high rounded-md transition-all" title="Edit">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </a>
+                                <button onclick="showDeleteModal('/integration/magazine/admin/delete?id=<?= $post['id'] ?>', 'article')" class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded-md transition-all" title="Delete">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs text-on-surface-variant flex items-center gap-1">
-                                <span class="material-symbols-outlined text-sm">visibility</span>
-                                <?= number_format($post['views_count']) ?>
-                            </span>
-                            <!-- View Comments: navigate to Comments tab filtered by this post -->
-                            <a href="/integration/magazine/admin/comments?post_id=<?= $post['id'] ?>"
-                               class="p-2 text-on-surface-variant hover:text-tertiary hover:bg-tertiary-fixed/20 rounded-md transition-all"
-                               title="View all comments for this post">
-                                <span class="material-symbols-outlined">forum</span>
-                            </a>
-                            <a href="/integration/magazine/admin/article-form?id=<?= $post['id'] ?>" class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-high rounded-md transition-all">
-                                <span class="material-symbols-outlined">edit</span>
-                            </a>
-                            <button onclick="showDeleteModal('/integration/magazine/admin/delete?id=<?= $post['id'] ?>', 'article')" class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded-md transition-all">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
-                        </div>
-                    </div>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="text-center py-8 text-on-surface-variant">
-                        <span class="material-symbols-outlined text-4xl mb-2">edit_note</span>
-                        <p>No articles yet. Create your first post!</p>
-                    </div>
-                <?php endif; ?>
-            </div>
+                </div>
+
+                <!-- Desktop (table) -->
+                <div class="hidden md:block overflow-x-auto rounded-xl border border-surface-container-high/40 bg-surface-container-lowest">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-surface-container-low sticky top-0">
+                            <tr class="text-left text-[11px] uppercase tracking-wide text-on-surface-variant">
+                                <th class="px-4 py-3 font-extrabold">Article</th>
+                                <th class="px-4 py-3 font-extrabold">Category</th>
+                                <th class="px-4 py-3 font-extrabold">Author</th>
+                                <th class="px-4 py-3 font-extrabold">Created</th>
+                                <th class="px-4 py-3 font-extrabold text-right">Views</th>
+                                <th class="px-4 py-3 font-extrabold text-right">Likes</th>
+                                <th class="px-4 py-3 font-extrabold">Status</th>
+                                <th class="px-4 py-3 font-extrabold text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-surface-container-high/40">
+                            <?php foreach ($recentPosts as $post): ?>
+                                <?php
+                                    $statusLabel = ($post['statut'] ?? '') === 'publie' ? 'Published' : (($post['statut'] ?? '') === 'brouillon' ? 'Draft' : ucfirst($post['statut'] ?? ''));
+                                    $statusClass = ($post['statut'] ?? '') === 'publie'
+                                        ? 'bg-tertiary-fixed text-on-tertiary-fixed'
+                                        : 'bg-surface-container text-on-surface';
+                                ?>
+                                <tr class="hover:bg-primary-fixed/20 transition-colors">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-3">
+                                            <?php if (!empty($post['image_url'])): ?>
+                                                <img alt="Post Thumbnail" class="w-10 h-10 rounded-lg object-cover pointer-events-none" src="<?= htmlspecialchars($post['image_url']) ?>"/>
+                                            <?php else: ?>
+                                                <div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center flex-shrink-0 pointer-events-none">
+                                                    <span class="material-symbols-outlined text-primary text-lg">article</span>
+                                                </div>
+                                            <?php endif; ?>
+                                            <div class="min-w-0">
+                                                <div class="font-bold text-on-surface truncate max-w-[340px]"><?= htmlspecialchars($post['titre']) ?></div>
+                                                <div class="text-[11px] text-on-surface-variant truncate max-w-[340px]">
+                                                    ID #<?= (int)$post['id'] ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="text-[11px] font-bold text-tertiary"><?= htmlspecialchars($post['categorie']) ?></span>
+                                    </td>
+                                    <td class="px-4 py-3 text-[12px] text-on-surface-variant">
+                                        <?= htmlspecialchars(trim(($post['prenom'] ?? '') . ' ' . ($post['nom'] ?? ''))) ?>
+                                    </td>
+                                    <td class="px-4 py-3 text-[12px] text-on-surface-variant whitespace-nowrap">
+                                        <?= date('M d, Y', strtotime($post['date_creation'])) ?>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-bold text-on-surface-variant whitespace-nowrap">
+                                        <?= number_format((int)($post['views_count'] ?? 0)) ?>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-bold text-on-surface-variant whitespace-nowrap">
+                                        <?= number_format((int)($post['likes_count'] ?? 0)) ?>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full <?= $statusClass ?>">
+                                            <?= htmlspecialchars($statusLabel) ?>
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <a href="/integration/magazine/admin/comments?post_id=<?= $post['id'] ?>"
+                                               class="p-2 text-on-surface-variant hover:text-tertiary hover:bg-tertiary-fixed/20 rounded-md transition-all"
+                                               title="Comments">
+                                                <span class="material-symbols-outlined">forum</span>
+                                            </a>
+                                            <a href="/integration/magazine/admin/article-form?id=<?= $post['id'] ?>"
+                                               class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-high rounded-md transition-all"
+                                               title="Edit">
+                                                <span class="material-symbols-outlined">edit</span>
+                                            </a>
+                                            <button onclick="showDeleteModal('/integration/magazine/admin/delete?id=<?= $post['id'] ?>', 'article')"
+                                                    class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded-md transition-all"
+                                                    title="Delete">
+                                                <span class="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
 
             <!-- Recent Publications Pagination -->
             <?php if (($totalPostsPages ?? 1) > 1): ?>
@@ -348,5 +474,148 @@ document.addEventListener('DOMContentLoaded', () => {
             if (current >= target) clearInterval(timer);
         }, 16);
     });
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof Chart === 'undefined') return;
+
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#64748b';
+
+    const publishedRows = <?= json_encode($publishedPerDay ?? [], JSON_UNESCAPED_SLASHES) ?>;
+    const commentsRows  = <?= json_encode($commentsPerDay ?? [], JSON_UNESCAPED_SLASHES) ?>;
+    const categories    = <?= json_encode($postStats['categories'] ?? [], JSON_UNESCAPED_SLASHES) ?>;
+    const topViewed     = <?= json_encode($topViewedPublished ?? [], JSON_UNESCAPED_SLASHES) ?>;
+
+    const toMap = (rows) => {
+        const m = new Map();
+        (rows || []).forEach(r => m.set(String(r.day), Number(r.count || 0)));
+        return m;
+    };
+
+    const buildLastNDays = (n) => {
+        const days = [];
+        const d = new Date();
+        d.setHours(0,0,0,0);
+        for (let i = n - 1; i >= 0; i--) {
+            const dt = new Date(d);
+            dt.setDate(d.getDate() - i);
+            const iso = dt.toISOString().slice(0, 10);
+            days.push(iso);
+        }
+        return days;
+    };
+
+    const last30 = buildLastNDays(30);
+    const pubMap = toMap(publishedRows);
+    const comMap = toMap(commentsRows);
+
+    const pubData = last30.map(day => pubMap.get(day) ?? 0);
+    const comData = last30.map(day => comMap.get(day) ?? 0);
+
+    const shortLabel = (iso) => {
+        const [y, m, d] = iso.split('-');
+        return `${d}/${m}`;
+    };
+
+    // Published posts line
+    const pubCanvas = document.getElementById('publishedChart');
+    if (pubCanvas) {
+        new Chart(pubCanvas, {
+            type: 'line',
+            data: {
+                labels: last30.map(shortLabel),
+                datasets: [{
+                    label: 'Published',
+                    data: pubData,
+                    borderColor: '#0ea5e9',
+                    backgroundColor: 'rgba(14, 165, 233, 0.12)',
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 2
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    // Comments bar
+    const comCanvas = document.getElementById('commentsChart');
+    if (comCanvas) {
+        new Chart(comCanvas, {
+            type: 'bar',
+            data: {
+                labels: last30.map(shortLabel),
+                datasets: [{
+                    label: 'Comments',
+                    data: comData,
+                    backgroundColor: 'rgba(16, 185, 129, 0.35)',
+                    borderColor: '#10b981',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    // Category doughnut
+    const catCanvas = document.getElementById('categoryChart');
+    if (catCanvas) {
+        const catLabels = (categories || []).map(c => c.categorie);
+        const catCounts = (categories || []).map(c => Number(c.count || 0));
+        new Chart(catCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catCounts,
+                    backgroundColor: ['#0ea5e9','#22c55e','#f97316','#a855f7','#ef4444','#14b8a6','#eab308','#64748b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                cutout: '65%'
+            }
+        });
+    }
+
+    // Top viewed horizontal bar
+    const topCanvas = document.getElementById('topViewedChart');
+    if (topCanvas) {
+        const labels = (topViewed || []).map(p => (p.titre || '').slice(0, 28) + ((p.titre || '').length > 28 ? '…' : ''));
+        const values = (topViewed || []).map(p => Number(p.metric_value || 0));
+        new Chart(topCanvas, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Views',
+                    data: values,
+                    backgroundColor: 'rgba(99, 102, 241, 0.35)',
+                    borderColor: '#6366f1',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
 });
 </script>

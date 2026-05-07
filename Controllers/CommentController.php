@@ -10,12 +10,16 @@
 namespace Controllers;
 
 use Core\SessionHelper;
+use Core\NotificationHelper;
+use Models\Notification;
+use Models\UserModel;
 
 class CommentController
 {
     use SessionHelper;
 
     private $commentModel;
+    private $userModel;
 
     public function __construct()
     {
@@ -23,6 +27,7 @@ class CommentController
         require_once __DIR__ . '/../Models/Comment.php';
         require_once __DIR__ . '/../Models/Post.php';
         $this->commentModel = new \Comment();
+        $this->userModel = new UserModel();
     }
 
     // =========================================================
@@ -169,12 +174,32 @@ class CommentController
             exit;
         }
 
-        $this->commentModel->create([
+        $commentId = $this->commentModel->create([
             'id_post'        => $postId,
             'id_utilisateur' => $userId,
             'contenu'        => htmlspecialchars($contenu, ENT_QUOTES, 'UTF-8'),
             'statut'         => 'approuve',
         ]);
+
+        // Trigger notifications
+        if ($commentId) {
+            try {
+                $user = $this->userModel->getUserById($userId);
+                $post = (new \Models\Post())->getById($postId);
+                
+                $userName = $user['nom'] ?? 'Anonymous';
+                $postTitle = $post['titre'] ?? 'Article';
+                $postAuthorId = $post['auteur_id'] ?? null;
+                
+                // Notify post author about comment (in-app only)
+                if ($postAuthorId && $postAuthorId !== $userId) {
+                    NotificationHelper::notifyPostAuthorComment($postAuthorId, $userName, $postTitle);
+                }
+            } catch (Exception $e) {
+                error_log("Comment notification error: " . $e->getMessage());
+                // Don't break the comment functionality if notification fails
+            }
+        }
 
         $_SESSION['flash_success'] = 'Your comment has been posted!';
         header('Location: /integration/magazine/article?id=' . $postId);
@@ -214,6 +239,26 @@ class CommentController
             'contenu'        => htmlspecialchars($contenu, ENT_QUOTES, 'UTF-8'),
             'statut'         => 'approuve',
         ]);
+
+        // Trigger notifications
+        if ($commentId) {
+            try {
+                $user = $this->userModel->getUserById($userId);
+                $post = (new \Models\Post())->getById($postId);
+                
+                $userName = $user['nom'] ?? 'Anonymous';
+                $postTitle = $post['titre'] ?? 'Article';
+                $postAuthorId = $post['auteur_id'] ?? null;
+                
+                // Notify post author about comment (in-app only)
+                if ($postAuthorId && $postAuthorId !== $userId) {
+                    NotificationHelper::notifyPostAuthorComment($postAuthorId, $userName, $postTitle);
+                }
+            } catch (Exception $e) {
+                error_log("Comment notification error: " . $e->getMessage());
+                // Don't break the comment functionality if notification fails
+            }
+        }
 
         echo json_encode([
             'success'    => true,
@@ -261,10 +306,13 @@ class CommentController
         $id     = (int)($_GET['id'] ?? 0);
         $postId = (int)($_GET['post_id'] ?? 0);
         $userId = (int)($_SESSION['user']['id'] ?? 0);
+        $userRole = $_SESSION['user']['role'] ?? '';
+        $isAdmin = strtolower($userRole) === 'admin';
 
         if ($id && $userId) {
             $comment = $this->commentModel->getById($id);
-            if ($comment && (int)$comment['id_utilisateur'] === $userId) {
+            // Allow deletion if: user owns the comment OR user is admin
+            if ($comment && ((int)$comment['id_utilisateur'] === $userId || $isAdmin)) {
                 $this->commentModel->delete($id);
                 $_SESSION['flash_success'] = 'Comment deleted.';
             } else {

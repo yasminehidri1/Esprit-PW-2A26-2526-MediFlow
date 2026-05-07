@@ -253,4 +253,21 @@ class Comment {
         $stmt->execute([':id_post' => $postId]);
         return $stmt->fetch()['total'];
     }
+
+    /**
+     * Aggregate: comments created per day for last N days (any status)
+     * Returns rows: [ ['day' => 'YYYY-MM-DD', 'count' => int], ... ]
+     */
+    public function getCountsByDay(int $days = 30): array {
+        $days = max(1, min(365, $days));
+        $sql = "SELECT DATE(c.date_creation) as day, COUNT(*) as count
+                FROM {$this->table} c
+                WHERE c.date_creation >= (CURDATE() - INTERVAL :days DAY)
+                GROUP BY DATE(c.date_creation)
+                ORDER BY day ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':days', $days, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

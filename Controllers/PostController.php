@@ -10,6 +10,10 @@
 namespace Controllers;
 
 use Core\SessionHelper;
+use Core\NotificationHelper;
+use Core\MailHelper;
+use Models\Notification;
+use Models\UserModel;
 
 class PostController
 {
@@ -17,6 +21,7 @@ class PostController
 
     private $postModel;
     private $commentModel;
+    private $userModel;
 
     public function __construct()
     {
@@ -25,6 +30,7 @@ class PostController
         require_once __DIR__ . '/../Models/Comment.php';
         $this->postModel    = new \Post();
         $this->commentModel = new \Comment();
+        $this->userModel    = new UserModel();
     }
 
     // =========================================================
@@ -40,6 +46,13 @@ class PostController
 
         $postStats    = $this->postModel->getStats();
         $commentStats = $this->commentModel->getStats();
+
+        // Charts (default: last 30 days)
+        $chartDays          = 30;
+        $publishedPerDay    = $this->postModel->getPublishedCountsByDay($chartDays);
+        $commentsPerDay     = $this->commentModel->getCountsByDay($chartDays);
+        $topViewedPublished = $this->postModel->getTopPublishedBy('views', 5);
+        $topLikedPublished  = $this->postModel->getTopPublishedBy('likes', 5);
 
         // --- Recent Publications pagination ---
         $postsPerPage    = 5;
@@ -128,8 +141,20 @@ class PostController
 
         $imageUrl = !empty($_POST['image_url']) ? trim($_POST['image_url']) : null;
 
+        // Handle edited image data URL from image editor
+        if (!empty($_POST['originalImageData']) && strpos($_POST['originalImageData'], 'data:image') === 0) {
+            $uploadResult = $this->handleDataUrlImage($_POST['originalImageData']);
+            if ($uploadResult['success']) {
+                $imageUrl = $uploadResult['path'];
+            } else {
+                $_SESSION['flash_error'] = $uploadResult['error'];
+                $id = $_POST['id'] ?? '';
+                header('Location: /integration/magazine/admin/article-form' . ($id ? '?id=' . $id : ''));
+                exit;
+            }
+        }
         // Handle file upload if provided
-        if (!empty($_FILES['image_file']['name'])) {
+        elseif (!empty($_FILES['image_file']['name'])) {
             $uploadResult = $this->handleImageUpload($_FILES['image_file']);
             if ($uploadResult['success']) {
                 $imageUrl = $uploadResult['path'];
@@ -138,6 +163,13 @@ class PostController
                 $id = $_POST['id'] ?? '';
                 header('Location: /integration/magazine/admin/article-form' . ($id ? '?id=' . $id : ''));
                 exit;
+            }
+        }
+        // If editing existing article and no new image provided, preserve existing image
+        elseif (!empty($_POST['id'])) {
+            $existingPost = $this->postModel->getById($_POST['id']);
+            if ($existingPost && !empty($existingPost['image_url'])) {
+                $imageUrl = $existingPost['image_url'];
             }
         }
 
@@ -153,12 +185,52 @@ class PostController
             'statut'    => $_POST['statut'] ?? 'brouillon',
         ];
 
+        $publishedNow = false;
+        $postId = null;
+
         if (!empty($_POST['id'])) {
-            $this->postModel->update($_POST['id'], $data);
+            $postId = (int)$_POST['id'];
+            $existing = $this->postModel->getById($postId);
+            $prevStatus = $existing['statut'] ?? '';
+
+            $this->postModel->update($postId, $data);
             $_SESSION['flash_success'] = 'Article updated successfully!';
+
+            if ($prevStatus !== 'publie' && ($data['statut'] ?? '') === 'publie') {
+                $publishedNow = true;
+            }
         } else {
-            $this->postModel->create($data);
+            $postId = (int)$this->postModel->create($data);
             $_SESSION['flash_success'] = 'Article created successfully!';
+
+            if (($data['statut'] ?? '') === 'publie') {
+                $publishedNow = true;
+            }
+        }
+
+        // Newsletter blast when a post is newly published
+        if ($publishedNow && $postId) {
+            try {
+                // Get all active subscribers
+                require_once __DIR__ . '/../Models/EmailSubscriber.php';
+                $emailSubscriber = new \Models\EmailSubscriber();
+                $subscribers = $emailSubscriber->getActiveSubscribers();
+
+                if (!empty($subscribers)) {
+                    $post = $this->postModel->getById($postId);
+                    $title = $post['titre'] ?? 'New article';
+                    $excerpt = substr($post['contenu'] ?? '', 0, 200) . '...';
+                    $postUrl = (($_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/integration/magazine/article?id=' . $postId);
+
+                    // Use NotificationHelper to send emails to all subscribers
+                    NotificationHelper::sendNewPostNotificationToSubscribers($title, $excerpt, $postId);
+
+                    $_SESSION['flash_success'] .= " 📧 Newsletter sent to " . count($subscribers) . " subscriber(s).";
+                }
+            } catch (Exception $e) {
+                error_log("Newsletter send error: " . $e->getMessage());
+                // Don't fail the post save if newsletter fails
+            }
         }
 
         header('Location: /integration/magazine/admin/articles');
@@ -172,11 +244,19 @@ class PostController
     {
         $this->requireMagazineAccess();
 
-        if (!empty($_GET['id'])) {
-            $this->postModel->delete($_GET['id']);
+        $postId = $_GET['id'] ?? 0;
+        if (!empty($postId)) {
+            $this->postModel->delete($postId);
             $_SESSION['flash_success'] = 'Article deleted successfully!';
         }
-        header('Location: /integration/magazine/admin/articles');
+        
+        // If referrer is from front office, redirect back to magazine
+        $referrer = $_SERVER['HTTP_REFERER'] ?? '';
+        if (strpos($referrer, '/magazine/article') !== false) {
+            header('Location: /integration/magazine');
+        } else {
+            header('Location: /integration/magazine/admin/articles');
+        }
         exit;
     }
 
@@ -280,26 +360,56 @@ class PostController
     public function likeArticle(): void
     {
         header('Content-Type: application/json');
-        $id     = (int)($_GET['id'] ?? 0);
-        $userId = (int)($_SESSION['user']['id'] ?? 0);
+        
+        try {
+            $id     = (int)($_GET['id'] ?? 0);
+            $userId = (int)($_SESSION['user']['id'] ?? 0);
+            $action = $_GET['action'] ?? 'like';
 
-        if (!$id) {
-            echo json_encode(['success' => false, 'message' => 'Missing article ID']);
+            if (!$id) {
+                echo json_encode(['success' => false, 'message' => 'Missing article ID']);
+                exit;
+            }
+
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'You must be logged in to like articles.']);
+                exit;
+            }
+
+            $result = $this->postModel->toggleLike($id, $userId);
+            
+            // Trigger notification only on like action (not unlike)
+            if ($action === 'like' && $result['liked']) {
+                try {
+                    $user = $this->userModel->getUserById($userId);
+                    $post = $this->postModel->getById($id);
+                    
+                    $userName = $user['nom'] ?? 'Someone';
+                    $postTitle = $post['titre'] ?? 'Article';
+                    $postAuthorId = (int)($post['auteur_id'] ?? 0);
+
+                    // Notify all admins about the like (in-app only)
+                    if ($postAuthorId && $postAuthorId !== $userId) {
+                        NotificationHelper::notifyPostLiked($userName, $postTitle);
+                    }
+                } catch (Exception $notifErr) {
+                    // Log but don't fail the like
+                    error_log("Notification error: " . $notifErr->getMessage());
+                }
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'liked'   => $result['liked'],
+                'likes'   => $result['likes'],
+            ]);
+            exit;
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
+            error_log("Like error: " . $e->getMessage());
             exit;
         }
-
-        if (!$userId) {
-            echo json_encode(['success' => false, 'message' => 'You must be logged in to like articles.']);
-            exit;
-        }
-
-        $result = $this->postModel->toggleLike($id, $userId);
-        echo json_encode([
-            'success' => true,
-            'liked'   => $result['liked'],
-            'likes'   => $result['likes'],
-        ]);
-        exit;
     }
 
     /**
@@ -397,5 +507,324 @@ class PostController
 
         // Store as a root-relative URL so it renders correctly from any page
         return ['success' => true, 'path' => '/integration/assets/uploads/' . $filename];
+    }
+
+    /**
+     * Handle image data URL from canvas editor and save as file
+     */
+    private function handleDataUrlImage(string $dataUrl): array
+    {
+        // Log for debugging
+        error_log("DEBUG: handleDataUrlImage called with data URL length: " . strlen($dataUrl));
+        
+        // Validate data URL format - be more flexible with the regex
+        if (!preg_match('/^data:image\/([a-z]+);base64,(.+)$/i', $dataUrl, $matches)) {
+            error_log("DEBUG: Data URL regex failed to match. Data: " . substr($dataUrl, 0, 100));
+            return ['success' => false, 'error' => 'Invalid image data URL format.'];
+        }
+
+        $mimeType = 'image/' . strtolower($matches[1]);
+        $imageData = base64_decode($matches[2], true);
+
+        if ($imageData === false) {
+            error_log("DEBUG: Base64 decode failed");
+            return ['success' => false, 'error' => 'Failed to decode image data.'];
+        }
+
+        if (strlen($imageData) > 5 * 1024 * 1024) {
+            error_log("DEBUG: Image too large: " . strlen($imageData) . " bytes");
+            return ['success' => false, 'error' => 'Image size must be less than 5MB.'];
+        }
+
+        $uploadDir = __DIR__ . '/../assets/uploads';
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                error_log("DEBUG: Failed to create upload directory: " . $uploadDir);
+                return ['success' => false, 'error' => 'Failed to create upload directory.'];
+            }
+        }
+
+        // Map MIME types to file extensions
+        $extMap    = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        $extension = $extMap[$mimeType] ?? 'jpg';
+        $filename  = uniqid('img_', true) . '.' . $extension;
+        $filepath  = $uploadDir . '/' . $filename;
+
+        if (file_put_contents($filepath, $imageData) === false) {
+            error_log("DEBUG: Failed to write file to: " . $filepath);
+            return ['success' => false, 'error' => 'Failed to save the image.'];
+        }
+
+        error_log("DEBUG: Image saved successfully: " . $filepath);
+        return ['success' => true, 'path' => '/integration/assets/uploads/' . $filename];
+    }
+
+    /**
+     * AI Summarization (AJAX endpoint) - Using Google Gemini
+     */
+    public function summarizeArticle(): void {
+        // Clear any output buffers to prevent HTML being prepended
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        
+        try {
+            $postId = $_GET['id'] ?? null;
+            if (!$postId) {
+                echo json_encode(['success' => false, 'error' => 'Missing Post ID']);
+                exit;
+            }
+
+            $post = $this->postModel->getById($postId);
+            if (!$post) {
+                echo json_encode(['success' => false, 'error' => 'Post not found']);
+                exit;
+            }
+
+            // Clean content for AI
+            $content = strip_tags($post['contenu']);
+            $content = substr($content, 0, 4000); // Token limit safety
+
+            $ch = curl_init("http://localhost:11434/api/chat");
+            
+            $prompt = "You are a professional medical journalist. Summarize the following health article into 3-4 concise, high-impact bullet points. Use a professional and encouraging tone.\n\nTitle: " . $post['titre'] . "\n\nContent: " . $content;
+            
+            $data = [
+                "model" => "llama3:latest",
+                "stream" => false,
+                "messages" => [
+                    ["role" => "system", "content" => "You are a professional medical journalist. Summarize health articles into 3-4 concise, high-impact bullet points."],
+                    ["role" => "user", "content" => $prompt]
+                ]
+            ];
+            
+            // Log the request being sent
+            error_log("Ollama Summarize Request: " . json_encode($data));
+
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Content-Type: application/json"
+            ]);
+
+            $response = curl_exec($ch);
+            $curlError = curl_error($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            // Debug logging - ALWAYS output what we get
+            error_log("=== OLLAMA SUMMARIZE DEBUG ===");
+            error_log("HTTP Code: " . $httpCode);
+            error_log("cURL Error: " . ($curlError ?: "NONE"));
+            error_log("Response (first 1000 chars): " . substr($response, 0, 1000));
+            error_log("Response Length: " . strlen($response));
+            error_log("===========================");
+            
+            // If we got HTML back, it's likely a connection error
+            if (strpos($response, '<') === 0) {
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'Ollama Connection Failed',
+                    'details' => 'Received HTML. Check http://localhost:11434/api/tags in browser',
+                    'httpCode' => $httpCode,
+                    'rawResponse' => substr($response, 0, 200)
+                ]);
+                exit;
+            }
+
+            // Check for cURL errors first
+            if ($curlError) {
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'Connection Error: ' . $curlError
+                ]);
+                exit;
+            }
+
+            // Check HTTP status code
+            if ($httpCode !== 200) {
+                $errorDetails = is_string($response) ? $response : json_encode($response);
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'API Error (HTTP ' . $httpCode . ')',
+                    'details' => substr($errorDetails, 0, 500)
+                ]);
+                exit;
+            }
+
+            // Log raw response for debugging
+            error_log("Ollama Response: " . substr($response, 0, 500));
+            
+            $result = json_decode($response, true);
+            
+            if (!$result) {
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'Invalid JSON Response from Ollama',
+                    'details' => 'Raw: ' . substr($response, 0, 300)
+                ]);
+                exit;
+            }
+            
+            // Handle Ollama response format
+            if (isset($result['message']['content'])) {
+                $summary = $result['message']['content'];
+            } elseif (isset($result['choices'][0]['message']['content'])) {
+                $summary = $result['choices'][0]['message']['content'];
+            } else {
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'Unexpected API Response Format',
+                    'details' => json_encode($result)
+                ]);
+                exit;
+            }
+
+            echo json_encode(['success' => true, 'summary' => $summary]);
+            exit;
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Server Error',
+                'details' => $e->getMessage()
+            ]);
+            exit;
+        }
+    }
+
+    /**
+     * Rephrase article content using AI
+     */
+    /**
+     * Rephrase article content using Google Gemini
+     */
+    public function rephraseContent(): void {
+        // IMMEDIATE DEBUG: Log that this function was called
+        error_log("=== REPHRASE CONTENT FUNCTION CALLED ===");
+        
+        // Clear any output buffers to prevent HTML being prepended
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $content = $input['content'] ?? '';
+            $tone = $input['tone'] ?? 'professional';
+
+            if (!$content) {
+                echo json_encode(['success' => false, 'error' => 'No content provided']);
+                exit;
+            }
+
+            // Limit content length for API
+            $content = substr($content, 0, 3000);
+
+            $tonePrompts = [
+                'professional' => 'Rephrase in a professional and formal tone.',
+                'friendly' => 'Rephrase in a friendly and conversational tone.',
+                'academic' => 'Rephrase in an academic and detailed tone.',
+                'simple' => 'Rephrase in a simple and clear tone, easy to understand.'
+            ];
+
+            $prompt = $tonePrompts[$tone] ?? $tonePrompts['professional'];
+
+            $ch = curl_init("http://localhost:11434/api/chat");
+            
+            $fullPrompt = "You are a professional content editor. Your task is to rephrase medical/health content to improve clarity, flow, and readability while maintaining accuracy.\n\n" . $prompt . "\n\nContent to rephrase:\n\n" . $content;
+            
+            $data = [
+                "model" => "llama3:latest",
+                "stream" => false,
+                "messages" => [
+                    ["role" => "system", "content" => "You are a professional content editor. Rephrase medical/health content to improve clarity, flow, and readability."],
+                    ["role" => "user", "content" => $fullPrompt]
+                ]
+            ];
+            
+            // Log the request being sent
+            error_log("Ollama Rephrase Request: " . json_encode($data));
+
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Content-Type: application/json"
+            ]);
+
+            $response = curl_exec($ch);
+            $curlError = curl_error($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($curlError) {
+                echo json_encode(['success' => false, 'error' => 'Connection Error: ' . $curlError]);
+                exit;
+            }
+
+            if ($httpCode !== 200) {
+                echo json_encode(['success' => false, 'error' => 'AI Service Error (HTTP ' . $httpCode . ')', 'details' => substr($response, 0, 300)]);
+                exit;
+            }
+
+            // Debug logging - ALWAYS output what we get
+            error_log("=== OLLAMA REPHRASE DEBUG ===");
+            error_log("HTTP Code: " . $httpCode);
+            error_log("Response (first 1000 chars): " . substr($response, 0, 1000));
+            error_log("Response Length: " . strlen($response));
+            error_log("===========================");
+            
+            // If we got HTML back, it's likely a connection error
+            if (strpos($response, '<') === 0) {
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'Ollama Connection Failed',
+                    'details' => 'Received HTML. Check http://localhost:11434/api/tags in browser',
+                    'httpCode' => $httpCode,
+                    'rawResponse' => substr($response, 0, 200)
+                ]);
+                exit;
+            }
+            
+            $result = json_decode($response, true);
+            
+            if (!$result) {
+                echo json_encode(['success' => false, 'error' => 'Invalid JSON Response from Ollama', 'details' => 'Raw: ' . substr($response, 0, 300)]);
+                exit;
+            }
+            
+            // Handle Ollama response format
+            if (isset($result['message']['content'])) {
+                $rephrased = $result['message']['content'];
+            } elseif (isset($result['choices'][0]['message']['content'])) {
+                $rephrased = $result['choices'][0]['message']['content'];
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Unexpected API Response Format', 'details' => json_encode($result)]);
+                exit;
+            }
+
+            echo json_encode(['success' => true, 'rephrased' => $rephrased]);
+            exit;
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Server Error',
+                'details' => $e->getMessage()
+            ]);
+            exit;
+        }
     }
 }

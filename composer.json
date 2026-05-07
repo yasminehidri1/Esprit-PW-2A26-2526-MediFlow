@@ -1,0 +1,13 @@
+{
+    "name": "mediflow/integration",
+    "type": "project",
+    "authors": [
+        {
+            "name": "khalilcherif",
+            "email": "khalil05cherif@gmail.com"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "^7.0"
+    }
+}

@@ -505,12 +505,42 @@ function groupOpen(string $prefix, string $currentPath): string {
         <!-- Right: notification + user -->
         <div class="flex items-center gap-4">
 
+            <!-- Notification bell with dropdown -->
+            <div class="relative group">
+                <button id="notificationBell" class="relative p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 rounded-xl transition-all" onclick="toggleNotifications(event)">
+                    <span class="material-symbols-outlined text-xl">notifications</span>
+                    <span id="notificationBadge" class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full hidden"></span>
+                </button>
 
-            <!-- Notification bell -->
-            <button class="relative p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 rounded-xl transition-all">
-                <span class="material-symbols-outlined text-xl">notifications</span>
-                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-            </button>
+                <!-- Notification dropdown -->
+                <div id="notificationDropdown" class="absolute right-0 top-full mt-3 w-96 bg-white rounded-2xl shadow-2xl border border-outline-variant/20 hidden z-50 opacity-0 invisible transition-all duration-200 transform origin-top-right scale-95 group-hover:opacity-100 group-hover:visible group-hover:scale-100">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/20">
+                        <h3 class="font-bold text-on-surface">Notifications</h3>
+                        <a href="/integration/notifications/list" class="text-xs font-medium text-primary hover:text-primary-container">View All</a>
+                    </div>
+
+                    <!-- Notifications list -->
+                    <div id="notificationsList" class="max-h-96 overflow-y-auto">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="text-center">
+                                <span class="material-symbols-outlined text-4xl text-outline-variant/30 block mb-2">notifications_none</span>
+                                <p class="text-sm text-on-surface-variant">No notifications</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="flex gap-2 px-6 py-4 border-t border-outline-variant/20 bg-surface-container-lowest">
+                        <button onclick="markAllNotificationsRead()" class="flex-1 text-xs font-medium text-primary hover:text-primary-container py-2">
+                            Mark all as read
+                        </button>
+                        <a href="/integration/notifications/list" class="flex-1 text-center text-xs font-medium text-primary hover:text-primary-container py-2 border-l border-outline-variant/20">
+                            View all
+                        </a>
+                    </div>
+                </div>
+            </div>
 
             <!-- User pill -->
             <a href="/integration/profile" class="flex items-center gap-3 pl-4 border-l border-outline-variant/30 hover:opacity-80 transition-opacity">
@@ -602,5 +632,131 @@ function groupOpen(string $prefix, string $currentPath): string {
 </div>
 
 <script src="/integration/assets/js_magazine/backOffice.js"></script>
+
+<!-- Notifications Dropdown Script -->
+<script>
+    // Load notifications when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        loadNotifications();
+        // Reload every 30 seconds
+        setInterval(loadNotifications, 30000);
+    });
+
+    // Toggle notifications dropdown
+    function toggleNotifications(e) {
+        e.stopPropagation();
+        const dropdown = document.getElementById('notificationDropdown');
+        dropdown.classList.toggle('hidden');
+        if (!dropdown.classList.contains('hidden')) {
+            loadNotifications();
+        }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        const bell = document.getElementById('notificationBell');
+        const dropdown = document.getElementById('notificationDropdown');
+        if (!bell.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    // Load and display notifications
+    async function loadNotifications() {
+        try {
+            const response = await fetch('/integration/notifications/dropdown');
+            const data = await response.json();
+
+            if (data.success) {
+                const badge = document.getElementById('notificationBadge');
+                const list = document.getElementById('notificationsList');
+
+                // Update badge
+                if (data.count > 0) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+
+                // Update list
+                if (data.notifications.length === 0) {
+                    list.innerHTML = `
+                        <div class="flex items-center justify-center py-8">
+                            <div class="text-center">
+                                <span class="material-symbols-outlined text-4xl text-outline-variant/30 block mb-2">notifications_none</span>
+                                <p class="text-sm text-on-surface-variant">No notifications</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    list.innerHTML = data.notifications.map(notif => `
+                        <div class="px-6 py-4 border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0">
+                                    <span class="material-symbols-outlined text-xl text-primary" style="color: ${notif.color === 'error' ? '#ef4444' : (notif.color === 'tertiary' ? '#005851' : '#004d99')}">
+                                        ${notif.icon}
+                                    </span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-bold text-on-surface">${notif.title}</h4>
+                                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">${notif.message}</p>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="text-xs text-on-surface-variant">${notif.time_ago}</span>
+                                        ${!notif.is_read ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary text-on-primary">New</span>' : ''}
+                                    </div>
+                                </div>
+                                <button onclick="deleteNotification(event, ${notif.id})" class="flex-shrink-0 p-2 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span class="material-symbols-outlined text-base">close</span>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load notifications:', err);
+        }
+    }
+
+    // Mark notification as read
+    async function markNotificationRead(notificationId) {
+        try {
+            await fetch('/integration/notifications/mark-read?id=' + notificationId, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            loadNotifications();
+        } catch (err) {
+            console.error('Failed to mark notification as read:', err);
+        }
+    }
+
+    // Mark all notifications as read
+    async function markAllNotificationsRead() {
+        try {
+            await fetch('/integration/notifications/mark-all-read', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            loadNotifications();
+        } catch (err) {
+            console.error('Failed to mark all as read:', err);
+        }
+    }
+
+    // Delete notification
+    async function deleteNotification(e, notificationId) {
+        e.stopPropagation();
+        try {
+            await fetch('/integration/notifications/delete?id=' + notificationId, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            loadNotifications();
+        } catch (err) {
+            console.error('Failed to delete notification:', err);
+        }
+    }
+</script>
 </body>
 </html>

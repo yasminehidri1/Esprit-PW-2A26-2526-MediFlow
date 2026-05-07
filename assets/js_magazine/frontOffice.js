@@ -1,4 +1,4 @@
-/**
+    /**
  * MediFlow Magazine — Front Office JavaScript
  * Real-time likes (DB-backed, toggle like/unlike), AJAX comments with edit/delete,
  * live search, desktop search dropdown, toast notifications.
@@ -29,15 +29,25 @@ function initLikeButtons() {
             try {
                 const action = isLiked ? 'unlike' : 'like';
                 const res  = await fetch(`/integration/magazine/like?id=${postId}&action=${action}`);
+                
+                // Check if response is actually JSON
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await res.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response');
+                }
+                
                 const data = await res.json();
 
                 if (data.success) {
-                    if (isLiked) {
-                        _markUnliked(this);
-                        showToast('Like removed.', 'default');
-                    } else {
+                    // Trust the server's response for the actual state
+                    if (data.liked) {
                         _markLiked(this);
                         showToast('Thanks for your support! ❤️', 'success');
+                    } else {
+                        _markUnliked(this);
+                        showToast('Like removed.', 'default');
                     }
                     if (countEl) {
                         const n = parseInt(data.likes, 10);
@@ -183,31 +193,11 @@ function initCommentActions() {
     // Delete comment
     document.querySelectorAll('.comment-delete-btn').forEach(btn => {
         btn.addEventListener('click', async function () {
-            if (!confirm('Delete this comment?')) return;
             const commentId = this.dataset.commentId;
             const postId    = this.dataset.postId;
             const card      = document.getElementById(`comment-${commentId}`);
-
-            // Optimistic: hide card immediately
-            if (card) card.style.opacity = '0.4';
-
-            try {
-                const res = await fetch(`/integration/magazine/comment/delete?id=${commentId}&post_id=${postId}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                if (res.ok) {
-                    card?.remove();
-                    const counter = document.getElementById('commentCount');
-                    if (counter) counter.textContent = Math.max(0, parseInt(counter.textContent || '0', 10) - 1);
-                    showToast('Comment deleted.', 'default');
-                } else {
-                    if (card) card.style.opacity = '1';
-                    showToast('Could not delete comment.', 'error');
-                }
-            } catch(err) {
-                if (card) card.style.opacity = '1';
-                showToast('Could not delete comment.', 'error');
-            }
+            
+            showDeleteCommentModal(commentId, postId, card);
         });
     });
 }
@@ -335,24 +325,50 @@ function initMobileSearch() {
 // Toast Notifications
 // ============================================================
 function showToast(message, type = 'default') {
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        document.body.appendChild(container);
-    }
-
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-
+    // Map old types to new types
+    const typeMap = {
+        'success': 'success',
+        'error': 'error',
+        'default': 'info',
+        'warning': 'warning'
+    };
+    
+    const mappedType = typeMap[type] || 'info';
+    
+    // Remove existing notification if any
+    const existing = document.getElementById('notificationCenter');
+    if (existing) existing.remove();
+    
+    const bgColor = mappedType === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
+                    mappedType === 'error' ? 'bg-gradient-to-r from-red-500 to-rose-500' :
+                    mappedType === 'warning' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+                    'bg-gradient-to-r from-blue-500 to-indigo-500';
+    
+    const icon = mappedType === 'success' ? 'check_circle' :
+                 mappedType === 'error' ? 'error' :
+                 mappedType === 'warning' ? 'warning' :
+                 'info';
+    
+    const notification = document.createElement('div');
+    notification.id = 'notificationCenter';
+    notification.className = `fixed bottom-6 right-6 ${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 z-50 animate-in fade-in slide-in-from-right-4 duration-300`;
+    notification.innerHTML = `
+        <span class="material-symbols-outlined">${icon}</span>
+        <span class="font-medium">${message}</span>
+        <button onclick="this.parentElement.remove()" class="ml-2 hover:opacity-80 transition-opacity">
+            <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    
     setTimeout(() => {
-        toast.style.transition = 'opacity 0.25s, transform 0.25s';
-        toast.style.opacity    = '0';
-        toast.style.transform  = 'translateY(6px)';
-        setTimeout(() => toast.remove(), 260);
-    }, 3500);
+        if (notification.parentElement) {
+            notification.classList.remove('animate-in', 'fade-in', 'slide-in-from-right-4');
+            notification.classList.add('animate-out', 'fade-out', 'slide-out-to-right-4');
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 4000);
 }
 
 // ============================================================
@@ -414,4 +430,265 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileSearch();
     initFlashDismiss();
     initStaggerAnimation();
+    initSaveForLater();
+    initSocialShareOverlay();
 });
+
+// Removed initAISummarize from here to article.php inline script
+
+// ============================================================
+// Save for Later — LocalStorage Based
+// ============================================================
+function initSaveForLater() {
+    const saveBtn = document.getElementById('saveForLaterBtn');
+    const drawer = document.getElementById('savedArticlesDrawer');
+    const drawerToggle = document.getElementById('savedArticlesToggle');
+    const closeBtn = document.getElementById('closeSavedDrawer');
+    const overlay = document.getElementById('drawerOverlay');
+    const listEl = document.getElementById('savedArticlesList');
+    const badge = document.getElementById('savedCountBadge');
+
+    if (!drawer || !drawerToggle) return;
+
+    // Load initial state
+    updateSavedUI();
+
+    // Toggle drawer
+    const openDrawer = () => {
+        drawer.classList.remove('translate-x-full');
+        overlay.classList.remove('hidden');
+        setTimeout(() => overlay.classList.add('opacity-100'), 10);
+        document.body.style.overflow = 'hidden';
+        renderSavedList();
+    };
+
+    const closeDrawer = () => {
+        drawer.classList.add('translate-x-full');
+        overlay.classList.remove('opacity-100');
+        setTimeout(() => overlay.classList.add('hidden'), 500);
+        document.body.style.overflow = '';
+    };
+
+    drawerToggle.addEventListener('click', openDrawer);
+    closeBtn?.addEventListener('click', closeDrawer);
+    overlay?.addEventListener('click', closeDrawer);
+
+    // Save/Unsave action
+    if (saveBtn) {
+        const postId = saveBtn.dataset.postId;
+        let savedItems = JSON.parse(localStorage.getItem('mediflow_saved') || '[]');
+        
+        if (savedItems.some(i => i.id == postId)) {
+            saveBtn.querySelector('.bookmark-icon').textContent = 'bookmark';
+            saveBtn.classList.add('text-primary');
+        }
+
+        saveBtn.addEventListener('click', () => {
+            savedItems = JSON.parse(localStorage.getItem('mediflow_saved') || '[]');
+            const idx = savedItems.findIndex(i => i.id == postId);
+
+            if (idx > -1) {
+                savedItems.splice(idx, 1);
+                saveBtn.querySelector('.bookmark-icon').textContent = 'bookmark_border';
+                saveBtn.classList.remove('text-primary');
+                showToast('Removed from reading list.');
+            } else {
+                savedItems.push({
+                    id: postId,
+                    title: saveBtn.dataset.postTitle,
+                    image: saveBtn.dataset.postImage,
+                    url: window.location.href,
+                    date: new Date().toLocaleDateString()
+                });
+                saveBtn.querySelector('.bookmark-icon').textContent = 'bookmark';
+                saveBtn.classList.add('text-primary');
+                showToast('Saved for later! 📖', 'success');
+            }
+            localStorage.setItem('mediflow_saved', JSON.stringify(savedItems));
+            updateSavedUI();
+        });
+    }
+
+    function updateSavedUI() {
+        const savedItems = JSON.parse(localStorage.getItem('mediflow_saved') || '[]');
+        if (badge) {
+            badge.textContent = savedItems.length;
+            badge.classList.toggle('hidden', savedItems.length === 0);
+        }
+    }
+
+    function renderSavedList() {
+        const savedItems = JSON.parse(localStorage.getItem('mediflow_saved') || '[]');
+        if (!listEl) return;
+
+        if (savedItems.length === 0) {
+            listEl.innerHTML = `
+                <div class="text-center py-12 opacity-50">
+                    <span class="material-symbols-outlined text-6xl mb-4">bookmark_border</span>
+                    <p class="text-sm font-medium">Your reading list is empty.</p>
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = savedItems.map(item => `
+            <div class="flex gap-4 group relative bg-surface-container-low p-3 rounded-xl hover:bg-surface-container transition-colors">
+                <img src="${esc(item.image)}" class="w-20 h-20 rounded-lg object-cover flex-shrink-0 shadow-sm" alt=""/>
+                <div class="flex-1 min-w-0">
+                    <a href="${esc(item.url)}" class="block">
+                        <h4 class="text-sm font-bold text-blue-900 leading-snug line-clamp-2 group-hover:text-primary transition-colors">${esc(item.title)}</h4>
+                    </a>
+                    <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs">calendar_today</span>
+                        Saved on ${esc(item.date)}
+                    </p>
+                </div>
+                <button onclick="removeSavedItem('${item.id}')" class="absolute top-2 right-2 p-1 text-slate-300 hover:text-error transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    window.removeSavedItem = (id) => {
+        let savedItems = JSON.parse(localStorage.getItem('mediflow_saved') || '[]');
+        savedItems = savedItems.filter(i => i.id != id);
+        localStorage.setItem('mediflow_saved', JSON.stringify(savedItems));
+        
+        // Update current page button if applicable
+        if (saveBtn && saveBtn.dataset.postId == id) {
+            saveBtn.querySelector('.bookmark-icon').textContent = 'bookmark_border';
+            saveBtn.classList.remove('text-primary');
+        }
+        
+        updateSavedUI();
+        renderSavedList();
+    };
+}
+
+// ============================================================
+// Social Share Overlay (Highlight Selection)
+// ============================================================
+function initSocialShareOverlay() {
+    const tooltip = document.getElementById('shareTooltip');
+    const article = document.querySelector('.prose-article');
+    if (!tooltip || !article) return;
+
+    const showTooltip = () => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+
+        if (text.length > 5 && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            
+            tooltip.style.left = `${rect.left + (rect.width / 2) - 50}px`;
+            tooltip.style.top = `${rect.top + window.scrollY - 60}px`;
+            tooltip.classList.remove('hidden');
+        } else {
+            tooltip.classList.add('hidden');
+        }
+    };
+
+    document.addEventListener('mouseup', () => {
+        setTimeout(showTooltip, 50);
+    });
+
+    document.getElementById('copySelection')?.addEventListener('click', () => {
+        const text = window.getSelection().toString();
+        navigator.clipboard.writeText(text);
+        showToast('Text copied to clipboard!');
+        window.getSelection().removeAllRanges();
+        tooltip.classList.add('hidden');
+    });
+
+    document.getElementById('shareTwitter')?.addEventListener('click', () => {
+        const text = window.getSelection().toString();
+        const url = encodeURIComponent(window.location.href);
+        const tweet = encodeURIComponent(`"${text.substring(0, 100)}..." \nRead more on MediFlow: `);
+        window.open(`https://twitter.com/intent/tweet?text=${tweet}&url=${url}`, '_blank');
+        tooltip.classList.add('hidden');
+    });
+
+    document.getElementById('shareLinkedIn')?.addEventListener('click', () => {
+        const url = encodeURIComponent(window.location.href);
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+        tooltip.classList.add('hidden');
+    });
+}
+
+// ============================================================
+// STYLED DELETE COMMENT MODAL
+// ============================================================
+function showDeleteCommentModal(commentId, postId, card) {
+    const modal = document.createElement('div');
+    modal.id = 'deleteCommentModal';
+    modal.className = 'fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-in fade-in duration-200';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-in scale-in-95 duration-200">
+            <!-- Header with icon -->
+            <div class="bg-gradient-to-r from-red-500 to-rose-500 text-white p-6 rounded-t-2xl flex items-center gap-4">
+                <span class="material-symbols-outlined text-4xl">delete</span>
+                <div>
+                    <h3 class="font-headline font-bold text-lg">Delete Comment?</h3>
+                    <p class="text-sm text-white/90">This cannot be undone</p>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6">
+                <p class="text-sm text-gray-600 leading-relaxed mb-6">
+                    Are you sure you want to delete this comment? Once deleted, it will be permanently removed and cannot be recovered.
+                </p>
+                
+                <!-- Actions -->
+                <div class="flex gap-3">
+                    <button onclick="document.getElementById('deleteCommentModal').remove()" 
+                            class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="performDeleteComment('${commentId}', '${postId}', document.getElementById('comment-${commentId}'))" 
+                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-red-500/30 transition-all">
+                        <span class="flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-lg">delete</span>
+                            Delete
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+}
+
+// Helper function to perform the actual delete
+async function performDeleteComment(commentId, postId, card) {
+    // Optimistic: hide card immediately
+    if (card) card.style.opacity = '0.4';
+    
+    // Close modal
+    const modal = document.getElementById('deleteCommentModal');
+    if (modal) modal.remove();
+
+    try {
+        const res = await fetch(`/integration/magazine/comment/delete?id=${commentId}&post_id=${postId}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (res.ok) {
+            card?.remove();
+            const counter = document.getElementById('commentCount');
+            if (counter) counter.textContent = Math.max(0, parseInt(counter.textContent || '0', 10) - 1);
+            showToast('Comment deleted.', 'default');
+        } else {
+            if (card) card.style.opacity = '1';
+            showToast('Could not delete comment.', 'error');
+        }
+    } catch(err) {
+        if (card) card.style.opacity = '1';
+        showToast('Could not delete comment.', 'error');
+    }
+}

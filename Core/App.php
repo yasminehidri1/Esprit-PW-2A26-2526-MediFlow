@@ -25,6 +25,10 @@ class App
         // Remove /integration prefix if present
         $path = preg_replace('#^/integration#', '', $path);
         $path = $path ?: '/';
+        
+        // Remove /integration prefix if present
+        $path = preg_replace('#^/integration#', '', $path);
+        $path = $path ?: '/';
 
         // ── Auth ────────────────────────────────────────────────────────────
         if (preg_match('#^/login(?:/|$)#', $path)) {
@@ -127,6 +131,63 @@ class App
             return;
         }
 
+        // ── Notifications module ────────────────────────────────────────────
+        if (preg_match('#^/notifications/list(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->index();
+            return;
+        }
+
+        if (preg_match('#^/notifications/unread(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->getUnread();
+            return;
+        }
+
+        if (preg_match('#^/notifications/count(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->getUnreadCount();
+            return;
+        }
+
+        if (preg_match('#^/notifications/dropdown(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->getDropdown();
+            return;
+        }
+
+        if (preg_match('#^/notifications/mark-read(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->markAsRead();
+            return;
+        }
+
+        if (preg_match('#^/notifications/mark-all-read(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->markAllAsRead();
+            return;
+        }
+
+        if (preg_match('#^/notifications/delete(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->delete();
+            return;
+        }
+
+        if (preg_match('#^/notifications/delete-all(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->deleteAll();
+            return;
+        }
+
+        // ── Email Subscription routes ────────────────────────────────────
+        if (preg_match('#^/subscription/subscribe(?:/|$)#', $path)) {
+            (new \Controllers\SubscriptionController())->subscribeAjax();
+            return;
+        }
+
+        if (preg_match('#^/subscription/unsubscribe(?:/|$)#', $path)) {
+            (new \Controllers\SubscriptionController())->unsubscribe();
+            return;
+        }
+
+        if (preg_match('#^/subscription/count(?:/|$)#', $path)) {
+            (new \Controllers\SubscriptionController())->getCount();
+            return;
+        }
+
         // ── Magazine module — Back Office ────────────────────────────────────
         if (preg_match('#^/magazine/admin/comment/approve(?:/|$)#', $path)) {
             (new \Controllers\CommentController())->approveComment();
@@ -145,6 +206,12 @@ class App
 
         if (preg_match('#^/magazine/admin/comments(?:/|$)#', $path)) {
             (new \Controllers\CommentController())->viewPostComments();
+            return;
+        }
+
+        // MUST come before /magazine/admin pattern to match specific routes first
+        if (preg_match('#^/magazine/admin/rephrase-content(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->rephraseContent();
             return;
         }
 
@@ -194,6 +261,11 @@ class App
             return;
         }
 
+        if (preg_match('#^/magazine/summarize(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->summarizeArticle();
+            return;
+        }
+
         if (preg_match('#^/magazine/article(?:/|$)#', $path)) {
             (new \Controllers\PostController())->viewArticle();
             return;
@@ -206,6 +278,11 @@ class App
 
         if (preg_match('#^/magazine/like(?:/|$)#', $path)) {
             (new \Controllers\PostController())->likeArticle();
+            return;
+        }
+
+        if (preg_match('#^/magazine/newsletter/subscribe(?:/|$)#', $path)) {
+            (new \Controllers\NewsletterController())->subscribe();
             return;
         }
 
