@@ -44,7 +44,7 @@ $fullName = $pName;
             </p>
         </div>
     </div>
-    <div class="flex gap-3">
+    <div class="flex gap-3 no-print">
         <button onclick="window.print()"
                 class="px-5 py-2.5 rounded-lg font-semibold text-primary border border-primary hover:bg-primary/10 transition-colors flex items-center gap-2 text-sm">
             <span class="material-symbols-outlined">print</span> Imprimer
@@ -162,7 +162,7 @@ $fullName = $pName;
                     <h3 class="text-xl font-bold text-on-surface">Antécédents Médicaux</h3>
                 </div>
                 <a href="/integration/dossier/nouvelle-consultation?patient_id=<?= $pid ?>"
-                        class="text-sm font-bold text-primary hover:underline transition-all flex items-center gap-1">
+                        class="no-print text-sm font-bold text-primary hover:underline transition-all flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">add</span>
                     Ajouter via consultation
                 </a>
@@ -215,7 +215,7 @@ $fullName = $pName;
                             <th class="py-4 px-2 text-[10px] font-bold text-outline uppercase tracking-widest">Type</th>
                             <th class="py-4 px-2 text-[10px] font-bold text-outline uppercase tracking-widest">Diagnostic</th>
                             <th class="py-4 px-2 text-[10px] font-bold text-outline uppercase tracking-widest">Compte-rendu</th>
-                            <th class="py-4 px-2 text-right text-[10px] font-bold text-outline uppercase tracking-widest">Actions</th>
+                            <th class="no-print py-4 px-2 text-right text-[10px] font-bold text-outline uppercase tracking-widest">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -254,7 +254,7 @@ $fullName = $pName;
                                     <?= htmlspecialchars($c['compte_rendu'] ?? '—') ?>
                                 </p>
                             </td>
-                            <td class="py-5 px-2 text-right">
+                            <td class="no-print py-5 px-2 text-right">
                                 <div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <!-- Ordonnance -->
                                     <a href="/integration/dossier/ordonnance/view?consult_id=<?= $c['id_consultation'] ?>"
@@ -301,4 +301,47 @@ $fullName = $pName;
 <style>
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .fade-in { animation: fadeIn .35s ease forwards; }
+
+/* ── Print styles ─────────────────────────────── */
+@media print {
+    /* Hide all chrome */
+    aside,
+    header,
+    nav,
+    #topbar,
+    #flash-msg,
+    .no-print { display: none !important; }
+
+    /* Remove sidebar offset, reset background */
+    main { margin-left: 0 !important; background: white !important; }
+    body { background: white !important; color: #000 !important; }
+
+    /* Hide action buttons in the patient header */
+    .flex.gap-3 > button,
+    .flex.gap-3 > a[href*="nouvelle-consultation"] { display: none !important; }
+
+    /* Flatten bento grid to single column */
+    .grid.grid-cols-1.md\:grid-cols-12 { display: block !important; }
+    .md\:col-span-4,
+    .md\:col-span-8 { width: 100% !important; margin-bottom: 1.5rem; }
+
+    /* Remove box shadows */
+    * { box-shadow: none !important; }
+
+    /* Make cards border instead of shadow */
+    section { border: 1px solid #ddd !important; break-inside: avoid; }
+
+    /* Hide table action column */
+    th:last-child,
+    td:last-child { display: none !important; }
+
+    /* Always show table row actions column? No — hide edit/delete icons */
+    .group-hover\:opacity-100 { opacity: 0 !important; }
+
+    /* Print header: keep it clean */
+    .fade-in { animation: none !important; opacity: 1 !important; }
+
+    /* Page setup */
+    @page { margin: 1.5cm; size: A4 portrait; }
+}
 </style>

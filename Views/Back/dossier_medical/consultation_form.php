@@ -123,7 +123,7 @@ $filled = fn(string $k, string $d = '') => htmlspecialchars($fd[$k] ?? ($consult
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Diagnostic</label>
                     <input type="text" name="diagnostic"
                            value="<?= $filled('diagnostic') ?>"
-                           placeholder="Ex: Hypertension Artérielle" 
+                           placeholder="Ex: Hypertension Artérielle"
                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"/>
                 </div>
                 <div>

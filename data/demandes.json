@@ -36,7 +36,104 @@
         "id_patient": 25,
         "id_medecin": 24,
         "description": "Bellaih aman",
+        "statut": "refusee",
+        "created_at": "2026-04-30 13:40:43",
+        "ai_refus_message": "Madame, Monsieur, votre demande d'ordonnance n'a pas pu être traitée : Consultation préalable requise. Nous vous invitons à prendre rendez-vous pour en discuter avec votre médecin."
+    },
+    {
+        "id_demande": 6,
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "cc, j'ai une maladie tres grave ",
+        "urgence": "urgent",
+        "statut": "traitee",
+        "created_at": "2026-05-05 17:02:56"
+    },
+    {
+        "id_demande": 7,
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "dddddddddd",
+        "urgence": "normale",
+        "statut": "traitee",
+        "created_at": "2026-05-05 17:06:24"
+    },
+    {
+        "id_demande": 8,
+        "id_patient": 24,
+        "id_medecin": 24,
+        "description": "tggggggggg",
+        "urgence": "normale",
+        "statut": "traitee",
+        "created_at": "2026-05-05 17:07:43"
+    },
+    {
+        "id_demande": 9,
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "gfdzzzzzzzz",
+        "urgence": "tres_urgent",
+        "statut": "traitee",
+        "created_at": "2026-05-05 17:10:12"
+    },
+    {
+        "id_demande": 10,
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "hhhhhhhhhh",
+        "urgence": "tres_urgent",
+        "ai_urgence": "tres_urgent",
+        "ai_justification": "",
+        "ai_refus_message": null,
+        "statut": "traitee",
+        "created_at": "2026-05-05 17:35:40"
+    },
+    {
+        "id_demande": 11,
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "j'ai mal au dents",
+        "urgence": "urgent",
+        "ai_urgence": "urgent",
+        "ai_justification": "",
+        "ai_refus_message": "Madame, Monsieur, votre demande d'ordonnance n'a pas pu être traitée : Consultation préalable requise. Nous vous invitons à prendre rendez-vous pour en discuter avec votre médecin.",
+        "statut": "refusee",
+        "created_at": "2026-05-05 20:30:41"
+    },
+    {
+        "id_demande": 12,
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "j'ai mal au pieds",
+        "urgence": "tres_urgent",
+        "ai_urgence": "tres_urgent",
+        "ai_justification": "",
+        "ai_refus_message": "Madame, Monsieur, votre demande d'ordonnance n'a pas pu être traitée : Hors périmètre du médecin. Nous vous invitons à prendre rendez-vous pour en discuter avec votre médecin.",
+        "statut": "traitee",
+        "created_at": "2026-05-05 21:23:23"
+    },
+    {
+        "id_demande": 13,
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "ordonnance expire",
+        "urgence": "urgent",
+        "ai_urgence": "urgent",
+        "ai_justification": "",
+        "ai_refus_message": null,
+        "statut": "traitee",
+        "created_at": "2026-05-05 22:12:40"
+    },
+    {
+        "id_demande": 14,
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "j'ai mal au dents",
+        "urgence": "urgent",
+        "ai_urgence": "urgent",
+        "ai_justification": "",
+        "ai_refus_message": "Madame, Monsieur, votre demande d'ordonnance n'a pas pu être traitée : Médicament non approprié. Nous vous invitons à prendre rendez-vous pour en discuter avec votre médecin.",
         "statut": "en_attente",
-        "created_at": "2026-04-30 13:40:43"
+        "created_at": "2026-05-05 22:44:12"
     }
 ]

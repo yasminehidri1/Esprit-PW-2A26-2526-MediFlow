@@ -108,10 +108,26 @@
 /* ──────────────────────────────────────────────
    Navigation helpers
    ────────────────────────────────────────────── */
-$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-$role        = trim($_SESSION['user']['role'] ?? '');
-$userName    = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? 'User'));
-$userInitial = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1));
+$currentPath   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$role          = trim($_SESSION['user']['role'] ?? '');
+$userName      = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? 'User'));
+$userInitial   = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1));
+
+// ── Notifications dynamiques ───────────────────────────────────────
+$_notifUserId  = (int)($_SESSION['user']['id'] ?? 0);
+$_notifUnread  = 0;
+$_notifList    = [];
+if ($_notifUserId > 0) {
+    require_once __DIR__ . '/../../Models/NotificationModel.php';
+    $_nm          = new NotificationModel();
+    $_notifUnread = $_nm->countUnread($_notifUserId);
+    $_notifList   = $_nm->getByMedecin($_notifUserId, 8);
+}
+$_notifIcons = [
+    'new_demande'     => ['icon' => 'assignment',   'color' => 'text-blue-500',    'bg' => 'bg-blue-50'],
+    'demande_traitee' => ['icon' => 'check_circle', 'color' => 'text-emerald-500', 'bg' => 'bg-emerald-50'],
+    'demande_refusee' => ['icon' => 'cancel',       'color' => 'text-red-500',     'bg' => 'bg-red-50'],
+];
 
 /* Returns Tailwind classes for a sidebar link */
 function sidebarLink(string $href, string $currentPath, array $excludes = []): string {
@@ -506,11 +522,74 @@ function groupOpen(string $prefix, string $currentPath): string {
         <div class="flex items-center gap-4">
 
 
-            <!-- Notification bell -->
-            <button class="relative p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 rounded-xl transition-all">
-                <span class="material-symbols-outlined text-xl">notifications</span>
-                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-            </button>
+            <!-- ── Cloche notifications dynamique ── -->
+            <div class="relative" id="notif-wrapper">
+                <button id="notif-btn" onclick="toggleNotifDropdown()"
+                        class="relative p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 rounded-xl transition-all">
+                    <span class="material-symbols-outlined text-xl">notifications</span>
+                    <?php if ($_notifUnread > 0): ?>
+                    <span id="notif-badge" class="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white leading-none">
+                        <?= $_notifUnread > 9 ? '9+' : $_notifUnread ?>
+                    </span>
+                    <?php else: ?>
+                    <span id="notif-badge" class="hidden absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white leading-none"></span>
+                    <?php endif ?>
+                </button>
+
+                <!-- Dropdown -->
+                <div id="notif-dropdown"
+                     class="hidden absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
+
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                        <span class="font-bold text-slate-800 text-sm">Notifications</span>
+                        <?php if ($_notifUnread > 0): ?>
+                        <button onclick="markAllNotifRead(<?= $_notifUserId ?>)"
+                                class="text-xs text-primary hover:underline font-semibold">
+                            Tout marquer comme lu
+                        </button>
+                        <?php endif ?>
+                    </div>
+
+                    <div class="max-h-72 overflow-y-auto divide-y divide-slate-50">
+                        <?php if (empty($_notifList)): ?>
+                        <div class="px-4 py-8 text-center">
+                            <span class="material-symbols-outlined text-3xl block mb-2 text-slate-300">notifications_none</span>
+                            <p class="text-xs font-medium text-slate-400">Aucune notification</p>
+                        </div>
+                        <?php else: ?>
+                        <?php foreach ($_notifList as $_n):
+                            $_cfg    = $_notifIcons[$_n['type']] ?? ['icon' => 'info', 'color' => 'text-slate-500', 'bg' => 'bg-slate-50'];
+                            $_diff   = time() - strtotime($_n['created_at']);
+                            $_ago    = $_diff < 60 ? "À l'instant" : ($_diff < 3600 ? floor($_diff/60).' min' : ($_diff < 86400 ? floor($_diff/3600).'h' : date('d/m', strtotime($_n['created_at']))));
+                            $_unread = !$_n['read'];
+                        ?>
+                        <div class="flex items-start gap-3 px-4 py-3 <?= $_unread ? 'bg-blue-50/40' : '' ?> hover:bg-slate-50 transition-colors">
+                            <div class="w-8 h-8 rounded-full <?= $_cfg['bg'] ?> flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-sm <?= $_cfg['color'] ?>"><?= $_cfg['icon'] ?></span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-bold text-slate-800"><?= htmlspecialchars($_n['title']) ?></p>
+                                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed"><?= htmlspecialchars($_n['message']) ?></p>
+                                <p class="text-[10px] text-slate-400 mt-1"><?= $_ago ?></p>
+                            </div>
+                            <?php if ($_unread): ?>
+                            <div class="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-2"></div>
+                            <?php endif ?>
+                        </div>
+                        <?php endforeach ?>
+                        <?php endif ?>
+                    </div>
+
+                    <div class="px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
+                        <a href="/integration/dossier/demandes"
+                           class="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">open_in_new</span>
+                            Voir toutes les demandes
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- ── Fin cloche ── -->
 
             <!-- User pill -->
             <a href="/integration/profile" class="flex items-center gap-3 pl-4 border-l border-outline-variant/30 hover:opacity-80 transition-opacity">
@@ -602,5 +681,30 @@ function groupOpen(string $prefix, string $currentPath): string {
 </div>
 
 <script src="/integration/assets/js_magazine/backOffice.js"></script>
+
+<script>
+// ── Notifications dropdown ──────────────────────────────────────────
+function toggleNotifDropdown() {
+    document.getElementById('notif-dropdown').classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    const w = document.getElementById('notif-wrapper');
+    if (w && !w.contains(e.target)) {
+        document.getElementById('notif-dropdown')?.classList.add('hidden');
+    }
+});
+
+async function markAllNotifRead(userId) {
+    await fetch('/integration/notifications/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ medecin_id: userId }),
+    });
+    document.getElementById('notif-badge')?.classList.add('hidden');
+    document.querySelectorAll('#notif-dropdown .bg-blue-50\\/40').forEach(el => el.classList.remove('bg-blue-50/40'));
+    document.querySelectorAll('#notif-dropdown .w-2.h-2.bg-blue-500').forEach(el => el.remove());
+    event.target.style.display = 'none';
+}
+</script>
 </body>
 </html>

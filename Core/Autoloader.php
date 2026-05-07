@@ -25,6 +25,7 @@ class Autoloader
                 'Core\\' => __DIR__ . DIRECTORY_SEPARATOR,
                 'Controllers\\' => __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Controllers' . DIRECTORY_SEPARATOR,
                 'Models\\' => __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Models' . DIRECTORY_SEPARATOR,
+                'Services\\' => __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Services' . DIRECTORY_SEPARATOR,
             ];
 
             foreach ($prefixes as $prefix => $baseDir) {

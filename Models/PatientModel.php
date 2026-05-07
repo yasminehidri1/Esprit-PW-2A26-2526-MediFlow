@@ -95,17 +95,19 @@ class PatientModel {
         return $stmt->fetch() ?: null;
     }
 
-    public function updateProfile(int $patientId, string $prenom, string $nom, string $mail): bool {
+    public function updateProfile(int $patientId, string $prenom, string $nom, string $mail, string $tel = '', string $adresse = ''): bool {
         $stmt = $this->db->prepare("
             UPDATE utilisateurs
-            SET prenom = :prenom, nom = :nom, mail = :mail
+            SET prenom = :prenom, nom = :nom, mail = :mail, tel = :tel, adresse = :adresse
             WHERE id_PK = :id
         ");
         return $stmt->execute([
-            ':prenom' => $prenom,
-            ':nom' => $nom,
-            ':mail' => $mail,
-            ':id' => $patientId
+            ':prenom'  => $prenom,
+            ':nom'     => $nom,
+            ':mail'    => $mail,
+            ':tel'     => $tel,
+            ':adresse' => $adresse,
+            ':id'      => $patientId,
         ]);
     }
 
