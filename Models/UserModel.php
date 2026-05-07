@@ -81,7 +81,7 @@ class UserModel
         $query = "
             SELECT 
                 u.id_PK, u.matricule, u.nom, u.prenom, u.mail, u.tel, 
-                u.adresse, u.id_role, u.status, r.libelle as role_name
+                u.adresse, u.id_role, u.status, u.profile_pic, r.libelle as role_name
             FROM utilisateurs u
             LEFT JOIN roles r ON u.id_role = r.id_role
             WHERE u.id_PK = :userId

@@ -167,6 +167,9 @@ class DashboardModel
                 u.mail,
                 u.tel,
                 u.adresse,
+                u.matricule,
+                u.profile_pic,
+                u.onboarding_completed,
                 r.id_role,
                 r.libelle as role_name
             FROM utilisateurs u

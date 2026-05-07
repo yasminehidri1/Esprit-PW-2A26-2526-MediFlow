@@ -1,7 +1,7 @@
 <?php
 namespace Controllers;
 require_once __DIR__ . '/../Models/DemandeOrdonnanceModel.php';
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config.php';
 
 class DemandeController {
     private \DemandeOrdonnanceModel $demandeModel;
@@ -19,9 +19,9 @@ class DemandeController {
 
     public function listDemandes(): void {
         $demandes = $this->demandeModel->getDemandesByMedecin($this->medecinId);
-        $db = \Database::getInstance();
+        $pdo = \config::getConnexion();
         foreach ($demandes as &$d) {
-            $stmt = $db->prepare("SELECT prenom, nom, mail FROM utilisateurs WHERE id_PK = :id");
+            $stmt = $pdo->prepare("SELECT prenom, nom, mail FROM utilisateurs WHERE id_PK = :id");
             $stmt->execute([':id' => (int)$d['id_patient']]);
             $patient = $stmt->fetch();
             $d['patient_prenom'] = $patient['prenom'] ?? '—';

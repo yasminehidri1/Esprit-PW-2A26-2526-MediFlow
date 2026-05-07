@@ -282,5 +282,8 @@ $currentAction = $_GET['action'] ?? 'home';
 </div>
 
 <script src="/integration/assets/js_magazine/frontOffice.js"></script>
+
+<!-- Chatbot Widget -->
+<?php include __DIR__ . '/../components/chatbot-widget.php'; ?>
 </body>
 </html>

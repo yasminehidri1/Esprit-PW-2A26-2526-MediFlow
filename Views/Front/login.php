@@ -221,6 +221,25 @@
             </div>
             <?php endif; ?>
 
+            <?php
+            // Handle error codes from Google OAuth redirects
+            $oauthErrorMessages = [
+                'account_suspended'       => 'Votre compte a été suspendu. Veuillez contacter l\'administrateur.',
+                'google_auth_failed'      => 'L\'authentification Google a échoué. Veuillez réessayer.',
+                'token_exchange_failed'   => 'Impossible d\'obtenir le jeton Google. Veuillez réessayer.',
+                'failed_to_fetch_user_info' => 'Impossible de récupérer vos informations Google.',
+                'user_creation_failed'    => 'Erreur lors de la création de votre compte. Contactez l\'administrateur.',
+                'google_auth_error'       => 'Une erreur est survenue avec Google. Veuillez réessayer.',
+            ];
+            $errorCode = $_GET['error'] ?? '';
+            if ($errorCode && isset($oauthErrorMessages[$errorCode])):
+            ?>
+            <div class="auth-alert-error" style="<?= $errorCode === 'account_suspended' ? 'background:#fff3cd;border-color:#ffc107;color:#856404;' : '' ?>">
+                <span class="material-symbols-outlined"><?= $errorCode === 'account_suspended' ? 'block' : 'error' ?></span>
+                <div><p><?= htmlspecialchars($oauthErrorMessages[$errorCode]) ?></p></div>
+            </div>
+            <?php endif; ?>
+
             <form method="POST" action="" novalidate>
                 <!-- Email -->
                 <div class="field-group">
@@ -236,7 +255,7 @@
                 <div class="field-group">
                     <div class="field-label-row">
                         <label class="field-label" for="password">Mot de passe</label>
-                        <a href="#" class="field-forgot">Mot de passe oublié ?</a>
+                        <a href="/integration/forgot-password" class="field-forgot">Mot de passe oublié ?</a>
                     </div>
                     <div class="field-wrap">
                         <span class="field-icon"><span class="material-symbols-outlined">lock</span></span>
@@ -268,6 +287,24 @@
             </form>
 
             <div class="auth-divider"><span>ou</span></div>
+
+            <!-- Google Login Button -->
+            <a href="<?php
+                $googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
+                    'client_id' => \config::getGoogleClientId(),
+                    'redirect_uri' => \config::getGoogleRedirectUri(),
+                    'response_type' => 'code',
+                    'scope' => 'openid email profile',
+                    'access_type' => 'offline'
+                ]);
+                echo htmlspecialchars($googleAuthUrl);
+            ?>" class="btn-google" style="width:100%;padding:14px;background:#f3f4f6;color:#374151;border:1.5px solid #e5e7eb;border-radius:12px;font-size:15px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:16px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032 c0-3.331,2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.461,2.268,15.365,1,12.545,1 C6.477,1,1.54,5.937,1.54,12s4.938,11,11.005,11c6.068,0,11.066-4.941,11.066-11c0-0.713-0.063-1.42-0.186-2.121H12.545z" fill="#4285F4"/>
+                </svg>
+                Connexion avec Google
+            </a>
+
             <p class="auth-footer">Pas encore de compte ? <a href="/integration/register">Créer un compte</a></p>
         </div>
     </div>

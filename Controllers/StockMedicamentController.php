@@ -45,8 +45,8 @@ class StockMedicamentController
     private function render(string $viewFile, array $vars = []): void
     {
         extract($vars);
-        $embeddedInLayout = true;
-        $stockViewPath    = __DIR__ . '/../Views/Back/' . basename($viewFile);
+        // Strip .php extension — layout expects bare view names
+        $currentView = str_replace('.php', '', basename($viewFile));
         include __DIR__ . '/../Views/Back/layout.php';
     }
 

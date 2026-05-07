@@ -187,7 +187,15 @@ class AdminController
             'password' => $formData['password']
         ];
 
-        if ($this->userModel->createUser($userData)) {
+        if ($newUserId = $this->userModel->createUser($userData)) {
+            $newUser = $this->userModel->getUserById($newUserId);
+            $matricule = $newUser['matricule'] ?? 'N/A';
+            \Core\NotificationService::push(
+                \Core\NotificationService::TYPE_NEW_USER,
+                'Nouvel utilisateur (Admin)',
+                "L'administrateur a créé le compte de {$userData['prenom']} {$userData['nom']} (Matricule: {$matricule}).",
+                $_SESSION['user']['id'] ?? null
+            );
             $_SESSION['message'] = 'Utilisateur créé avec succès.';
             header('Location: /integration/admin');
         } else {
@@ -282,6 +290,14 @@ class AdminController
         }
 
         if ($this->userModel->updateUser($userId, $userData)) {
+            $freshUser = $this->userModel->getUserById($userId);
+            $matricule = $freshUser['matricule'] ?? 'N/A';
+            \Core\NotificationService::push(
+                \Core\NotificationService::TYPE_USER_UPDATED,
+                'Utilisateur modifié',
+                "Le compte de {$userData['prenom']} {$userData['nom']} (Matricule: {$matricule}) a été modifié par un administrateur.",
+                $_SESSION['user']['id'] ?? null
+            );
             $_SESSION['message'] = 'Utilisateur mis à jour avec succès.';
             header('Location: /integration/admin');
         } else {
@@ -306,7 +322,16 @@ class AdminController
             exit;
         }
 
+        $userToDelete = $this->userModel->getUserById($userId);
+        $matricule = $userToDelete ? ($userToDelete['matricule'] ?? 'N/A') : 'N/A';
+
         if ($this->userModel->deleteUser($userId)) {
+            \Core\NotificationService::push(
+                \Core\NotificationService::TYPE_USER_DELETED,
+                'Utilisateur supprimé',
+                "Un compte utilisateur (Matricule: {$matricule}) a été supprimé par l'administrateur.",
+                $_SESSION['user']['id'] ?? null
+            );
             $_SESSION['message'] = 'Utilisateur supprimé avec succès.';
         } else {
             $_SESSION['error'] = 'Erreur lors de la suppression de l\'utilisateur.';
@@ -348,6 +373,15 @@ class AdminController
         $newStatus = ($user['status'] === 'suspended') ? 'active' : 'suspended';
 
         if ($this->userModel->updateUserStatus($id, $newStatus)) {
+            $actionType = $newStatus === 'active' ? \Core\NotificationService::TYPE_USER_ACTIVATED : \Core\NotificationService::TYPE_USER_SUSPENDED;
+            $actionWord = $newStatus === 'active' ? 'réactivé' : 'suspendu';
+            $matricule = $user['matricule'] ?? 'N/A';
+            \Core\NotificationService::push(
+                $actionType,
+                "Compte $actionWord",
+                "Le compte de {$user['prenom']} {$user['nom']} (Matricule: {$matricule}) a été $actionWord.",
+                $_SESSION['user']['id'] ?? null
+            );
             $_SESSION['message'] = $newStatus === 'active' ? 'Utilisateur réactivé avec succès.' : 'Utilisateur suspendu avec succès.';
         } else {
             $_SESSION['error'] = 'Erreur lors de la modification du statut de l\'utilisateur.';

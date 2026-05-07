@@ -47,10 +47,11 @@ class FournisseurController
     private function render(string $viewFile, array $vars = []): void
     {
         extract($vars);
-        
-        // Toujours utiliser le layout principal du back-office pour garder la sidebar et la topbar
-        $embeddedInLayout = true;
-        $stockViewPath    = __DIR__ . '/../Views/Back/' . basename($viewFile);
+
+        // Strip .php extension for $currentView (layout uses bare names)
+        $currentView = str_replace('.php', '', basename($viewFile));
+
+        // Always use the main back-office layout so sidebar/topbar remain
         include __DIR__ . '/../Views/Back/layout.php';
     }
 

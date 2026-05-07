@@ -180,7 +180,7 @@ class RendezVousController
             $prev_date->modify('-1 month');
             $next_date->modify('+1 month');
             $url_prec = '/integration/rdv/planning?vue=mois&date=' . $prev_date->format('Y-m-01');
-            $url_suiv = '/integration/rdv/planning?vue=mois&date=' . $prev_date->format('Y-m-01');
+            $url_suiv = '/integration/rdv/planning?vue=mois&date=' . $next_date->format('Y-m-01');
         } else {
             $sem_prec = clone $date_debut; $sem_prec->modify('-7 days');
             $sem_suiv = clone $date_debut; $sem_suiv->modify('+7 days');
@@ -503,21 +503,7 @@ class RendezVousController
         if (!$date || $date < date('Y-m-d'))                             $erreurs[] = 'Date invalide.';
         if (!$heure)                                                      $erreurs[] = 'Heure requise.';
 
-        /*if (!empty($erreurs)) {
-            $_SESSION['rdv_erreurs'] = $erreurs;
-            header("Location: " . $this->basePath() . "/rdv/form?medecin_id=$medecin_id&date=$date&heure=$heure");
-            exit;
-        }
-
-        $res = $this->model->addRdv($medecin_id, $nom, $prenom, $cin, $genre, $date, $heure);
-        if ($res) {
-            header('Location: ' . $this->basePath() . '/rdv/confirmation?id=' . $res);
-        } else {
-            header('Location: ' . $this->basePath() . '/rdv/annuaire');
-        }
-        exit;
-        */
-        // APRÈS
+        // Validation errors → redirect back to booking form
 if (!empty($erreurs)) {
     $_SESSION['rdv_erreurs'] = $erreurs;
     header("Location: " . $this->basePath() . "/rdv/reserver?medecin_id=$medecin_id&date_rdv=$date&heure_rdv=$heure");
