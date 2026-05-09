@@ -301,12 +301,32 @@ class App
             (new \Controllers\RendezVousController())->traitementRdv();
             return;
         }
+        if (preg_match('#^/rdv/notification-lue(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->notificationLue();
+            return;
+        }
+        if (preg_match('#^/rdv/notifications-toutes-lues(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->notificationsToutesLues();
+            return;
+        }
+        if (preg_match('#^/rdv/notifications-count(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->notificationsCount();
+            return;
+        }
+        if (preg_match('#^/rdv/reponse-modification(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->reponseModification();
+            return;
+        }
         if (preg_match('#^/rdv/confirmation(?:/|$)#', $path)) {
             (new \Controllers\RendezVousController())->patientConfirmation();
             return;
         }
         if (preg_match('#^/rdv/mes-rdv(?:/|$)#', $path)) {
             (new \Controllers\RendezVousController())->patientMesRdv();
+            return;
+        }
+        if (preg_match('#^/rdv/ical(?:/|$)#', $path)) {
+            (new \Controllers\RendezVousController())->exportIcal();
             return;
         }
 
