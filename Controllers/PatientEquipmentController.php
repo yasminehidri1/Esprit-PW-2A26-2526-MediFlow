@@ -149,6 +149,216 @@ class PatientEquipmentController
        JSON APIs
     ──────────────────────────────────────────── */
 
+    /** Local AI proxy — forwards image to Ollama/Moondream and returns parsed JSON */
+    public function analyzeImage(): void
+    {
+        $this->ensureSession();
+        $this->requireAuth();
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
+        }
+
+        $body   = json_decode(file_get_contents('php://input'), true);
+        $base64 = $body['image'] ?? '';
+
+        if (empty($base64)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'No image provided']);
+            return;
+        }
+
+        // Single query: ask Moondream to freely describe what it sees.
+        // Small models describe far more accurately than they classify.
+        $description = $this->moondreamQuery($base64,
+            'Describe what you see in this image in detail. ' .
+            'Mention the shape, color, any wheels, tubes, screens, buttons, or text you can see.'
+        );
+
+        if ($description === null) {
+            http_response_code(502);
+            echo json_encode(['error' => 'Ollama did not respond — is it running?']);
+            return;
+        }
+
+        $desc = mb_strtolower(trim((string)$description));
+
+        // Keyword → French name + category + price, most specific first
+        $rules = [
+            // term to look for => [French name, category, price]
+            'electric wheelchair'    => ['Fauteuil roulant électrique',    'Mobilité',      450],
+            'power wheelchair'       => ['Fauteuil roulant électrique',    'Mobilité',      450],
+            'wheelchair'             => ['Fauteuil roulant',               'Mobilité',      350],
+            'rollator'               => ['Déambulateur à roulettes',       'Mobilité',      320],
+            'walker'                 => ['Déambulateur',                   'Mobilité',      310],
+            'crutch'                 => ['Béquilles médicales',            'Mobilité',      300],
+            'cane'                   => ['Canne médicale',                 'Mobilité',      300],
+            'stair lift'             => ['Monte-escalier médical',         'Mobilité',      800],
+            'oxygen concentrator'    => ['Concentrateur d\'oxygène',       'Respiratoire',  700],
+            'oxygen tank'            => ['Bouteille d\'oxygène',           'Respiratoire',  500],
+            'oxygen cylinder'        => ['Bouteille d\'oxygène',           'Respiratoire',  500],
+            'oxygen'                 => ['Concentrateur d\'oxygène',       'Respiratoire',  650],
+            'ventilator'             => ['Ventilateur médical',            'Respiratoire',  900],
+            'cpap'                   => ['Appareil CPAP',                  'Respiratoire',  600],
+            'nebulizer'              => ['Nébuliseur médical',             'Respiratoire',  400],
+            'nebuliser'              => ['Nébuliseur médical',             'Respiratoire',  400],
+            'suction'                => ['Aspirateur chirurgical',         'Respiratoire',  500],
+            'ecg'                    => ['Électrocardiographe',            'Cardiologie',   800],
+            'ekg'                    => ['Électrocardiographe',            'Cardiologie',   800],
+            'defibrillator'          => ['Défibrillateur',                 'Cardiologie',   950],
+            'heart monitor'          => ['Moniteur cardiaque',             'Cardiologie',   750],
+            'cardiac monitor'        => ['Moniteur cardiaque',             'Cardiologie',   750],
+            'blood pressure'         => ['Tensiomètre médical',            'Cardiologie',   350],
+            'pulse oximeter'         => ['Oxymètre de pouls',              'Cardiologie',   320],
+            'stethoscope'            => ['Stéthoscope médical',            'Cardiologie',   300],
+            'infusion pump'          => ['Pompe à perfusion',              'Réanimation',   850],
+            'iv pump'                => ['Pompe à perfusion',              'Réanimation',   850],
+            'syringe pump'           => ['Pousse-seringue médical',        'Réanimation',   800],
+            'icu'                    => ['Moniteur de réanimation',        'Réanimation',   950],
+            'feeding tube'           => ['Pompe entérale',                 'Réanimation',   700],
+            'hospital bed'           => ['Lit médicalisé électrique',      'Gériatrie',     600],
+            'medical bed'            => ['Lit médicalisé électrique',      'Gériatrie',     600],
+            'adjustable bed'         => ['Lit médicalisé électrique',      'Gériatrie',     600],
+            'patient lift'           => ['Lève-personne médical',          'Gériatrie',     750],
+            'hoist'                  => ['Lève-personne médical',          'Gériatrie',     750],
+            'shower chair'           => ['Chaise de douche médicale',      'Gériatrie',     330],
+            'commode'                => ['Chaise garde-robe médicale',     'Gériatrie',     320],
+            'anti-bedsore'           => ['Matelas anti-escarre',           'Gériatrie',     450],
+            'mattress'               => ['Matelas anti-escarre',           'Gériatrie',     450],
+            'ultrasound'             => ['Échographe médical',             'Radiologie',    950],
+            'x-ray'                  => ['Appareil de radiographie',       'Radiologie',    900],
+            'xray'                   => ['Appareil de radiographie',       'Radiologie',    900],
+            'scanner'                => ['Scanner médical',                'Radiologie',    950],
+            'mri'                    => ['IRM médical',                    'Radiologie',    1000],
+            'cylinder'               => ['Bouteille d\'oxygène',           'Respiratoire',  500],
+            'tank'                   => ['Bouteille d\'oxygène',           'Respiratoire',  500],
+            'tube'                   => ['Appareil médical à tubes',       'Réanimation',   600],
+            'wheel'                  => ['Fauteuil roulant',               'Mobilité',      350],
+            'screen'                 => ['Moniteur médical',               'Cardiologie',   700],
+            'monitor'                => ['Moniteur médical',               'Cardiologie',   700],
+            'mask'                   => ['Masque respiratoire',            'Respiratoire',  350],
+        ];
+
+        $nomFr       = null;
+        $catResolved = null;
+        $prixInt     = null;
+
+        foreach ($rules as $keyword => [$fr, $cat, $price]) {
+            if (str_contains($desc, $keyword)) {
+                $nomFr       = $fr;
+                $catResolved = $cat;
+                $prixInt     = $price;
+                break;
+            }
+        }
+
+        // Fallback if nothing matched
+        if ($nomFr === null) {
+            $nomFr       = ucwords(trim((string)$description, " \t\n\r.\"'"));
+            $catResolved = 'Mobilité';
+            $prixInt     = 400;
+        }
+
+        echo json_encode([
+            'nom'        => $nomFr,
+            'categorie'  => $catResolved,
+            'prix'       => $prixInt,
+            '_debug_desc' => $description,  // raw Moondream description — visible in browser console
+        ]);
+    }
+
+    /** Keyword lookup from English equipment name → French medical name */
+    private function englishToFrenchMedical(string $en): string
+    {
+        $en = mb_strtolower(trim($en));
+        $map = [
+            'wheelchair'            => 'Fauteuil roulant',
+            'electric wheelchair'   => 'Fauteuil roulant électrique',
+            'rollator'              => 'Déambulateur à roulettes',
+            'walker'                => 'Déambulateur',
+            'crutches'              => 'Béquilles médicales',
+            'crutch'                => 'Béquille médicale',
+            'cane'                  => 'Canne médicale',
+            'oxygen concentrator'   => 'Concentrateur d\'oxygène',
+            'oxygen'                => 'Concentrateur d\'oxygène',
+            'ventilator'            => 'Ventilateur médical',
+            'cpap'                  => 'Appareil CPAP',
+            'nebulizer'             => 'Nébuliseur médical',
+            'nebuliser'             => 'Nébuliseur médical',
+            'suction machine'       => 'Aspirateur chirurgical',
+            'suction'               => 'Aspirateur chirurgical',
+            'ecg'                   => 'Électrocardiographe',
+            'ekg'                   => 'Électrocardiographe',
+            'heart monitor'         => 'Moniteur cardiaque',
+            'cardiac monitor'       => 'Moniteur cardiaque',
+            'defibrillator'         => 'Défibrillateur',
+            'blood pressure'        => 'Tensiomètre',
+            'pulse oximeter'        => 'Oxymètre de pouls',
+            'infusion pump'         => 'Pompe à perfusion',
+            'iv pump'               => 'Pompe à perfusion',
+            'hospital bed'          => 'Lit médicalisé',
+            'medical bed'           => 'Lit médicalisé',
+            'patient lift'          => 'Lève-personne',
+            'hoist'                 => 'Lève-personne',
+            'shower chair'          => 'Chaise de douche médicale',
+            'commode'               => 'Chaise garde-robe',
+            'mattress'              => 'Matelas anti-escarre',
+            'ultrasound'            => 'Échographe',
+            'x-ray'                 => 'Appareil de radiographie',
+            'xray'                  => 'Appareil de radiographie',
+            'scanner'               => 'Scanner médical',
+            'mri'                   => 'IRM',
+            'stretcher'             => 'Brancard médical',
+            'gurney'                => 'Brancard médical',
+            'wheelchair ramp'       => 'Rampe d\'accès fauteuil roulant',
+            'stair lift'            => 'Monte-escalier',
+            'feeding tube'          => 'Sonde d\'alimentation',
+            'syringe pump'          => 'Pousse-seringue',
+        ];
+
+        foreach ($map as $en_key => $fr) {
+            if (str_contains($en, $en_key)) return $fr;
+        }
+
+        // Fallback: capitalise the English name as-is
+        return ucwords($en);
+    }
+
+    /** Send one simple question about an image to Moondream via Ollama. Returns the response text or null on failure. */
+    private function moondreamQuery(string $base64, string $question): ?string
+    {
+        $payload = json_encode([
+            'model'  => 'moondream:latest',
+            'prompt' => $question,
+            'images' => [$base64],
+            'stream' => false,
+        ]);
+
+        if ($payload === false) return null;
+
+        $ch = curl_init('http://localhost:11434/api/generate');
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 120,
+        ]);
+
+        $raw      = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($raw === false || $httpCode !== 200) return null;
+
+        $resp = json_decode($raw, true);
+        return isset($resp['response']) ? trim($resp['response']) : null;
+    }
+
     /** Equipement CRUD API — GET / POST (FormData+image) / PUT (JSON) / DELETE */
     public function equipementApi(): void
     {

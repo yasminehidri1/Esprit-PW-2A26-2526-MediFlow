@@ -439,17 +439,14 @@ function getImgUrl($eq) {
   const TODAY  = '<?= $today ?>';
 
   /* ════════════════════════════════════════════════════
-     ✅ FONCTIONNALITÉ MÉTIER — ANALYSE IA DE L'IMAGE
-     Quand l'admin uploade une photo :
+     ANALYSE IA DE L'IMAGE — Moondream via Ollama (local)
      1. Prévisualisation immédiate
-     2. Envoi à OpenRouter (openrouter/free — sélection auto du meilleur modèle vision gratuit)
-     3. Réponse JSON : nom, référence, catégorie, prix
+     2. Envoi à /equipment/api/analyze-image (proxy PHP → Ollama)
+     3. Réponse JSON : nom, catégorie, prix
      4. Remplissage automatique des champs avec animation
   ════════════════════════════════════════════════════ */
   let imageBase64 = null;
   let imageMime   = null;
-
-  const OPENROUTER_KEY = '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'; // MediFlow
 
   const AI_STEPS = [
     "Identification de l'équipement médical...",
@@ -490,6 +487,24 @@ function getImgUrl($eq) {
     reader.readAsDataURL(file);
   }
 
+  function resizeImageBase64(base64, mime, maxPx) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxPx || h > maxPx) {
+          if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else        { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+      };
+      img.src = 'data:' + mime + ';base64,' + base64;
+    });
+  }
+
   async function analyserAvecIA() {
     const analyzing = document.getElementById('ai-analyzing');
     const stepEl    = document.getElementById('ai-step');
@@ -506,93 +521,30 @@ function getImgUrl($eq) {
     }, 900);
 
     try {
-      // API OpenRouter - essaie plusieurs modeles vision gratuits
-      var VISION_MODELS = [
-        'google/gemma-4-31b-it:free',
-        'google/gemma-4-26b-a4b-it:free',
-        'qwen/qwen2.5-vl-32b-instruct:free',
-        'qwen/qwen2.5-vl-72b-instruct:free',
-        'google/gemma-3-27b-it:free'
-      ];
+      // Resize image to max 800px before sending — Moondream doesn't need full resolution
+      const resizedBase64 = await resizeImageBase64(imageBase64, imageMime, 800);
+      console.log('[Moondream] sending image preview:', 'data:image/jpeg;base64,' + resizedBase64.slice(0, 100) + '...');
+      console.log('[Moondream] resized base64 length:', resizedBase64.length, 'chars (~', Math.round(resizedBase64.length * 0.75 / 1024), 'KB)');
 
-      var promptText = 'Tu es un expert en equipements medicaux tunisiens. ' +
-        'Analyse cette image et retourne UNIQUEMENT un objet JSON valide, sans texte avant ou apres, sans backticks. ' +
-        'Format exact : {"nom":"nom en francais","categorie":"Mobilite","prix":50} ' +
-        'Regles : nom = nom precis en francais, ' +
-        'categorie = EXACTEMENT parmi : Mobilite, Respiratoire, Cardiologie, Reanimation, Geriatrie, Radiologie, ' +
-        'prix = entier entre 5 et 500 en DT/jour. ' +
-        'Si pas un equipement medical : {"erreur":"pas un equipement medical"}';
-
-      var imageDataUrl = 'data:' + imageMime + ';base64,' + imageBase64;
-
-      var msgBody = {
-        max_tokens: 300,
-        temperature: 0.1,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image_url', image_url: { url: imageDataUrl } },
-            { type: 'text', text: promptText }
-          ]
-        }]
-      };
-
-      var rawText = '';
-      var lastErr = '';
-      for (var mi = 0; mi < VISION_MODELS.length; mi++) {
-        var currentModel = VISION_MODELS[mi];
-        try {
-          var reqBody = Object.assign({ model: currentModel }, msgBody);
-          var resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + OPENROUTER_KEY,
-              'HTTP-Referer': window.location.origin,
-              'X-Title': 'MediFlow Equipment Analyzer'
-            },
-            body: JSON.stringify(reqBody)
-          });
-          if (!resp.ok) {
-            lastErr = 'HTTP ' + resp.status + ' (' + currentModel + ')';
-            // Attendre 500ms avant de réessayer si rate limit
-            if (resp.status === 429) await new Promise(r => setTimeout(r, 800));
-            continue;
-          }
-          var d = await resp.json();
-          var txt = '';
-          if (d && d.choices && d.choices[0] && d.choices[0].message) {
-            txt = d.choices[0].message.content || '';
-          }
-          if (txt && txt.trim().length > 5) { rawText = txt; break; }
-          lastErr = 'Reponse vide (' + currentModel + ')';
-        } catch(fetchErr) { lastErr = fetchErr.message; }
-      }
+      // Send image to local Moondream model via PHP proxy → Ollama
+      const resp = await fetch('/integration/equipment/api/analyze-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: resizedBase64 })
+      });
 
       clearInterval(interval);
 
-      if (!rawText) throw new Error('Tous les modeles ont echoue : ' + lastErr);
-
-      // ✅ Nettoyage robuste
-      let cleanText = rawText
-        .replace(/```json/gi, '')
-        .replace(/```/g, '')
-        .trim();
-
-      // Extraire le JSON
-      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        console.error('Réponse brute :', rawText);
-        throw new Error('Aucun JSON trouvé dans la réponse');
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        console.error('[Moondream] HTTP error', resp.status, errData);
+        throw new Error(errData.error || 'HTTP ' + resp.status);
       }
 
-      let result;
-      try {
-        result = JSON.parse(jsonMatch[0]);
-      } catch(parseErr) {
-        console.error('JSON invalide :', jsonMatch[0]);
-        throw new Error('JSON malformé reçu');
-      }
+      const result = await resp.json();
+      console.log('[Moondream] raw response:', result);
+
+      if (result.error) throw new Error(result.error);
 
       analyzing.classList.remove('show');
 

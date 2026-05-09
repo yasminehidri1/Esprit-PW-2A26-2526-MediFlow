@@ -93,6 +93,11 @@ class App
             return;
         }
 
+        if (preg_match('#^/equipment/api/analyze-image(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->analyzeImage();
+            return;
+        }
+
         // âœ… NOUVEAU â€” VÃ©rification disponibilitÃ© Ã©quipement en temps rÃ©el
         // AppelÃ© par reservation.php via fetch() dÃ¨s que le patient choisit ses dates
         // GET /integration/equipment/api/disponibilite?equipement_id=X&date_debut=Y&date_fin=Z
