@@ -449,7 +449,7 @@ function getImgUrl($eq) {
   let imageBase64 = null;
   let imageMime   = null;
 
-  const OPENROUTER_KEY = '<?= OPENROUTER_API_KEY ?>';
+  const OPENROUTER_KEY = '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'; // MediFlow
 
   const AI_STEPS = [
     "Identification de l'équipement médical...",
@@ -508,12 +508,11 @@ function getImgUrl($eq) {
     try {
       // API OpenRouter - essaie plusieurs modeles vision gratuits
       var VISION_MODELS = [
-        'openrouter/free',
         'google/gemma-4-31b-it:free',
         'google/gemma-4-26b-a4b-it:free',
         'qwen/qwen2.5-vl-32b-instruct:free',
-        'nvidia/nemotron-3-nano-12b-v2:free',
-        'qwen/qwen2.5-vl-7b-instruct:free'
+        'qwen/qwen2.5-vl-72b-instruct:free',
+        'google/gemma-3-27b-it:free'
       ];
 
       var promptText = 'Tu es un expert en equipements medicaux tunisiens. ' +
