@@ -155,6 +155,7 @@ class Post {
     /**
      * Toggle like/unlike for a user — inserts into post_likes and syncs likes_count
      * Returns ['liked'=>bool, 'likes'=>int]
+     * Fires a notification to the post author when liked (not when un-liked).
      */
     public function toggleLike(int $postId, int $userId): array {
         // Check if already liked
@@ -180,6 +181,20 @@ class Post {
                 // Duplicate key — already liked, just return current state
             }
             $liked = true;
+
+            // Notify post author (skip if liker IS the author)
+            $postRow = $this->getById($postId);
+            if ($postRow && (int)$postRow['auteur_id'] !== $userId) {
+                require_once __DIR__ . '/Notification.php';
+                (new \Notification())->create(
+                    (int)$postRow['auteur_id'],
+                    'post_like',
+                    'Someone liked your article',
+                    'Your article "' . mb_substr($postRow['titre'], 0, 60) . '" received a new like.',
+                    'favorite',
+                    'rose'
+                );
+            }
         }
 
         // Get fresh count
@@ -366,5 +381,109 @@ class Post {
      */
     public function getByCategory($categorie, $page = 1, $perPage = 10) {
         return $this->getAll(['categorie' => $categorie, 'statut' => 'publie'], $page, $perPage);
+    }
+
+    // ------------------------------------------------------------------
+    // Bookmarks
+    // ------------------------------------------------------------------
+
+    public function toggleBookmark(int $postId, int $userId): array {
+        $check = $this->db->prepare("SELECT id FROM post_bookmarks WHERE post_id = :p AND user_id = :u");
+        $check->execute([':p' => $postId, ':u' => $userId]);
+
+        if ($check->fetch()) {
+            $this->db->prepare("DELETE FROM post_bookmarks WHERE post_id = :p AND user_id = :u")
+                     ->execute([':p' => $postId, ':u' => $userId]);
+            return ['bookmarked' => false];
+        }
+
+        try {
+            $this->db->prepare("INSERT INTO post_bookmarks (post_id, user_id) VALUES (:p, :u)")
+                     ->execute([':p' => $postId, ':u' => $userId]);
+        } catch (\PDOException $e) { /* duplicate — already bookmarked */ }
+        return ['bookmarked' => true];
+    }
+
+    public function hasBookmarked(int $postId, int $userId): bool {
+        $stmt = $this->db->prepare("SELECT id FROM post_bookmarks WHERE post_id = :p AND user_id = :u");
+        $stmt->execute([':p' => $postId, ':u' => $userId]);
+        return (bool)$stmt->fetch();
+    }
+
+    public function getBookmarkedPosts(int $userId): array {
+        $sql = "SELECT p.*, u.nom, u.prenom, b.created_at AS bookmarked_at
+                FROM post_bookmarks b
+                JOIN posts p         ON b.post_id  = p.id
+                LEFT JOIN utilisateurs u ON p.auteur_id = u.id_PK
+                WHERE b.user_id = :u AND p.statut = 'publie'
+                ORDER BY b.created_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':u' => $userId]);
+        return $stmt->fetchAll();
+    }
+
+    // ------------------------------------------------------------------
+    // Statistics
+    // ------------------------------------------------------------------
+
+    public function getPostsOverTime(int $months = 12): array {
+        $sql = "SELECT DATE_FORMAT(date_creation, '%Y-%m') as month, COUNT(*) as count
+                FROM {$this->table}
+                WHERE date_creation >= DATE_SUB(NOW(), INTERVAL :months MONTH)
+                GROUP BY month ORDER BY month ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':months', $months, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getEngagementOverTime(int $months = 12): array {
+        $sql = "SELECT DATE_FORMAT(date_creation, '%Y-%m') as month,
+                       COALESCE(SUM(views_count), 0) as total_views,
+                       COALESCE(SUM(likes_count), 0) as total_likes
+                FROM {$this->table}
+                WHERE date_creation >= DATE_SUB(NOW(), INTERVAL :months MONTH)
+                GROUP BY month ORDER BY month ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':months', $months, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getTotalBookmarks(): int {
+        $stmt = $this->db->query("SELECT COUNT(*) as total FROM post_bookmarks");
+        return (int)($stmt->fetch()['total'] ?? 0);
+    }
+
+    public function getCategoryBreakdown(): array {
+        $sql = "SELECT categorie, COUNT(*) as post_count,
+                       COALESCE(SUM(views_count), 0) as total_views,
+                       COALESCE(SUM(likes_count), 0) as total_likes
+                FROM {$this->table}
+                WHERE statut = 'publie'
+                GROUP BY categorie ORDER BY post_count DESC";
+        return $this->db->query($sql)->fetchAll();
+    }
+
+    public function getTopPostsWithStats(int $limit = 10): array {
+        $sql = "SELECT p.id, p.titre, p.categorie, p.views_count, p.likes_count, p.date_publication,
+                       COALESCE(cm.comment_count, 0) as comment_count,
+                       COALESCE(bm.bookmark_count, 0) as bookmark_count
+                FROM {$this->table} p
+                LEFT JOIN (
+                    SELECT id_post, COUNT(*) as comment_count
+                    FROM comments WHERE statut = 'approuve' GROUP BY id_post
+                ) cm ON cm.id_post = p.id
+                LEFT JOIN (
+                    SELECT post_id, COUNT(*) as bookmark_count
+                    FROM post_bookmarks GROUP BY post_id
+                ) bm ON bm.post_id = p.id
+                WHERE p.statut = 'publie'
+                ORDER BY (p.views_count + p.likes_count * 3 + COALESCE(cm.comment_count,0) * 2) DESC
+                LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 }

@@ -15,18 +15,90 @@ class Comment {
     }
 
     /**
-     * Get approved comments for a specific post
+     * Get approved root comments (parent_id IS NULL) for a post, with nested replies pre-attached.
+     * Returns a flat list of root comments; each has a 'replies' key with nested arrays (max 3 levels).
      */
     public function getByPost($postId) {
+        // Fetch all approved comments for the post in one query
         $sql = "SELECT c.*, u.nom, u.prenom, u.mail
                 FROM {$this->table} c
                 LEFT JOIN utilisateurs u ON c.id_utilisateur = u.id_PK
                 WHERE c.id_post = :id_post AND c.statut = 'approuve'
-                ORDER BY c.date_creation DESC";
+                ORDER BY c.date_creation ASC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':id_post' => $postId]);
+        $all = $stmt->fetchAll();
+
+        // Build id-indexed map and attach replies
+        $map  = [];
+        $roots = [];
+        foreach ($all as &$row) { $row['replies'] = []; $map[$row['id']] = &$row; }
+        unset($row);
+
+        foreach ($all as &$row) {
+            if ($row['parent_id'] && isset($map[$row['parent_id']])) {
+                $map[$row['parent_id']]['replies'][] = &$row;
+            } else {
+                $roots[] = &$row;
+            }
+        }
+        unset($row);
+
+        // Return root comments in reverse-chronological order
+        return array_reverse($roots);
+    }
+
+    /**
+     * Get direct replies for a comment (flat list)
+     */
+    public function getReplies(int $parentId): array {
+        $sql = "SELECT c.*, u.nom, u.prenom, u.mail
+                FROM {$this->table} c
+                LEFT JOIN utilisateurs u ON c.id_utilisateur = u.id_PK
+                WHERE c.parent_id = :parent_id AND c.statut = 'approuve'
+                ORDER BY c.date_creation ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':parent_id' => $parentId]);
         return $stmt->fetchAll();
+    }
+
+    /**
+     * Toggle like/unlike on a comment. Returns ['liked'=>bool, 'likes'=>int]
+     */
+    public function toggleLike(int $commentId, int $userId): array {
+        $check = $this->db->prepare("SELECT id FROM comment_likes WHERE comment_id = :c AND user_id = :u");
+        $check->execute([':c' => $commentId, ':u' => $userId]);
+
+        if ($check->fetch()) {
+            $this->db->prepare("DELETE FROM comment_likes WHERE comment_id = :c AND user_id = :u")
+                     ->execute([':c' => $commentId, ':u' => $userId]);
+            $this->db->prepare("UPDATE {$this->table} SET likes_count = GREATEST(0, likes_count-1) WHERE id = :id")
+                     ->execute([':id' => $commentId]);
+            $liked = false;
+        } else {
+            try {
+                $this->db->prepare("INSERT INTO comment_likes (comment_id, user_id) VALUES (:c, :u)")
+                         ->execute([':c' => $commentId, ':u' => $userId]);
+                $this->db->prepare("UPDATE {$this->table} SET likes_count = likes_count+1 WHERE id = :id")
+                         ->execute([':id' => $commentId]);
+            } catch (\PDOException $e) { /* duplicate */ }
+            $liked = true;
+        }
+
+        $row   = $this->db->prepare("SELECT likes_count FROM {$this->table} WHERE id = :id");
+        $row->execute([':id' => $commentId]);
+        $likes = (int)($row->fetch()['likes_count'] ?? 0);
+        return ['liked' => $liked, 'likes' => $likes];
+    }
+
+    /**
+     * Check if a user has liked a comment
+     */
+    public function hasLikedComment(int $commentId, int $userId): bool {
+        $stmt = $this->db->prepare("SELECT id FROM comment_likes WHERE comment_id = :c AND user_id = :u");
+        $stmt->execute([':c' => $commentId, ':u' => $userId]);
+        return (bool)$stmt->fetch();
     }
 
     /**
@@ -151,18 +223,19 @@ class Comment {
     }
 
     /**
-     * Create a new comment
+     * Create a new comment (supports parent_id for replies)
      */
     public function create($data) {
-        $sql = "INSERT INTO {$this->table} (id_post, id_utilisateur, contenu, statut)
-                VALUES (:id_post, :id_utilisateur, :contenu, :statut)";
+        $sql = "INSERT INTO {$this->table} (id_post, id_utilisateur, contenu, statut, parent_id)
+                VALUES (:id_post, :id_utilisateur, :contenu, :statut, :parent_id)";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             ':id_post'        => $data['id_post'],
             ':id_utilisateur' => $data['id_utilisateur'],
             ':contenu'        => $data['contenu'],
-            ':statut'         => $data['statut'] ?? 'en_attente'
+            ':statut'         => $data['statut'] ?? 'en_attente',
+            ':parent_id'      => $data['parent_id'] ?? null,
         ]);
 
         return $this->db->lastInsertId();
@@ -242,6 +315,17 @@ class Comment {
         $stats['rejected'] = $stmt->fetch()['total'];
 
         return $stats;
+    }
+
+    public function getCommentsOverTime(int $months = 12): array {
+        $sql = "SELECT DATE_FORMAT(date_creation, '%Y-%m') as month, COUNT(*) as count
+                FROM {$this->table}
+                WHERE date_creation >= DATE_SUB(NOW(), INTERVAL :months MONTH)
+                GROUP BY month ORDER BY month ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':months', $months, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     /**

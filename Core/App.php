@@ -26,7 +26,7 @@ class App
         $path = preg_replace('#^/integration#', '', $path);
         $path = $path ?: '/';
 
-        // ── Auth ────────────────────────────────────────────────────────────
+        // â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/login(?:/|$)#', $path)) {
             (new \Controllers\AuthController())->login();
             return;
@@ -42,7 +42,7 @@ class App
             return;
         }
 
-        // ── Logout ──────────────────────────────────────────────────────────
+        // â”€â”€ Logout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/logout(?:/|$)#', $path)) {
             session_start();
             session_destroy();
@@ -50,7 +50,7 @@ class App
             exit;
         }
 
-        // ── User Dashboard / Profile ────────────────────────────────────────
+        // â”€â”€ User Dashboard / Profile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/dashboard/api/users(?:/|$)#', $path)) {
             (new \Controllers\DashboardController())->getUsers();
             return;
@@ -76,13 +76,13 @@ class App
             return;
         }
 
-        // ── Admin user management ───────────────────────────────────────────
+        // â”€â”€ Admin user management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/admin(?:/|$)#', $path)) {
             (new \Controllers\AdminController())->handle();
             return;
         }
 
-        // ── Equipment rental module — APIs ──────────────────────────────────
+        // â”€â”€ Equipment rental module â€” APIs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/equipment/api/reservations(?:/|$)#', $path)) {
             (new \Controllers\PatientEquipmentController())->reservationApi();
             return;
@@ -93,15 +93,15 @@ class App
             return;
         }
 
-        // ✅ NOUVEAU — Vérification disponibilité équipement en temps réel
-        // Appelé par reservation.php via fetch() dès que le patient choisit ses dates
+        // âœ… NOUVEAU â€” VÃ©rification disponibilitÃ© Ã©quipement en temps rÃ©el
+        // AppelÃ© par reservation.php via fetch() dÃ¨s que le patient choisit ses dates
         // GET /integration/equipment/api/disponibilite?equipement_id=X&date_debut=Y&date_fin=Z
         if (preg_match('#^/equipment/api/disponibilite(?:/|$)#', $path)) {
             (new \Controllers\PatientEquipmentController())->checkDisponibilite();
             return;
         }
 
-        // ── Equipment rental module — Views ─────────────────────────────────
+        // â”€â”€ Equipment rental module â€” Views â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/historique-location(?:/|$)#', $path)) {
             (new \Controllers\PatientEquipmentController())->historiqueLocation();
             return;
@@ -127,7 +127,7 @@ class App
             return;
         }
 
-        // ── Magazine module — Back Office ────────────────────────────────────
+        // â”€â”€ Magazine module â€” Back Office â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/magazine/admin/comment/approve(?:/|$)#', $path)) {
             (new \Controllers\CommentController())->approveComment();
             return;
@@ -148,6 +148,11 @@ class App
             return;
         }
 
+        if (preg_match('#^/magazine/admin/stats(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->statsPage();
+            return;
+        }
+
         if (preg_match('#^/magazine/admin/articles(?:/|$)#', $path)) {
             (new \Controllers\PostController())->listArticles();
             return;
@@ -163,6 +168,11 @@ class App
             return;
         }
 
+        if (preg_match('#^/magazine/admin/rephrase(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->rephrase();
+            return;
+        }
+
         if (preg_match('#^/magazine/admin/delete(?:/|$)#', $path)) {
             (new \Controllers\PostController())->deleteArticle();
             return;
@@ -173,7 +183,7 @@ class App
             return;
         }
 
-        // ── Magazine module — Front Office ───────────────────────────────────
+        // â”€â”€ Magazine module â€” Front Office â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/magazine/comment/add-ajax(?:/|$)#', $path)) {
             (new \Controllers\CommentController())->addCommentAjax();
             return;
@@ -186,6 +196,11 @@ class App
 
         if (preg_match('#^/magazine/comment/edit(?:/|$)#', $path)) {
             (new \Controllers\CommentController())->editComment();
+            return;
+        }
+
+        if (preg_match('#^/magazine/comment/like(?:/|$)#', $path)) {
+            (new \Controllers\CommentController())->likeComment();
             return;
         }
 
@@ -204,8 +219,38 @@ class App
             return;
         }
 
+        if (preg_match('#^/magazine/summarize(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->summarize();
+            return;
+        }
+
+        if (preg_match('#^/magazine/bookmark(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->toggleBookmark();
+            return;
+        }
+
+        if (preg_match('#^/magazine/bookmarks/data(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->bookmarksData();
+            return;
+        }
+
+        if (preg_match('#^/magazine/bookmarks(?:/|$)#', $path)) {
+            (new \Controllers\PostController())->myBookmarks();
+            return;
+        }
+
         if (preg_match('#^/magazine/like(?:/|$)#', $path)) {
             (new \Controllers\PostController())->likeArticle();
+            return;
+        }
+
+        if (preg_match('#^/magazine/notifications/read(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->markRead();
+            return;
+        }
+
+        if (preg_match('#^/magazine/notifications(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->index();
             return;
         }
 
@@ -219,7 +264,7 @@ class App
             return;
         }
 
-        // ── Rendez-vous module ───────────────────────────────────────────────
+        // â”€â”€ Rendez-vous module â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/rdv/admin(?:/|$)#', $path)) {
             (new \Controllers\RendezVousController())->adminDashboard();
             return;
@@ -265,7 +310,7 @@ class App
             return;
         }
 
-        // ── Stock Médicament module — Pharmacien ──────────────────────────────
+        // â”€â”€ Stock MÃ©dicament module â€” Pharmacien â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Commandes
         if (preg_match('#^/stock/orders/create(?:/|$)#', $path)) {
             (new \Controllers\StockMedicamentController())->orderCreate();
@@ -302,7 +347,7 @@ class App
             return;
         }
 
-        // ── Fournisseur module — CRUD produits + confirmation commandes ──────────
+        // â”€â”€ Fournisseur module â€” CRUD produits + confirmation commandes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (preg_match('#^/fournisseur/products/delete(?:/|$)#', $path)) {
             (new \Controllers\FournisseurController())->productDelete();
             return;
@@ -327,7 +372,7 @@ class App
             (new \Controllers\FournisseurController())->productList();
             return;
         }
-        // Fournisseur — confirmation commandes
+        // Fournisseur â€” confirmation commandes
         if (preg_match('#^/fournisseur/orders/status(?:/|$)#', $path)) {
             (new \Controllers\FournisseurController())->orderChangeStatus();
             return;
@@ -341,7 +386,7 @@ class App
             return;
         }
 
-        // ── Dossier Médical — Medecin routes ────────────────────────────────
+        // â”€â”€ Dossier MÃ©dical â€” Medecin routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         // Admin subdomain (more specific, must come before generic /dossier/admin)
         if (preg_match('#^/dossier/admin/doctors/patients/api(?:/|$)#', $path)) {
@@ -457,7 +502,7 @@ class App
             return;
         }
 
-        // ── Default: Landing page ────────────────────────────────────────────
+        // â”€â”€ Default: Landing page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         (new \Controllers\LandingController())->index();
     }
 }

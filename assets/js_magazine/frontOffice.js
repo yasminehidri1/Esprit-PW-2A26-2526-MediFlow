@@ -1,11 +1,11 @@
-/**
- * MediFlow Magazine — Front Office JavaScript
+﻿/**
+ * MediFlow Magazine â€” Front Office JavaScript
  * Real-time likes (DB-backed, toggle like/unlike), AJAX comments with edit/delete,
  * live search, desktop search dropdown, toast notifications.
  */
 
 // ============================================================
-// Like Buttons — DB-backed, toggle like/unlike
+// Like Buttons â€” DB-backed, toggle like/unlike
 // ============================================================
 function initLikeButtons() {
     document.querySelectorAll('.like-btn').forEach(btn => {
@@ -37,7 +37,7 @@ function initLikeButtons() {
                         showToast('Like removed.', 'default');
                     } else {
                         _markLiked(this);
-                        showToast('Thanks for your support! ❤️', 'success');
+                        showToast('Thanks for your support! â¤ï¸', 'success');
                     }
                     if (countEl) {
                         const n = parseInt(data.likes, 10);
@@ -110,14 +110,14 @@ function initCommentForm() {
                 const userName = document.getElementById('currentUserName')?.textContent || 'You';
                 const userInitials = document.getElementById('currentUserInitials')?.textContent || 'U';
                 _prependComment(content, userName, userInitials);
-                showToast('Comment posted! ✓', 'success');
+                showToast('Comment posted! âœ“', 'success');
             } else {
                 showToast('Submission failed. Please try again.', 'error');
             }
         } catch (err) {
             console.error('Comment submit error:', err);
             if (textarea) textarea.value = '';
-            showToast('Comment submitted! ✓', 'success');
+            showToast('Comment submitted! âœ“', 'success');
         } finally {
             submitBtn.disabled  = false;
             submitBtn.innerHTML = originalHTML;
@@ -213,7 +213,7 @@ function initCommentActions() {
 }
 
 // ============================================================
-// Desktop Inline Search — live dropdown
+// Desktop Inline Search â€” live dropdown
 // ============================================================
 function initDesktopSearch() {
     const input     = document.getElementById('navSearchInput');
@@ -242,7 +242,7 @@ function initDesktopSearch() {
                             <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">article</span>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-bold text-on-surface truncate group-hover:text-primary transition-colors">${esc(p.titre)}</p>
-                                <p class="text-[11px] text-outline mt-0.5">${esc(p.categorie)} · ${esc((p.prenom || '') + ' ' + (p.nom || ''))}</p>
+                                <p class="text-[11px] text-outline mt-0.5">${esc(p.categorie)} Â· ${esc((p.prenom || '') + ' ' + (p.nom || ''))}</p>
                             </div>
                             <span class="material-symbols-outlined text-outline text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
                         </a>
@@ -393,6 +393,294 @@ function initStaggerAnimation() {
 }
 
 // ============================================================
+// Threaded Comments â€” Reply toggle + Comment Likes
+// ============================================================
+function initThreadedComments() {
+    // Reply toggle: show/hide inline reply form
+    document.addEventListener('click', e => {
+        const toggleBtn = e.target.closest('.comment-reply-toggle');
+        if (toggleBtn) {
+            const commentId  = toggleBtn.dataset.commentId;
+            const replyForm  = document.getElementById(`reply-form-${commentId}`);
+            if (!replyForm) return;
+            const isOpen = !replyForm.classList.contains('hidden');
+            replyForm.classList.toggle('hidden', isOpen);
+            if (!isOpen) replyForm.querySelector('textarea')?.focus();
+        }
+
+        // Cancel reply
+        const cancelBtn = e.target.closest('.reply-cancel-btn');
+        if (cancelBtn) {
+            const commentId = cancelBtn.dataset.commentId;
+            document.getElementById(`reply-form-${commentId}`)?.classList.add('hidden');
+        }
+    });
+
+    // Submit reply forms via fetch
+    document.addEventListener('submit', async e => {
+        const form = e.target.closest('.reply-form');
+        if (!form) return;
+        e.preventDefault();
+
+        const textarea  = form.querySelector('.reply-textarea');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const content   = textarea?.value.trim();
+        if (!content) return;
+
+        const postId   = form.dataset.postId;
+        const parentId = form.dataset.parentId;
+
+        const orig = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite"></span>';
+
+        try {
+            const res  = await fetch('/integration/magazine/comment/add-ajax', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_post: postId, parent_id: parseInt(parentId), contenu: content }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                textarea.value = '';
+                document.getElementById(`reply-form-${parentId}`)?.classList.add('hidden');
+                _injectReply(parentId, content);
+                showToast('Reply posted!', 'success');
+                const counter = document.getElementById('commentCount');
+                if (counter) counter.textContent = parseInt(counter.textContent || '0', 10) + 1;
+            } else {
+                showToast(data.message || 'Could not post reply.', 'error');
+            }
+        } catch (err) {
+            showToast('Network error. Try again.', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = orig;
+        }
+    });
+
+    // Comment like buttons
+    document.addEventListener('click', async e => {
+        const likeBtn = e.target.closest('.comment-like-btn');
+        if (!likeBtn || likeBtn.dataset.busy) return;
+        likeBtn.dataset.busy = 'true';
+
+        const commentId = likeBtn.dataset.commentId;
+        const icon      = likeBtn.querySelector('.comment-like-icon');
+        const countEl   = likeBtn.querySelector('.comment-like-count');
+
+        try {
+            const fd = new FormData();
+            fd.append('comment_id', commentId);
+            const res  = await fetch('/integration/magazine/comment/like', { method: 'POST', body: fd });
+            const data = await res.json();
+
+            if (data.success) {
+                if (icon) {
+                    icon.textContent = data.liked ? 'favorite' : 'favorite_border';
+                    icon.style.color = data.liked ? '#ef4444' : '';
+                    icon.style.fontVariationSettings = data.liked ? "'FILL' 1" : "'FILL' 0";
+                }
+                if (countEl) countEl.textContent = data.likes;
+            }
+        } catch(err) { /* silent */ } finally {
+            delete likeBtn.dataset.busy;
+        }
+    });
+}
+
+function _injectReply(parentCommentId, content) {
+    const parentNode = document.getElementById(`comment-${parentCommentId}`);
+    if (!parentNode) return;
+
+    let repliesContainer = parentNode.querySelector(':scope > .mt-4.space-y-4');
+    if (!repliesContainer) {
+        repliesContainer = document.createElement('div');
+        repliesContainer.className = 'mt-4 space-y-4';
+        parentNode.appendChild(repliesContainer);
+    }
+
+    const userName     = document.getElementById('currentUserName')?.textContent || 'You';
+    const userInitials = document.getElementById('currentUserInitials')?.textContent || 'U';
+
+    const div = document.createElement('div');
+    div.className = 'comment-node ml-10 bg-surface-container-lowest rounded-xl p-5 border-l-4 border-blue-200 animate-slideIn';
+    div.innerHTML = `
+        <div class="flex items-start mb-3 gap-3">
+          <div class="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-on-secondary-container flex-shrink-0">${esc(userInitials)}</div>
+          <div>
+            <p class="text-sm font-bold text-on-surface">${esc(userName)} <span class="text-[10px] text-slate-400 font-normal ml-1">Â· Reply</span></p>
+            <p class="text-[10px] text-slate-400">Just now</p>
+          </div>
+        </div>
+        <p class="text-sm text-on-surface-variant leading-relaxed pl-12">${esc(content)}</p>`;
+    repliesContainer.appendChild(div);
+}
+
+// ============================================================
+// Bookmark Toggle (article page)
+// ============================================================
+function initBookmark() {
+    const btn = document.getElementById('bookmarkBtn');
+    if (!btn) return;
+
+    btn.addEventListener('click', async function () {
+        if (this.dataset.busy) return;
+        this.dataset.busy = 'true';
+
+        const postId = this.dataset.postId;
+        const isBookmarked = this.dataset.bookmarked === 'true';
+        const icon = this.querySelector('.bookmark-icon');
+
+        // Optimistic UI update
+        _setBookmarkState(this, icon, !isBookmarked);
+
+        try {
+            const fd = new FormData();
+            fd.append('post_id', postId);
+            const res  = await fetch('/integration/magazine/bookmark', { method: 'POST', body: fd });
+            const data = await res.json();
+
+            if (!data.success) {
+                _setBookmarkState(this, icon, isBookmarked); // revert
+                showToast('Could not update bookmark.', 'error');
+            } else {
+                showToast(data.bookmarked ? 'Saved to bookmarks!' : 'Bookmark removed.', data.bookmarked ? 'success' : 'default');
+            }
+        } catch (e) {
+            _setBookmarkState(this, icon, isBookmarked);
+            showToast('Network error. Please try again.', 'error');
+        } finally {
+            delete this.dataset.busy;
+        }
+    });
+}
+
+function _setBookmarkState(btn, icon, bookmarked) {
+    btn.dataset.bookmarked = bookmarked ? 'true' : 'false';
+    btn.title = bookmarked ? 'Remove bookmark' : 'Save for later';
+    if (icon) {
+        icon.textContent = bookmarked ? 'bookmark' : 'bookmark_border';
+        icon.style.color = bookmarked ? '#f59e0b' : '';
+    }
+}
+
+// ============================================================
+// AI Post Summary â€” Ollama / TinyLlama
+// ============================================================
+function initAISummary() {
+    const btn           = document.getElementById('aiSummaryBtn');
+    const panel         = document.getElementById('aiSummaryPanel');
+    const closeBtn      = document.getElementById('aiSummaryClose');
+    const loadingEl     = document.getElementById('aiSummaryLoading');
+    const contentEl     = document.getElementById('aiSummaryContent');
+    const summaryTextEl = document.getElementById('aiSummaryText');
+    const keyPointsList = document.getElementById('aiKeyPoints');
+    const keyPointsWrap = document.getElementById('aiKeyPointsWrap');
+
+    if (!btn || !panel) return;
+
+    let alreadyFetched = false;
+
+    function openPanel() {
+        panel.classList.remove('hidden');
+        // Re-trigger slide-in each time
+        panel.classList.remove('animate-slideIn');
+        void panel.offsetWidth;
+        panel.classList.add('animate-slideIn');
+        btn.querySelector('.ai-btn-text').textContent = 'Hide Summary';
+        const icon = btn.querySelector('.material-symbols-outlined');
+        if (icon) icon.textContent = 'expand_less';
+    }
+
+    function closePanel() {
+        panel.classList.add('hidden');
+        btn.querySelector('.ai-btn-text').textContent = 'AI Summary';
+        const icon = btn.querySelector('.material-symbols-outlined');
+        if (icon) icon.textContent = 'auto_awesome';
+    }
+
+    btn.addEventListener('click', async () => {
+        if (!panel.classList.contains('hidden')) { closePanel(); return; }
+        openPanel();
+        if (!alreadyFetched) { alreadyFetched = true; await fetchSummary(); }
+    });
+
+    closeBtn?.addEventListener('click', closePanel);
+
+    async function fetchSummary() {
+        loadingEl.classList.remove('hidden');
+        contentEl.classList.add('hidden');
+
+        try {
+            const fd = new FormData();
+            fd.append('post_id', btn.dataset.postId);
+
+            const res  = await fetch('/integration/magazine/summarize', { method: 'POST', body: fd });
+            const data = await res.json();
+
+            loadingEl.classList.add('hidden');
+            contentEl.classList.remove('hidden');
+
+            if (!data.success) {
+                summaryTextEl.textContent = data.error || 'Could not generate summary.';
+                return;
+            }
+
+            typewrite(summaryTextEl, data.summary || 'No summary available.', 16, () => {
+                if (data.keyPoints?.length) showKeyPoints(data.keyPoints);
+            });
+
+        } catch (err) {
+            loadingEl.classList.add('hidden');
+            contentEl.classList.remove('hidden');
+            summaryTextEl.textContent = 'AI service unavailable. Make sure Ollama is running on localhost:11434.';
+        }
+    }
+
+    function showKeyPoints(points) {
+        keyPointsWrap.classList.remove('hidden');
+        keyPointsList.innerHTML = '';
+        points.forEach((point, i) => {
+            setTimeout(() => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-2.5';
+                li.style.cssText = 'opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s';
+                li.innerHTML = `
+                    <span style="min-width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#0284c7,#004d99);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">${i + 1}</span>
+                    <span style="font-size:13px;color:#374151;line-height:1.6">${esc(point)}</span>`;
+                keyPointsList.appendChild(li);
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    li.style.opacity = '1';
+                    li.style.transform = 'translateY(0)';
+                }));
+            }, i * 280);
+        });
+    }
+}
+
+// Typewriter effect â€” renders text character-by-character with a blinking cursor
+function typewrite(element, text, speed, onDone) {
+    let i = 0;
+    const textNode = document.createTextNode('');
+    const cursor   = document.createElement('span');
+    cursor.className = 'tw-cursor';
+    element.innerHTML = '';
+    element.appendChild(textNode);
+    element.appendChild(cursor);
+
+    const iv = setInterval(() => {
+        textNode.textContent += text[i++];
+        if (i >= text.length) {
+            clearInterval(iv);
+            cursor.remove();
+            onDone?.();
+        }
+    }, speed);
+}
+
+// ============================================================
 // Utility: Escape HTML for injected content
 // ============================================================
 function esc(str) {
@@ -408,10 +696,14 @@ function esc(str) {
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
     initLikeButtons();
+    initBookmark();
+    initThreadedComments();
     initCommentForm();
     initCommentActions();
     initDesktopSearch();
     initMobileSearch();
     initFlashDismiss();
     initStaggerAnimation();
+    initAISummary();
 });
+

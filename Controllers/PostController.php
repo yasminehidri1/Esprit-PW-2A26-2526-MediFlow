@@ -62,6 +62,57 @@ class PostController
     }
 
     /**
+     * Full analytics / statistics page for the magazine module
+     * GET /integration/magazine/admin/stats
+     */
+    public function statsPage(): void
+    {
+        $this->requireMagazineAccess();
+
+        $postStats      = $this->postModel->getStats();
+        $commentStats   = $this->commentModel->getStats();
+        $totalBookmarks = $this->postModel->getTotalBookmarks();
+
+        $postsOverTime      = $this->postModel->getPostsOverTime(12);
+        $engagementOverTime = $this->postModel->getEngagementOverTime(12);
+        $commentsOverTime   = $this->commentModel->getCommentsOverTime(12);
+        $categoryBreakdown  = $this->postModel->getCategoryBreakdown();
+        $topPosts           = $this->postModel->getTopPostsWithStats(10);
+        $mostLiked          = $this->postModel->getMostLiked(5);
+        $mostViewed         = $this->postModel->getMostViewed(5);
+
+        // Build aligned 12-month arrays (fill missing months with 0)
+        $monthKeys   = [];
+        $monthLabels = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $ts            = strtotime("-{$i} months");
+            $monthKeys[]   = date('Y-m', $ts);
+            $monthLabels[] = date('M Y', $ts);
+        }
+
+        $postsMap    = array_fill_keys($monthKeys, 0);
+        $commentsMap = array_fill_keys($monthKeys, 0);
+        $viewsMap    = array_fill_keys($monthKeys, 0);
+        $likesMap    = array_fill_keys($monthKeys, 0);
+
+        foreach ($postsOverTime      as $r) { $postsMap[$r['month']]    = (int)$r['count']; }
+        foreach ($commentsOverTime   as $r) { $commentsMap[$r['month']] = (int)$r['count']; }
+        foreach ($engagementOverTime as $r) {
+            $viewsMap[$r['month']] = (int)$r['total_views'];
+            $likesMap[$r['month']] = (int)$r['total_likes'];
+        }
+
+        $chartMonthLabels   = $monthLabels;
+        $chartPostsData     = array_values($postsMap);
+        $chartCommentsData  = array_values($commentsMap);
+        $chartViewsData     = array_values($viewsMap);
+        $chartLikesData     = array_values($likesMap);
+
+        $currentView = 'stats_magazine';
+        include __DIR__ . '/../Views/Back/layout.php';
+    }
+
+    /**
      * List all articles (admin view with all statuses)
      */
     public function listArticles(): void
@@ -128,8 +179,19 @@ class PostController
 
         $imageUrl = !empty($_POST['image_url']) ? trim($_POST['image_url']) : null;
 
-        // Handle file upload if provided
-        if (!empty($_FILES['image_file']['name'])) {
+        // Handle base64 image from the in-browser image editor (takes priority)
+        if (!empty($_POST['edited_image_data'])) {
+            $editResult = $this->handleBase64Upload($_POST['edited_image_data']);
+            if ($editResult['success']) {
+                $imageUrl = $editResult['path'];
+            } else {
+                $_SESSION['flash_error'] = $editResult['error'];
+                $id = $_POST['id'] ?? '';
+                header('Location: /integration/magazine/admin/article-form' . ($id ? '?id=' . $id : ''));
+                exit;
+            }
+        // Handle regular file upload if provided and no edited image
+        } elseif (!empty($_FILES['image_file']['name'])) {
             $uploadResult = $this->handleImageUpload($_FILES['image_file']);
             if ($uploadResult['success']) {
                 $imageUrl = $uploadResult['path'];
@@ -233,9 +295,10 @@ class PostController
         $this->postModel->incrementViews($id);
         $post['views_count']++;
 
-        // Check if current user has liked this post
-        $userId      = $_SESSION['user']['id'] ?? null;
-        $alreadyLiked = $userId ? $this->postModel->hasLiked((int)$id, (int)$userId) : false;
+        // Check if current user has liked / bookmarked this post
+        $userId          = $_SESSION['user']['id'] ?? null;
+        $alreadyLiked    = $userId ? $this->postModel->hasLiked((int)$id, (int)$userId) : false;
+        $alreadyBookmarked = $userId ? $this->postModel->hasBookmarked((int)$id, (int)$userId) : false;
 
         // Get approved comments for this post
         $comments     = $this->commentModel->getByPost($id);
@@ -275,6 +338,69 @@ class PostController
     }
 
     /**
+     * Toggle bookmark/unbookmark — AJAX, returns { bookmarked: bool }
+     * POST /integration/magazine/bookmark   { post_id: int }
+     */
+    public function toggleBookmark(): void
+    {
+        header('Content-Type: application/json');
+        $this->requireAuth();
+
+        $postId = (int)($_POST['post_id'] ?? 0);
+        $userId = (int)($_SESSION['user']['id'] ?? 0);
+
+        if (!$postId) {
+            echo json_encode(['success' => false, 'message' => 'Missing post ID.']);
+            exit;
+        }
+
+        $result = $this->postModel->toggleBookmark($postId, $userId);
+        echo json_encode(['success' => true, 'bookmarked' => $result['bookmarked']]);
+        exit;
+    }
+
+    /**
+     * My Bookmarks page — shows all posts bookmarked by the current user
+     * GET /integration/magazine/bookmarks
+     */
+    public function myBookmarks(): void
+    {
+        $this->requireAuth();
+        $userId         = (int)($_SESSION['user']['id'] ?? 0);
+        $bookmarkedPosts = $this->postModel->getBookmarkedPosts($userId);
+
+        $GLOBALS['magazineSubView'] = 'bookmarks';
+        $currentView = 'bookmarks';
+        $this->renderMagazineView(get_defined_vars());
+    }
+
+    /**
+     * Bookmarks data — AJAX endpoint for nav dropdown
+     * GET /integration/magazine/bookmarks/data
+     */
+    public function bookmarksData(): void
+    {
+        header('Content-Type: application/json');
+        $userId = (int)($_SESSION['user']['id'] ?? 0);
+        if (!$userId) {
+            echo json_encode(['bookmarks' => []]);
+            exit;
+        }
+
+        $posts = $this->postModel->getBookmarkedPosts($userId);
+        $items = array_map(fn($p) => [
+            'id'            => (int)$p['id'],
+            'titre'         => $p['titre'],
+            'categorie'     => $p['categorie'],
+            'image_url'     => $p['image_url'] ?? null,
+            'bookmarked_at' => $p['bookmarked_at'],
+        ], $posts);
+
+        echo json_encode(['bookmarks' => $items]);
+        exit;
+    }
+
+    /**
      * Like / Unlike an article (AJAX endpoint — DB-backed, toggle)
      */
     public function likeArticle(): void
@@ -299,6 +425,133 @@ class PostController
             'liked'   => $result['liked'],
             'likes'   => $result['likes'],
         ]);
+        exit;
+    }
+
+    /**
+     * AI Text Rephrasing — back office writing assistant
+     * POST /integration/magazine/admin/rephrase   { text: string }
+     * Returns { success: bool, rephrased: string }
+     */
+    public function rephrase(): void
+    {
+        header('Content-Type: application/json');
+        $this->requireMagazineAccess();
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $text  = trim($input['text'] ?? '');
+
+        if (empty($text)) {
+            echo json_encode(['success' => false, 'error' => 'No text provided.']);
+            exit;
+        }
+
+        $text    = mb_substr($text, 0, 1500);
+        $prompt  = "Rephrase the following text to be more professional, clear, and engaging. "
+                 . "Improve grammar and readability. Return ONLY the rephrased text, nothing else — "
+                 . "no explanations, no labels, no quotes.\n\nText:\n" . $text;
+
+        $payload = json_encode(['model' => 'tinyllama', 'prompt' => $prompt, 'stream' => false]);
+
+        $ch = curl_init('http://localhost:11434/api/generate');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+            CURLOPT_TIMEOUT        => 90,
+            CURLOPT_CONNECTTIMEOUT => 5,
+        ]);
+
+        $raw       = curl_exec($ch);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError || $raw === false) {
+            echo json_encode(['success' => false, 'error' => 'AI service unreachable.']);
+            exit;
+        }
+
+        $ollamaData = json_decode($raw, true);
+        $rephrased  = trim($ollamaData['response'] ?? '');
+        $rephrased  = preg_replace('/^(Rephrased|Here is|Output|Result)[\s:\-]+/iu', '', $rephrased);
+
+        echo json_encode(['success' => true, 'rephrased' => $rephrased ?: 'No output generated.']);
+        exit;
+    }
+
+    /**
+     * AI Post Summarization — calls local Ollama/TinyLlama and returns JSON
+     * POST /integration/magazine/summarize   { post_id: int }
+     * Returns { success: bool, summary: string, keyPoints: string[] }
+     */
+    public function summarize(): void
+    {
+        header('Content-Type: application/json');
+
+        $postId = (int)($_POST['post_id'] ?? 0);
+        if (!$postId) {
+            echo json_encode(['success' => false, 'error' => 'Missing post ID.']);
+            exit;
+        }
+
+        $post = $this->postModel->getById($postId);
+        if (!$post || $post['statut'] !== 'publie') {
+            echo json_encode(['success' => false, 'error' => 'Article not found.']);
+            exit;
+        }
+
+        $content = strip_tags($post['contenu']);
+        $content = preg_replace('/\s+/', ' ', trim($content));
+        $content = mb_substr($content, 0, 2000);
+
+        $prompt  = "You are a medical content assistant. Summarize the following health article in 2-3 clear sentences, then list exactly 3 key takeaways. "
+                 . "Respond ONLY with valid JSON in this exact format (no extra text before or after): "
+                 . "{\"summary\":\"...\",\"keyPoints\":[\"...\",\"...\",\"...\"]}\n\nArticle:\n" . $content;
+
+        $payload = json_encode(['model' => 'tinyllama', 'prompt' => $prompt, 'stream' => false]);
+
+        $ch = curl_init('http://localhost:11434/api/generate');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+            CURLOPT_TIMEOUT        => 90,
+            CURLOPT_CONNECTTIMEOUT => 5,
+        ]);
+
+        $raw       = curl_exec($ch);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError || $raw === false) {
+            echo json_encode(['success' => false, 'error' => 'AI service unreachable. Make sure Ollama is running.']);
+            exit;
+        }
+
+        $ollamaData = json_decode($raw, true);
+        $text       = trim($ollamaData['response'] ?? '');
+
+        // Extract the first valid JSON object from the response
+        $start  = strpos($text, '{');
+        $end    = strrpos($text, '}');
+        if ($start !== false && $end !== false && $end > $start) {
+            $parsed = json_decode(substr($text, $start, $end - $start + 1), true);
+            if ($parsed && !empty($parsed['summary'])) {
+                echo json_encode([
+                    'success'   => true,
+                    'summary'   => $parsed['summary'],
+                    'keyPoints' => array_values(array_filter($parsed['keyPoints'] ?? [])),
+                ]);
+                exit;
+            }
+        }
+
+        // Strip common TinyLlama prompt-echo artifacts and return as plain summary
+        $text = preg_replace('/^(Article|Summary|Response|Here is|Note)[\s:\-]+/iu', '', $text);
+        $text = trim($text);
+        echo json_encode(['success' => true, 'summary' => $text ?: 'No summary generated.', 'keyPoints' => []]);
         exit;
     }
 
@@ -357,6 +610,40 @@ class PostController
             http_response_code(403);
             die('Accès refusé. Cette section est réservée aux éditeurs du magazine.');
         }
+    }
+
+    /**
+     * Handle base64-encoded image data from the in-browser image editor
+     */
+    private function handleBase64Upload(string $dataUri): array
+    {
+        if (!preg_match('#^data:(image/(jpeg|png|webp));base64,(.+)$#i', $dataUri, $m)) {
+            return ['success' => false, 'error' => 'Invalid image data.'];
+        }
+
+        $mimeType  = strtolower($m[1]);
+        $extMap    = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        $extension = $extMap[$mimeType] ?? 'jpg';
+
+        $imageData = base64_decode($m[3]);
+        if ($imageData === false || strlen($imageData) < 100) {
+            return ['success' => false, 'error' => 'Could not decode image data.'];
+        }
+        if (strlen($imageData) > 8 * 1024 * 1024) {
+            return ['success' => false, 'error' => 'Edited image must be less than 8 MB.'];
+        }
+
+        $uploadDir = __DIR__ . '/../assets/uploads';
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true)) {
+            return ['success' => false, 'error' => 'Failed to create upload directory.'];
+        }
+
+        $filename = uniqid('img_', true) . '.' . $extension;
+        if (file_put_contents($uploadDir . '/' . $filename, $imageData) === false) {
+            return ['success' => false, 'error' => 'Failed to save edited image.'];
+        }
+
+        return ['success' => true, 'path' => '/integration/assets/uploads/' . $filename];
     }
 
     /**

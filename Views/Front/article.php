@@ -2,7 +2,18 @@
 /**
  * Front Office — Single Article View
  */
-$alreadyLiked = $alreadyLiked ?? false;
+?>
+<style>
+@keyframes twBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+.tw-cursor { display:inline-block;width:2px;height:.9em;background:#004d99;margin-left:2px;vertical-align:text-bottom;animation:twBlink .75s step-end infinite; }
+@keyframes aiDot { 0%,80%,100%{transform:translateY(0);opacity:.4} 40%{transform:translateY(-6px);opacity:1} }
+.ai-dot { width:8px;height:8px;border-radius:50%;animation:aiDot 1.2s ease-in-out infinite; }
+@keyframes aiFadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.ai-fadeup { animation:aiFadeUp .35s ease-out both; }
+</style>
+<?php
+$alreadyLiked      = $alreadyLiked      ?? false;
+$alreadyBookmarked = $alreadyBookmarked ?? false;
 $currentUserId = $_SESSION['user']['id'] ?? null;
 $currentUserName = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? ''));
 $currentUserInitials = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1) . substr($_SESSION['user']['nom'] ?? 'U', 0, 1));
@@ -127,10 +138,23 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
             <span class="material-symbols-outlined text-gray-400 group-hover:text-rose-500 transition-colors like-icon">favorite</span>
             <span class="text-sm font-bold text-gray-500 like-count"><?= fmt((int)$post['likes_count']) ?></span>
         </button>
+        <button id="bookmarkBtn"
+                class="bookmark-btn group flex items-center gap-1.5 transition-colors"
+                data-post-id="<?= $post['id'] ?>"
+                data-bookmarked="<?= $alreadyBookmarked ? 'true' : 'false' ?>"
+                title="<?= $alreadyBookmarked ? 'Remove bookmark' : 'Save for later' ?>">
+          <span class="material-symbols-outlined text-[22px] transition-all bookmark-icon
+                       <?= $alreadyBookmarked ? 'text-amber-500' : 'text-gray-400 group-hover:text-amber-400' ?>">
+            <?= $alreadyBookmarked ? 'bookmark' : 'bookmark_border' ?>
+          </span>
+        </button>
         <?php else: ?>
         <span class="flex items-center gap-2 text-slate-400 cursor-default" title="Log in to like this article">
             <span class="material-symbols-outlined text-gray-300">favorite</span>
             <span class="text-sm font-bold"><?= fmt((int)$post['likes_count']) ?></span>
+        </span>
+        <span class="text-slate-300" title="Log in to bookmark">
+          <span class="material-symbols-outlined text-[22px]">bookmark_border</span>
         </span>
         <?php endif; ?>
         <a href="#comments" class="flex items-center gap-2 hover:text-blue-500 transition-colors">
@@ -138,7 +162,80 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
           <span class="font-bold text-sm"><?= $commentCount ?></span>
         </a>
       </div>
-      <span class="text-xs text-slate-400"><?= estimateReadTime($post['contenu']) ?></span>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-slate-400 hidden sm:inline"><?= estimateReadTime($post['contenu']) ?></span>
+        <button id="aiSummaryBtn"
+                data-post-id="<?= $post['id'] ?>"
+                class="group flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl
+                       bg-gradient-to-r from-blue-50 to-sky-50
+                       border border-blue-200/70
+                       hover:from-blue-100 hover:to-sky-100 hover:border-blue-300
+                       text-blue-700 transition-all duration-200
+                       active:scale-95 shadow-sm hover:shadow-md hover:shadow-blue-100/60">
+          <span class="material-symbols-outlined text-[18px] text-blue-600 transition-transform duration-300 group-hover:rotate-12">auto_awesome</span>
+          <span class="ai-btn-text text-xs font-bold tracking-wide">AI Summary</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Summary Panel -->
+    <div id="aiSummaryPanel" class="hidden mb-10 rounded-2xl overflow-hidden border border-blue-100/80 shadow-xl shadow-blue-900/5 animate-slideIn">
+      <!-- Gradient accent strip -->
+      <div class="h-1 bg-gradient-to-r from-blue-600 via-sky-500 to-teal-400"></div>
+
+      <!-- Panel header -->
+      <div class="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-blue-50/60 border-b border-blue-100/60">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center shadow-md shadow-blue-200">
+            <span class="material-symbols-outlined text-white text-[18px]">psychology</span>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-slate-800 leading-none">AI Summary</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Powered by TinyLlama · Ollama</p>
+          </div>
+        </div>
+        <button id="aiSummaryClose"
+                class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-white rounded-lg transition-all">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- Loading state -->
+      <div id="aiSummaryLoading" class="flex items-center gap-4 px-6 py-8 bg-white">
+        <div class="flex gap-1.5">
+          <div class="ai-dot bg-blue-500"  style="animation-delay:0ms"></div>
+          <div class="ai-dot bg-sky-400"   style="animation-delay:180ms"></div>
+          <div class="ai-dot bg-teal-400"  style="animation-delay:360ms"></div>
+        </div>
+        <span class="text-sm text-slate-500 font-medium">Analyzing article with AI…</span>
+      </div>
+
+      <!-- Generated content (hidden until ready) -->
+      <div id="aiSummaryContent" class="hidden bg-white px-6 py-6 space-y-5">
+
+        <!-- Summary -->
+        <div class="ai-fadeup">
+          <div class="flex items-center gap-2 mb-2.5">
+            <span class="material-symbols-outlined text-[16px] text-blue-600">summarize</span>
+            <p class="text-[11px] font-extrabold text-blue-600 uppercase tracking-widest">Summary</p>
+          </div>
+          <p id="aiSummaryText" class="text-sm text-slate-700 leading-relaxed pl-6"></p>
+        </div>
+
+        <!-- Key Points -->
+        <div id="aiKeyPointsWrap" class="hidden ai-fadeup">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="material-symbols-outlined text-[16px] text-sky-600">format_list_bulleted</span>
+            <p class="text-[11px] font-extrabold text-sky-600 uppercase tracking-widest">Key Takeaways</p>
+          </div>
+          <ul id="aiKeyPoints" class="space-y-2.5 pl-6"></ul>
+        </div>
+
+        <!-- Disclaimer -->
+        <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-3 pl-6">
+          AI-generated summary — always consult a qualified healthcare professional for medical advice.
+        </p>
+      </div>
     </div>
 
     <!-- Comments Section -->
@@ -193,62 +290,134 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
       <?php unset($_SESSION['flash_error']); endif; ?>
 
       <!-- Comments list -->
-      <div id="commentsList" class="space-y-4">
-      <?php if (!empty($comments)): ?>
-        <?php foreach ($comments as $comment):
-          $isOwnComment = $currentUserId && ((int)$comment['id_utilisateur'] === (int)$currentUserId);
+      <div id="commentsList" class="space-y-5">
+      <?php if (!empty($comments)):
+        // Recursive comment renderer (max 3 visual levels)
+        function renderComment($comment, $postId, $currentUserId, $isLoggedIn, $depth = 0) {
+            $isOwnComment = $currentUserId && ((int)($comment['id_utilisateur'] ?? 0) === (int)$currentUserId);
+            $initials = strtoupper(
+                substr($comment['prenom'] ?? 'U', 0, 1) .
+                substr($comment['nom']    ?? 'U', 0, 1)
+            );
+            $borderColors = ['border-tertiary-fixed','border-indigo-200','border-violet-200'];
+            $borderClass  = $borderColors[min($depth, 2)];
+            $indentClass  = $depth > 0 ? 'ml-10' : '';
         ?>
-        <div id="comment-<?= $comment['id'] ?>" class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(0,77,153,0.03)] border-l-4 border-tertiary-fixed">
+        <div id="comment-<?= $comment['id'] ?>"
+             class="comment-node <?= $indentClass ?> bg-surface-container-lowest rounded-xl p-5
+                    shadow-[0_2px_12px_rgba(0,77,153,0.04)] border-l-4 <?= $borderClass ?>
+                    animate-slideIn">
+
+          <!-- Comment header -->
           <div class="flex justify-between items-start mb-3">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-on-secondary-container">
-                <?= strtoupper(substr($comment['prenom'] ?? 'U', 0, 1) . substr($comment['nom'] ?? 'U', 0, 1)) ?>
+              <div class="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-on-secondary-container flex-shrink-0">
+                <?= $initials ?>
               </div>
               <div>
-                <p class="text-sm font-bold text-on-surface"><?= htmlspecialchars(($comment['prenom'] ?? '') . ' ' . ($comment['nom'] ?? '')) ?></p>
+                <p class="text-sm font-bold text-on-surface">
+                  <?= htmlspecialchars(trim(($comment['prenom'] ?? '') . ' ' . ($comment['nom'] ?? ''))) ?>
+                  <?php if ($depth > 0): ?><span class="text-[10px] text-slate-400 font-normal ml-1">· Reply</span><?php endif; ?>
+                </p>
                 <p class="text-[10px] text-slate-400"><?= timeAgo($comment['date_creation']) ?></p>
               </div>
             </div>
-            <?php if ($isOwnComment): ?>
+            <!-- Actions -->
             <div class="flex items-center gap-1">
+              <!-- Like comment -->
+              <?php if ($isLoggedIn): ?>
+              <button class="comment-like-btn group flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-rose-50 transition-all"
+                      data-comment-id="<?= $comment['id'] ?>">
+                <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-rose-500 transition-colors comment-like-icon">favorite_border</span>
+                <span class="text-[11px] font-bold text-slate-400 comment-like-count"><?= (int)$comment['likes_count'] ?></span>
+              </button>
+              <?php else: ?>
+              <span class="flex items-center gap-1 px-2 py-1 text-slate-300">
+                <span class="material-symbols-outlined text-[16px]">favorite_border</span>
+                <span class="text-[11px]"><?= (int)$comment['likes_count'] ?></span>
+              </span>
+              <?php endif; ?>
+
+              <!-- Reply (only on root and 1st-level for clean UI) -->
+              <?php if ($isLoggedIn && $depth < 2): ?>
+              <button class="comment-reply-toggle p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                      data-comment-id="<?= $comment['id'] ?>" title="Reply">
+                <span class="material-symbols-outlined text-[16px]">reply</span>
+              </button>
+              <?php endif; ?>
+
+              <?php if ($isOwnComment): ?>
               <button class="comment-edit-btn p-1.5 text-slate-400 hover:text-primary hover:bg-surface-container rounded-lg transition-all"
-                      data-comment-id="<?= $comment['id'] ?>" title="Edit comment">
-                <span class="material-symbols-outlined text-sm">edit</span>
+                      data-comment-id="<?= $comment['id'] ?>" title="Edit">
+                <span class="material-symbols-outlined text-[16px]">edit</span>
               </button>
               <button class="comment-delete-btn p-1.5 text-slate-400 hover:text-error hover:bg-error-container/20 rounded-lg transition-all"
-                      data-comment-id="<?= $comment['id'] ?>" data-post-id="<?= $post['id'] ?>" title="Delete comment">
-                <span class="material-symbols-outlined text-sm">delete</span>
+                      data-comment-id="<?= $comment['id'] ?>" data-post-id="<?= $postId ?>" title="Delete">
+                <span class="material-symbols-outlined text-[16px]">delete</span>
               </button>
+              <?php endif; ?>
             </div>
-            <?php endif; ?>
           </div>
 
-          <!-- Comment text (display mode) -->
+          <!-- Comment text -->
           <p id="comment-text-<?= $comment['id'] ?>" class="text-sm text-on-surface-variant leading-relaxed pl-12">
-            <?= htmlspecialchars($comment['contenu']) ?>
+            <?= nl2br(htmlspecialchars($comment['contenu'])) ?>
           </p>
 
-          <!-- Edit form (hidden by default) -->
+          <!-- Edit form -->
           <?php if ($isOwnComment): ?>
           <form id="comment-edit-form-<?= $comment['id'] ?>" class="hidden pl-12 mt-3 space-y-2"
                 method="POST" action="/integration/magazine/comment/edit">
             <input type="hidden" name="id" value="<?= $comment['id'] ?>"/>
-            <input type="hidden" name="id_post" value="<?= $post['id'] ?>"/>
+            <input type="hidden" name="id_post" value="<?= $postId ?>"/>
             <textarea name="contenu" rows="2" maxlength="1000"
                       class="w-full px-3 py-2 bg-white border border-surface-container-high rounded-lg text-sm resize-none focus:ring-2 focus:ring-primary/30"><?= htmlspecialchars($comment['contenu']) ?></textarea>
             <div class="flex gap-2">
-              <button type="submit" class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:opacity-90">
-                Save
-              </button>
+              <button type="submit" class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:opacity-90">Save</button>
               <button type="button" class="comment-edit-cancel px-4 py-1.5 bg-surface-container text-on-surface-variant text-xs font-bold rounded-lg hover:bg-surface-container-high"
-                      data-comment-id="<?= $comment['id'] ?>">
-                Cancel
-              </button>
+                      data-comment-id="<?= $comment['id'] ?>">Cancel</button>
             </div>
           </form>
           <?php endif; ?>
+
+          <!-- Inline reply form (hidden, toggled by JS) -->
+          <?php if ($isLoggedIn && $depth < 2): ?>
+          <div id="reply-form-<?= $comment['id'] ?>" class="hidden pl-12 mt-4">
+            <form class="reply-form flex items-start gap-3"
+                  data-post-id="<?= $postId ?>" data-parent-id="<?= $comment['id'] ?>">
+              <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold text-xs flex-shrink-0 mt-0.5">
+                <?= htmlspecialchars($currentUserInitials ?? 'U') ?>
+              </div>
+              <div class="flex-1">
+                <textarea rows="2" maxlength="500" placeholder="Write a reply…"
+                          class="reply-textarea w-full px-3 py-2 bg-white border border-surface-container-high rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all"></textarea>
+                <div class="flex gap-2 mt-2">
+                  <button type="submit" class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">send</span> Reply
+                  </button>
+                  <button type="button" class="reply-cancel-btn px-3 py-1.5 bg-slate-100 text-slate-500 text-xs font-medium rounded-lg hover:bg-slate-200 transition-colors"
+                          data-comment-id="<?= $comment['id'] ?>">Cancel</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <?php endif; ?>
+
+          <!-- Nested replies -->
+          <?php if (!empty($comment['replies'])): ?>
+          <div class="mt-4 space-y-4">
+            <?php foreach ($comment['replies'] as $reply):
+                renderComment($reply, $postId, $currentUserId, $isLoggedIn, $depth + 1);
+            endforeach; ?>
+          </div>
+          <?php endif; ?>
         </div>
-        <?php endforeach; ?>
+        <?php } // end renderComment ?>
+
+        <?php foreach ($comments as $comment):
+            renderComment($comment, $post['id'], $currentUserId, $isLoggedIn, 0);
+        endforeach; ?>
+
       <?php else: ?>
         <div class="empty-comments bg-surface-container-lowest rounded-xl py-16 text-center">
           <span class="material-symbols-outlined text-5xl text-outline mb-3">chat_bubble_outline</span>

@@ -22,6 +22,7 @@ class CommentController
         $this->ensureSession();
         require_once __DIR__ . '/../Models/Comment.php';
         require_once __DIR__ . '/../Models/Post.php';
+        require_once __DIR__ . '/../Models/Notification.php';
         $this->commentModel = new \Comment();
     }
 
@@ -169,20 +170,25 @@ class CommentController
             exit;
         }
 
+        $parentId = !empty($_POST['parent_id']) ? (int)$_POST['parent_id'] : null;
+
         $this->commentModel->create([
             'id_post'        => $postId,
             'id_utilisateur' => $userId,
             'contenu'        => htmlspecialchars($contenu, ENT_QUOTES, 'UTF-8'),
             'statut'         => 'approuve',
+            'parent_id'      => $parentId,
         ]);
 
+        $this->_fireCommentNotifications((int)$postId, (int)$userId, $parentId, $contenu);
+
         $_SESSION['flash_success'] = 'Your comment has been posted!';
-        header('Location: /integration/magazine/article?id=' . $postId);
+        header('Location: /integration/magazine/article?id=' . $postId . '#comments');
         exit;
     }
 
     /**
-     * Add comment via AJAX
+     * Add comment via AJAX (supports parent_id for replies)
      */
     public function addCommentAjax(): void
     {
@@ -199,9 +205,10 @@ class CommentController
             exit;
         }
 
-        $input   = json_decode(file_get_contents('php://input'), true);
-        $postId  = $input['id_post'] ?? null;
-        $contenu = trim($input['contenu'] ?? '');
+        $input    = json_decode(file_get_contents('php://input'), true);
+        $postId   = $input['id_post']   ?? null;
+        $parentId = !empty($input['parent_id']) ? (int)$input['parent_id'] : null;
+        $contenu  = trim($input['contenu'] ?? '');
 
         if (empty($contenu)) {
             echo json_encode(['success' => false, 'message' => 'Comment cannot be empty']);
@@ -213,13 +220,58 @@ class CommentController
             'id_utilisateur' => $userId,
             'contenu'        => htmlspecialchars($contenu, ENT_QUOTES, 'UTF-8'),
             'statut'         => 'approuve',
+            'parent_id'      => $parentId,
         ]);
+
+        $this->_fireCommentNotifications((int)$postId, $userId, $parentId, $contenu);
 
         echo json_encode([
             'success'    => true,
             'message'    => 'Comment posted!',
             'comment_id' => $commentId,
+            'is_reply'   => $parentId !== null,
+            'parent_id'  => $parentId,
         ]);
+        exit;
+    }
+
+    /**
+     * Toggle like on a comment (AJAX)
+     * POST /integration/magazine/comment/like   { comment_id: int }
+     */
+    public function likeComment(): void
+    {
+        header('Content-Type: application/json');
+        $userId = (int)($_SESSION['user']['id'] ?? 0);
+        if (!$userId) {
+            echo json_encode(['success' => false, 'message' => 'Login required.']);
+            exit;
+        }
+
+        $commentId = (int)($_POST['comment_id'] ?? 0);
+        if (!$commentId) {
+            echo json_encode(['success' => false, 'message' => 'Missing comment ID.']);
+            exit;
+        }
+
+        $result = $this->commentModel->toggleLike($commentId, $userId);
+
+        // Notify comment author when liked (not when un-liked, not if self-like)
+        if ($result['liked']) {
+            $comment = $this->commentModel->getById($commentId);
+            if ($comment && (int)$comment['id_utilisateur'] !== $userId) {
+                (new \Notification())->create(
+                    (int)$comment['id_utilisateur'],
+                    'comment_like',
+                    'Someone liked your comment',
+                    '"' . mb_substr(strip_tags($comment['contenu']), 0, 80) . '…"',
+                    'thumb_up',
+                    'violet'
+                );
+            }
+        }
+
+        echo json_encode(['success' => true, 'liked' => $result['liked'], 'likes' => $result['likes']]);
         exit;
     }
 
@@ -286,6 +338,44 @@ class CommentController
     // =========================================================
     // HELPERS
     // =========================================================
+
+    /**
+     * Fire post-comment / reply notifications after a comment is created.
+     */
+    private function _fireCommentNotifications(int $postId, int $actorId, ?int $parentId, string $contenu): void {
+        $notif   = new \Notification();
+        $preview = mb_substr(strip_tags($contenu), 0, 80);
+
+        $postModel = new \Post();
+        $post      = $postModel->getById($postId);
+
+        // Notify post author about new comment (not if they are the commenter)
+        if ($post && (int)$post['auteur_id'] !== $actorId) {
+            $notif->create(
+                (int)$post['auteur_id'],
+                'post_comment',
+                'New comment on your article',
+                '"' . $preview . '…" — on "' . mb_substr($post['titre'], 0, 50) . '"',
+                'chat_bubble',
+                'blue'
+            );
+        }
+
+        // If this is a reply, notify the parent comment author
+        if ($parentId) {
+            $parent = $this->commentModel->getById($parentId);
+            if ($parent && (int)$parent['id_utilisateur'] !== $actorId) {
+                $notif->create(
+                    (int)$parent['id_utilisateur'],
+                    'comment_reply',
+                    'Someone replied to your comment',
+                    '"' . $preview . '…"',
+                    'reply',
+                    'violet'
+                );
+            }
+        }
+    }
 
     /**
      * Require that the user has Magazine or Admin role for back-office actions
