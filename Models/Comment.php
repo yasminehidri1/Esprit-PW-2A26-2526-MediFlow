@@ -317,6 +317,20 @@ class Comment {
         return $stats;
     }
 
+    /**
+     * Return the comment IDs (for a given post) that a user has already liked.
+     * Used to render the initial liked state server-side on page load.
+     */
+    public function getLikedCommentIds(int $userId, int $postId): array {
+        $sql = "SELECT cl.comment_id
+                FROM comment_likes cl
+                JOIN comments c ON cl.comment_id = c.id
+                WHERE cl.user_id = :user_id AND c.id_post = :post_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':user_id' => $userId, ':post_id' => $postId]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
     public function getCommentsOverTime(int $months = 12): array {
         $sql = "SELECT DATE_FORMAT(date_creation, '%Y-%m') as month, COUNT(*) as count
                 FROM {$this->table}

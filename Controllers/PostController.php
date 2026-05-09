@@ -304,6 +304,11 @@ class PostController
         $comments     = $this->commentModel->getByPost($id);
         $commentCount = $this->commentModel->countByPost($id);
 
+        // IDs of comments the current user has already liked (for server-side initial state)
+        $likedCommentIds = $userId
+            ? $this->commentModel->getLikedCommentIds((int)$userId, (int)$id)
+            : [];
+
         // Related posts (same category)
         $relatedResult = $this->postModel->getAll(
             ['categorie' => $post['categorie'], 'statut' => 'publie'],

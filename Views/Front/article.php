@@ -14,6 +14,7 @@
 <?php
 $alreadyLiked      = $alreadyLiked      ?? false;
 $alreadyBookmarked = $alreadyBookmarked ?? false;
+$likedCommentIds   = $likedCommentIds   ?? [];
 $currentUserId = $_SESSION['user']['id'] ?? null;
 $currentUserName = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? ''));
 $currentUserInitials = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1) . substr($_SESSION['user']['nom'] ?? 'U', 0, 1));
@@ -293,7 +294,7 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
       <div id="commentsList" class="space-y-5">
       <?php if (!empty($comments)):
         // Recursive comment renderer (max 3 visual levels)
-        function renderComment($comment, $postId, $currentUserId, $isLoggedIn, $depth = 0) {
+        function renderComment($comment, $postId, $currentUserId, $isLoggedIn, $depth = 0, $likedCommentIds = []) {
             $isOwnComment = $currentUserId && ((int)($comment['id_utilisateur'] ?? 0) === (int)$currentUserId);
             $initials = strtoupper(
                 substr($comment['prenom'] ?? 'U', 0, 1) .
@@ -325,11 +326,18 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
             <!-- Actions -->
             <div class="flex items-center gap-1">
               <!-- Like comment -->
-              <?php if ($isLoggedIn): ?>
+              <?php if ($isLoggedIn):
+                $alreadyLikedComment = in_array((int)$comment['id'], $likedCommentIds);
+                $likeIcon  = $alreadyLikedComment ? 'favorite'       : 'favorite_border';
+                $likeStyle = $alreadyLikedComment ? "color:#ef4444;font-variation-settings:'FILL' 1" : '';
+                $countColor = $alreadyLikedComment ? 'color:#ef4444' : '';
+              ?>
               <button class="comment-like-btn group flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-rose-50 transition-all"
                       data-comment-id="<?= $comment['id'] ?>">
-                <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-rose-500 transition-colors comment-like-icon">favorite_border</span>
-                <span class="text-[11px] font-bold text-slate-400 comment-like-count"><?= (int)$comment['likes_count'] ?></span>
+                <span class="material-symbols-outlined text-[16px] transition-colors comment-like-icon"
+                      style="<?= $likeStyle ?>"><?= $likeIcon ?></span>
+                <span class="text-[11px] font-bold comment-like-count"
+                      style="<?= $countColor ?>"><?= (int)$comment['likes_count'] ?></span>
               </button>
               <?php else: ?>
               <span class="flex items-center gap-1 px-2 py-1 text-slate-300">
@@ -407,7 +415,7 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
           <?php if (!empty($comment['replies'])): ?>
           <div class="mt-4 space-y-4">
             <?php foreach ($comment['replies'] as $reply):
-                renderComment($reply, $postId, $currentUserId, $isLoggedIn, $depth + 1);
+                renderComment($reply, $postId, $currentUserId, $isLoggedIn, $depth + 1, $likedCommentIds);
             endforeach; ?>
           </div>
           <?php endif; ?>
@@ -415,7 +423,7 @@ $badge = $catBadge[$post['categorie']] ?? 'text-tertiary';
         <?php } // end renderComment ?>
 
         <?php foreach ($comments as $comment):
-            renderComment($comment, $post['id'], $currentUserId, $isLoggedIn, 0);
+            renderComment($comment, $post['id'], $currentUserId, $isLoggedIn, 0, $likedCommentIds);
         endforeach; ?>
 
       <?php else: ?>
