@@ -264,7 +264,6 @@ class App
             (new \Controllers\RendezVousController())->patientMesRdv();
             return;
         }
-
         // ── Stock Médicament module — Pharmacien ──────────────────────────────
         // Commandes
         if (preg_match('#^/stock/orders/create(?:/|$)#', $path)) {
