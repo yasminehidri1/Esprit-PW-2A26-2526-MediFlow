@@ -1,6 +1,5 @@
 <?php
-// Charger les clés API depuis le fichier de config sécurisé
-if (file_exists(__DIR__ . '/../../config_keys.php')) require_once __DIR__ . '/../../config_keys.php';
+// Les clés API sont chargées via config.php → config_keys.php
 if (!defined('OPENROUTER_API_KEY')) define('OPENROUTER_API_KEY', '');
 
 // $data injected by PatientEquipmentController::gestionEquipements()

@@ -216,11 +216,31 @@ class PostController
         ];
 
         if (!empty($_POST['id'])) {
+            // Check previous status before update — broadcast if draft is being published
+            $prevPost    = $this->postModel->getById($_POST['id']);
+            $wasPublished = ($prevPost['statut'] ?? '') === 'publie';
+
             $this->postModel->update($_POST['id'], $data);
             $_SESSION['flash_success'] = 'Article updated successfully!';
+
+            if (!$wasPublished && $data['statut'] === 'publie') {
+                $published = $this->postModel->getById($_POST['id']);
+                if ($published) {
+                    require_once __DIR__ . '/../Services/NewsletterService.php';
+                    \Services\NewsletterService::broadcastNewPost($published);
+                }
+            }
         } else {
-            $this->postModel->create($data);
+            $newId = $this->postModel->create($data);
             $_SESSION['flash_success'] = 'Article created successfully!';
+
+            if ($data['statut'] === 'publie') {
+                $published = $this->postModel->getById($newId);
+                if ($published) {
+                    require_once __DIR__ . '/../Services/NewsletterService.php';
+                    \Services\NewsletterService::broadcastNewPost($published);
+                }
+            }
         }
 
         header('Location: /integration/magazine/admin/articles');

@@ -146,21 +146,26 @@ class Reservation {
         $stmt = $this->pdo->prepare("
             INSERT INTO reservation
                 (equipement_id, locataire_nom, matricule, locataire_ville,
-                 date_debut, date_fin, statut, telephone)
+                 date_debut, date_fin, statut, telephone,
+                 payment_method, payment_status, stripe_payment_id)
             VALUES
                 (:equipement_id, :locataire_nom, :matricule, :locataire_ville,
-                 :date_debut, :date_fin, :statut, :telephone)
+                 :date_debut, :date_fin, :statut, :telephone,
+                 :payment_method, :payment_status, :stripe_payment_id)
         ");
 
         return $stmt->execute([
-            ':equipement_id'   => $data['equipement_id'],
-            ':locataire_nom'   => $data['locataire_nom'],
-            ':matricule'       => $data['matricule'] ?? null,
-            ':locataire_ville' => $data['locataire_ville'] ?? '',
-            ':date_debut'      => $data['date_debut'],
-            ':date_fin'        => $data['date_fin'] ?? null,
-            ':statut'          => $data['statut'] ?? 'en_cours',
-            ':telephone'       => $data['telephone'] ?? '',
+            ':equipement_id'     => $data['equipement_id'],
+            ':locataire_nom'     => $data['locataire_nom'],
+            ':matricule'         => $data['matricule'] ?? null,
+            ':locataire_ville'   => $data['locataire_ville'] ?? '',
+            ':date_debut'        => $data['date_debut'],
+            ':date_fin'          => $data['date_fin'] ?? null,
+            ':statut'            => $data['statut'] ?? 'en_cours',
+            ':telephone'         => $data['telephone'] ?? '',
+            ':payment_method'    => $data['payment_method']    ?? 'espece',
+            ':payment_status'    => $data['payment_status']    ?? 'pending',
+            ':stripe_payment_id' => $data['stripe_payment_id'] ?? null,
         ]);
     }
 

@@ -121,7 +121,7 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                         <span class="material-symbols-outlined text-xs">link</span>
                         Or use external image URL
                     </span>
-                    <input type="url" name="image_url" id="imageUrlField"
+                    <input type="text" name="image_url" id="imageUrlField"
                            value="<?= htmlspecialchars($post['image_url'] ?? '') ?>"
                            placeholder="https://example.com/image.jpg"
                            class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"/>

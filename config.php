@@ -2,10 +2,12 @@
 /**
  * Database Configuration
  * Singleton Pattern for PDO Connection
- * 
+ *
  * @package MediFlow
  * @version 1.0.0
  */
+
+require_once __DIR__ . '/config_keys.php';
 
 class config {
     private static $pdo = null;
@@ -13,10 +15,6 @@ class config {
     private static $username = "root";
     private static $password = "";
     private static $dbname = "mediflow";
-    
-    //CAPTCHAv2
-    private static $recaptcha_site_key = "6LfuaMUsAAAAAIoHHjWv2avAH21eXKxFTvDxtDpT";
-    private static $recaptcha_secret_key = "6LfuaMUsAAAAAI7ovH5xCdgKsZ6PB8UHg6BQpvJs";
     
     public static function getConnexion() {
         // Validate or create connection
@@ -73,16 +71,11 @@ class config {
      * @return string
      */
     public static function getRecaptchaSiteKey(): string {
-        return self::$recaptcha_site_key;
+        return RECAPTCHA_SITE_KEY;
     }
-    
-    /**
-     * Get reCAPTCHA secret key
-     * 
-     * @return string
-     */
+
     public static function getRecaptchaSecretKey(): string {
-        return self::$recaptcha_secret_key;
+        return RECAPTCHA_SECRET_KEY;
     }
 }
 ?>

@@ -37,6 +37,7 @@ $imgUrl = $eq ? getEqImageUrl($eq) : '';
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/integration/assets/css/style.css"/>
+  <script src="https://js.stripe.com/v3/"></script>
   <!-- Leaflet Maps -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -178,49 +179,186 @@ $imgUrl = $eq ? getEqImageUrl($eq) : '';
     .payment-opt .opt-icon.green { color:#16a34a; }
     .payment-opt .opt-title.green { color:#16a34a; }
 
-    /* 💳 Formulaire carte */
+    /* 💳 Card Form — Redesigned */
     .card-form {
       display: none;
       margin-top: 16px;
-      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
-      border-radius: 14px;
-      padding: 22px 20px 18px;
-      animation: fadeIn .3s ease;
+      border-radius: 18px;
+      overflow: hidden;
+      animation: fadeIn .35s ease;
+      box-shadow: 0 24px 64px rgba(0,0,0,.28), 0 0 0 1px rgba(0,0,0,.1);
     }
     .card-form.show { display: block; }
-    .card-form-title {
-      font-size: 12px; font-weight: 700; color: rgba(255,255,255,.6);
-      text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px;
-      display: flex; align-items: center; gap: 6px;
+
+    /* ── Credit card visual ── */
+    .card-visual {
+      position: relative;
+      height: 210px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 45%, #0f3460 100%);
+      padding: 22px 24px 20px;
+      overflow: hidden;
+      transition: background .55s cubic-bezier(.4,0,.2,1);
     }
-    .card-form-title .material-symbols-outlined { font-size: 16px; color: #60a5fa; }
-    .card-field { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
-    .card-field label { font-size:11px; font-weight:600; color:rgba(255,255,255,.5); letter-spacing:.04em; }
-    .card-input {
+    .card-visual.brand-visa       { background: linear-gradient(135deg, #0d1b4b 0%, #1565c0 65%, #0d47a1 100%); }
+    .card-visual.brand-mastercard { background: linear-gradient(135deg, #1a0800 0%, #b71c1c 55%, #880e4f 100%); }
+    .card-visual.brand-amex       { background: linear-gradient(135deg, #003d38 0%, #00695c 60%, #004d40 100%); }
+    .card-visual.brand-discover   { background: linear-gradient(135deg, #4a1a00 0%, #e65100 60%, #bf360c 100%); }
+
+    .card-shine {
+      position: absolute; top: -90px; right: -90px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(255,255,255,.09) 0%, transparent 65%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .card-circle-1 {
+      position: absolute; width: 210px; height: 210px; border-radius: 50%;
+      bottom: -75px; right: -55px; pointer-events: none;
+      background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06);
+    }
+    .card-circle-2 {
+      position: absolute; width: 140px; height: 140px; border-radius: 50%;
+      bottom: -22px; right: 28px; pointer-events: none;
+      background: rgba(255,255,255,.018); border: 1px solid rgba(255,255,255,.04);
+    }
+    .card-top-row {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 22px;
+    }
+    .card-chip-el {
+      width: 40px; height: 30px;
+      background: linear-gradient(135deg, #e8c84a 0%, #f5d97a 50%, #c8a830 100%);
+      border-radius: 5px; position: relative;
+      box-shadow: 0 3px 10px rgba(0,0,0,.35);
+    }
+    .card-chip-el::before {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 22px; height: 15px;
+      border: 1.5px solid rgba(0,0,0,.2); border-radius: 3px;
+    }
+    .card-chip-el::after {
+      content: ''; position: absolute; top: 50%; left: 0; right: 0;
+      height: 1.5px; background: rgba(0,0,0,.15); transform: translateY(-50%);
+    }
+    .card-brand-area {
+      display: flex; align-items: center; gap: 7px;
+    }
+    .card-brand-label {
+      font-size: 13px; font-weight: 900;
+      color: rgba(255,255,255,.75);
+      letter-spacing: .1em; text-transform: uppercase;
+      transition: all .35s ease;
+    }
+    .card-num-row {
+      font-family: 'Courier New', monospace;
+      font-size: 17px; letter-spacing: .18em;
+      color: rgba(255,255,255,.82);
+      margin-bottom: 20px;
+      display: flex; gap: 18px;
+      text-shadow: 0 1px 5px rgba(0,0,0,.45);
+    }
+    .card-bottom-row {
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .cv-lbl {
+      font-size: 9px; font-weight: 700;
+      color: rgba(255,255,255,.38);
+      text-transform: uppercase; letter-spacing: .1em; margin-bottom: 3px;
+    }
+    .cv-val {
+      font-size: 13px; font-weight: 700;
+      color: rgba(255,255,255,.88);
+      letter-spacing: .06em; text-transform: uppercase;
+      transition: all .22s ease;
+    }
+
+    /* ── Stripe input section ── */
+    .card-inputs-section {
+      background: linear-gradient(180deg, #111827 0%, #0d1421 100%);
+      padding: 20px 20px 16px;
+    }
+    .stripe-input-label {
+      font-size: 9px; font-weight: 700;
+      color: rgba(255,255,255,.32);
+      text-transform: uppercase; letter-spacing: .12em;
+      display: flex; align-items: center; gap: 5px;
+      margin-bottom: 9px;
+    }
+    .stripe-input-label .material-symbols-outlined { font-size: 12px; color: #60a5fa; }
+
+    #stripe-card-element {
+      padding: 13px 14px;
+      background: rgba(255,255,255,.055);
+      border: 1.5px solid rgba(255,255,255,.09);
+      border-radius: 10px;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+      margin-bottom: 0;
+    }
+    #stripe-card-element.StripeElement--focus {
+      border-color: #60a5fa;
+      background: rgba(96,165,250,.07);
+      box-shadow: 0 0 0 3px rgba(96,165,250,.12);
+    }
+    #stripe-card-element.StripeElement--invalid {
+      border-color: #f87171;
+      background: rgba(248,113,113,.06);
+      box-shadow: 0 0 0 3px rgba(248,113,113,.09);
+    }
+    #stripe-card-errors {
+      font-size: 11px; font-weight: 600; color: #f87171;
+      min-height: 18px; margin-top: 6px;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    /* ── Name inputs ── */
+    .card-name-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-top: 12px;
+    }
+    .card-name-group { display: flex; flex-direction: column; gap: 5px; }
+    .card-name-lbl {
+      font-size: 9px; font-weight: 700;
+      color: rgba(255,255,255,.35);
+      text-transform: uppercase; letter-spacing: .1em;
+    }
+    .card-name-inp {
       width: 100%; padding: 10px 13px;
-      background: rgba(255,255,255,.08);
-      border: 1.5px solid rgba(255,255,255,.15);
-      border-radius: 8px; font-size: 13.5px;
-      font-family: 'Inter', sans-serif; color: #fff;
-      outline: none; transition: border-color .18s, background .18s;
-      letter-spacing: .04em;
+      background: rgba(255,255,255,.055);
+      border: 1.5px solid rgba(255,255,255,.09);
+      border-radius: 10px;
+      font-size: 13px; font-family: 'Inter', sans-serif; color: #fff;
+      outline: none;
+      transition: border-color .2s, background .2s, box-shadow .2s;
     }
-    .card-input::placeholder { color: rgba(255,255,255,.3); }
-    .card-input:focus { border-color: #60a5fa; background: rgba(255,255,255,.12); }
-    .card-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .card-logos { display:flex; gap:8px; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,.1); }
-    .card-logo-badge {
-      padding: 3px 10px; border-radius:5px; font-size:11px; font-weight:800;
-      letter-spacing:.04em;
+    .card-name-inp::placeholder { color: rgba(255,255,255,.22); }
+    .card-name-inp:focus {
+      border-color: #60a5fa;
+      background: rgba(96,165,250,.07);
+      box-shadow: 0 0 0 3px rgba(96,165,250,.12);
     }
-    .card-logo-badge.visa { background:#1a1f71; color:#fff; border:1px solid rgba(255,255,255,.2); }
-    .card-logo-badge.mc { background:#eb001b; color:#fff; }
-    .card-logo-badge.amex { background:#007bc1; color:#fff; }
-    .secure-badge { margin-left:auto; display:flex; align-items:center; gap:4px; font-size:10px; color:rgba(255,255,255,.4); }
-    .secure-badge .material-symbols-outlined { font-size:13px; color:#4ade80; }
-    .card-err { font-size:10.5px; font-weight:600; color:#f87171; display:block; margin-top:4px; min-height:15px; }
-    .card-input.valid   { border-color:#4ade80 !important; background:rgba(74,222,128,.08) !important; }
-    .card-input.invalid { border-color:#f87171 !important; background:rgba(248,113,113,.08) !important; }
+    .card-name-inp.valid   { border-color: #4ade80 !important; background: rgba(74,222,128,.07) !important; }
+    .card-name-inp.invalid { border-color: #f87171 !important; background: rgba(248,113,113,.06) !important; }
+
+    /* ── Footer bar ── */
+    .card-footer-bar {
+      background: rgba(0,0,0,.35);
+      padding: 10px 20px;
+      display: flex; align-items: center; gap: 7px;
+      border-top: 1px solid rgba(255,255,255,.05);
+    }
+    .cbadge {
+      padding: 2px 9px; border-radius: 4px;
+      font-size: 10px; font-weight: 800; letter-spacing: .03em;
+    }
+    .cbadge-visa { background: #1a1f71; color: #fff; border: 1px solid rgba(255,255,255,.15); }
+    .cbadge-mc   { background: #eb001b; color: #fff; }
+    .cbadge-amex { background: #007bc1; color: #fff; }
+    .card-ssl {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 4px;
+      font-size: 10px; color: rgba(255,255,255,.32); font-weight: 600;
+    }
+    .card-ssl .material-symbols-outlined { font-size: 12px; color: #4ade80; }
 
     /* ⚠️ Note annulation */
     .nb-annulation {
@@ -443,102 +581,95 @@ $imgUrl = $eq ? getEqImageUrl($eq) : '';
               </label>
             </div>
 
-            <!-- Formulaire carte bancaire -->
+            <!-- 💳 Card Form — Redesigned -->
             <div class="card-form" id="card-form">
-              <div class="card-form-title">
-                <span class="material-symbols-outlined">credit_card</span>
-                Informations de la carte
-                <!-- Badge type carte détecté -->
-                <span id="card-type-badge" style="margin-left:auto;font-size:11px;font-weight:800;padding:2px 10px;border-radius:5px;display:none;"></span>
-              </div>
 
+              <!-- Credit card visual preview -->
+              <div class="card-visual" id="cv-card">
+                <div class="card-shine"></div>
+                <div class="card-circle-1"></div>
+                <div class="card-circle-2"></div>
 
-              <!-- Numéro de carte -->
-              <div class="card-field" id="field-number">
-                <label style="display:flex;align-items:center;justify-content:space-between;">
-                  <span>NUMÉRO DE CARTE</span>
-                  <span id="hint-number" style="font-size:10px;font-weight:600;opacity:.6;"></span>
-                </label>
-                <div style="position:relative;">
-                  <input class="card-input" id="card-number" type="text" maxlength="23"
-                         placeholder="0000  0000  0000  0000" autocomplete="cc-number"/>
-                  <span id="icon-number" class="material-symbols-outlined"
-                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;display:none;"></span>
-                </div>
-                <span class="card-err" id="err-number"></span>
-              </div>
-
-              <div class="card-row">
-                <!-- Expiry -->
-                <div class="card-field" id="field-expiry">
-                  <label style="display:flex;align-items:center;justify-content:space-between;">
-                    <span>DATE D'EXPIRATION</span>
-                    <span id="hint-expiry" style="font-size:10px;font-weight:600;opacity:.6;"></span>
-                  </label>
-                  <div style="position:relative;">
-                    <input class="card-input" id="card-expiry" type="text" maxlength="5"
-                           placeholder="MM/AA" autocomplete="cc-exp"/>
-                    <span id="icon-expiry" class="material-symbols-outlined"
-                          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;display:none;"></span>
+                <div class="card-top-row">
+                  <div class="card-chip-el"></div>
+                  <div class="card-brand-area">
+                    <!-- NFC rings -->
+                    <svg viewBox="0 0 22 22" fill="none" width="18" style="opacity:.45;">
+                      <circle cx="11" cy="11" r="9.5" stroke="white" stroke-width="1.4"/>
+                      <circle cx="11" cy="11" r="6"   stroke="white" stroke-width="1.4"/>
+                      <circle cx="11" cy="11" r="2.5" fill="white"/>
+                    </svg>
+                    <span class="card-brand-label" id="cv-brand-label"></span>
                   </div>
-                  <span class="card-err" id="err-expiry"></span>
                 </div>
-                <!-- CVC -->
-                <div class="card-field" id="field-cvc">
-                  <label style="display:flex;align-items:center;justify-content:space-between;">
-                    <span>CODE CVC</span>
-                    <span id="hint-cvc" style="font-size:10px;font-weight:600;opacity:.6;">3 chiffres au dos</span>
-                  </label>
-                  <div style="position:relative;">
-                    <input class="card-input" id="card-cvc" type="text" maxlength="4"
-                           placeholder="•••" autocomplete="cc-csc"/>
-                    <span id="icon-cvc" class="material-symbols-outlined"
-                          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;display:none;"></span>
+
+                <div class="card-num-row">
+                  <span>••••</span><span>••••</span><span>••••</span><span>••••</span>
+                </div>
+
+                <div class="card-bottom-row">
+                  <div>
+                    <div class="cv-lbl">Titulaire</div>
+                    <div class="cv-val" id="cv-holder">PRÉNOM NOM</div>
                   </div>
-                  <span class="card-err" id="err-cvc"></span>
+                  <div style="text-align:right;">
+                    <div class="cv-lbl">Expire</div>
+                    <div class="cv-val">•• / ••</div>
+                  </div>
                 </div>
               </div>
 
-              <!-- Prénom / Nom -->
-              <div class="card-row">
-                <div class="card-field" style="margin-bottom:0;" id="field-prenom">
-                  <label>PRÉNOM DU TITULAIRE</label>
-                  <div style="position:relative;">
-                    <input class="card-input" id="card-prenom" type="text" placeholder="Mohamed" value="<?= htmlspecialchars($user['prenom'] ?? '') ?>"/>
-                    <span id="icon-prenom" class="material-symbols-outlined"
-                          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;display:none;"></span>
-                  </div>
-                  <span class="card-err" id="err-prenom"></span>
-                </div>
-                <div class="card-field" style="margin-bottom:0;" id="field-cnom">
-                  <label>NOM DU TITULAIRE</label>
-                  <div style="position:relative;">
-                    <input class="card-input" id="card-nom" type="text" placeholder="Ben Ali" value="<?= htmlspecialchars($user['nom'] ?? '') ?>"/>
-                    <span id="icon-cnom" class="material-symbols-outlined"
-                          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;display:none;"></span>
-                  </div>
-                  <span class="card-err" id="err-cnom"></span>
-                </div>
-              </div>
-
-              <!-- Barre de progression -->
-              <div style="margin-top:16px;margin-bottom:4px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                  <span style="font-size:10px;color:rgba(255,255,255,.4);font-weight:600;">COMPLÉTION DU FORMULAIRE</span>
-                  <span id="card-progress-pct" style="font-size:10px;color:#4ade80;font-weight:700;">0%</span>
-                </div>
-                <div style="height:4px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;">
-                  <div id="card-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#60a5fa,#4ade80);border-radius:99px;transition:width .3s ease;"></div>
-                </div>
-              </div>
-
-              <div class="card-logos">
-                <span class="card-logo-badge visa" id="badge-visa" style="opacity:.4;">VISA</span>
-                <span class="card-logo-badge mc"   id="badge-mc"   style="opacity:.4;">MC</span>
-                <span class="card-logo-badge amex" id="badge-amex" style="opacity:.4;">AMEX</span>
-                <div class="secure-badge">
+              <!-- Stripe input section -->
+              <div class="card-inputs-section">
+                <div class="stripe-input-label">
                   <span class="material-symbols-outlined">lock</span>
-                  Paiement 100% sécurisé
+                  Coordonnées bancaires — Connexion Stripe sécurisée
+                </div>
+                <div id="stripe-card-element"></div>
+                <div id="stripe-card-errors"></div>
+
+                <div class="card-name-row">
+                  <div class="card-name-group">
+                    <label class="card-name-lbl">Prénom du titulaire</label>
+                    <input class="card-name-inp" id="card-prenom" type="text" placeholder="Mohamed"
+                           value="<?= htmlspecialchars($user['prenom'] ?? '') ?>" autocomplete="cc-given-name"/>
+                  </div>
+                  <div class="card-name-group">
+                    <label class="card-name-lbl">Nom du titulaire</label>
+                    <input class="card-name-inp" id="card-nom" type="text" placeholder="Ben Ali"
+                           value="<?= htmlspecialchars($user['nom'] ?? '') ?>" autocomplete="cc-family-name"/>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="card-footer-bar">
+                <!-- Visa -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 54 34" height="26" style="border-radius:5px;flex-shrink:0;">
+                  <rect width="54" height="34" fill="white" rx="4"/>
+                  <text x="27" y="23" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="15" font-weight="900" font-style="italic" fill="#1a1f71">VISA</text>
+                </svg>
+                <!-- Mastercard -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 54 34" height="26" style="border-radius:5px;flex-shrink:0;">
+                  <rect width="54" height="34" fill="#252525" rx="4"/>
+                  <circle cx="21" cy="17" r="11" fill="#EB001B"/>
+                  <circle cx="33" cy="17" r="11" fill="#F79E1B"/>
+                  <path d="M27,7.78 A11,11 0 0,1 27,26.22 A11,11 0 0,0 27,7.78Z" fill="#FF5F00"/>
+                </svg>
+                <!-- Amex -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 54 34" height="26" style="border-radius:5px;flex-shrink:0;">
+                  <rect width="54" height="34" fill="#007bc1" rx="4"/>
+                  <text x="27" y="23" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="13" font-weight="900" fill="white" letter-spacing="1">AMEX</text>
+                </svg>
+                <div class="card-ssl">
+                  <span class="material-symbols-outlined">lock</span>
+                  SSL 256-bit
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:rgba(255,255,255,.22);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-left:8px;">
+                  via&nbsp;
+                  <svg viewBox="0 0 60 25" fill="white" xmlns="http://www.w3.org/2000/svg" style="width:30px;opacity:.3;">
+                    <path d="M6.2 10.3c0-.7.6-1 1.5-1 1.4 0 3 .4 4.4 1.2V7c-1.5-.6-3-.9-4.4-.9C4.4 6.1 2.5 7.7 2.5 10.5c0 4.3 5.9 3.6 5.9 5.5 0 .8-.7 1.1-1.7 1.1-1.5 0-3.4-.6-4.9-1.5v3.6c1.7.7 3.3 1 4.9 1 3 0 5-1.5 5-4.3-.1-4.7-5.9-3.8-5.9-5.6zM20.5 4.4l-3.8.8v2.4h-2v3.2h2v6.1c0 2.5 1.7 3.5 4.2 3.5.9 0 1.9-.1 2.6-.4v-3.1c-.5.2-1.1.3-1.6.3-.9 0-1.4-.3-1.4-1.3v-5.1h3V7.6h-3V4.4zM29.6 8.8v-1.2h-3.5v12.8h3.6v-7.3c.9-1.1 2.3-1 2.8-.8V9c-.6-.2-2.4-.4-2.9.8v-.2zM34.3 7.6h3.6v12.8h-3.6zM36 2.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM47.4 6.9c-1.1 0-2.1.5-2.7 1.2V7.6h-3.5v17.3h3.6v-5.6c.6.6 1.5 1 2.6 1 3.1 0 5.3-2.5 5.3-6.8s-2.2-6.6-5.3-6.6zm-.9 10.3c-1.1 0-1.8-.6-2.2-1.3v-5.3c.4-.8 1.1-1.4 2.2-1.4 1.6 0 2.7 1.5 2.7 4s-1.1 4-2.7 4z"/>
+                  </svg>
                 </div>
               </div>
             </div>
@@ -773,6 +904,7 @@ function setPayment(mode) {
   // Afficher le formulaire carte seulement si paiement en ligne
   if(mode === 'enligne') {
     cardForm.classList.add('show');
+    updateCardHolder();
     // ✅ Valider automatiquement le nom/prenom pré-remplis
     setTimeout(function(){
       document.getElementById('card-prenom')?.dispatchEvent(new Event('input'));
@@ -917,12 +1049,21 @@ document.getElementById('card-cvc')?.addEventListener('input', function(){
   updateProgress();
 });
 
+// ── Live card holder preview ──
+function updateCardHolder() {
+  var p = (document.getElementById('card-prenom')?.value || '').trim();
+  var n = (document.getElementById('card-nom')?.value    || '').trim();
+  var el = document.getElementById('cv-holder');
+  if (el) el.textContent = (p || n) ? (p + ' ' + n).trim().toUpperCase() : 'PRÉNOM NOM';
+}
+
 // ── Prénom ──
 document.getElementById('card-prenom')?.addEventListener('input', function(){
   var v = this.value.trim();
   var valid = v.length>=2 && /^[a-zA-ZÀ-ÿ\s'\-]+$/.test(v);
   setCardField('card-prenom','icon-prenom','err-prenom', valid, valid?'':'Prénom invalide (min 2 lettres)');
   updateProgress();
+  updateCardHolder();
 });
 
 // ── Nom ──
@@ -931,6 +1072,7 @@ document.getElementById('card-nom')?.addEventListener('input', function(){
   var valid = v.length>=2 && /^[a-zA-ZÀ-ÿ\s'\-]+$/.test(v);
   setCardField('card-nom','icon-cnom','err-cnom', valid, valid?'':'Nom invalide (min 2 lettres)');
   updateProgress();
+  updateCardHolder();
 });
 
 function showToast(msg,type='info'){
@@ -963,20 +1105,11 @@ function valider(){
   else if(debut&&fin<=debut){afficherErr('date-end','La date de fin doit être après le début.');ok=false;}
   if(isLiv&&(!adresse||adresse.length<5)){afficherErr('adresse-livraison','Adresse obligatoire (min 5 caractères).');ok=false;}
   if(!dispoOk){showToast('Veuillez sélectionner des dates disponibles.','error');ok=false;}
-  // Validation carte si paiement en ligne
+  // Card name validation only (Stripe validates the card number/expiry/cvc itself)
   const isLigne = document.querySelector('input[name="payment"]:checked')?.value === 'enligne';
   if(isLigne){
-    const cn = document.getElementById('card-number')?.value.replace(/\s/g,'');
-    const ex = document.getElementById('card-expiry')?.value;
-    const cv = document.getElementById('card-cvc')?.value;
     const cp = document.getElementById('card-prenom')?.value.trim();
     const cn2= document.getElementById('card-nom')?.value.trim();
-    // AMEX = 15 chiffres, VISA/MC = 16 chiffres
-    var cardType = /^3[47]/.test(cn) ? 'amex' : 'other';
-    var requiredLen = cardType === 'amex' ? 15 : 16;
-    if(!cn||cn.length<requiredLen){showToast('Numéro de carte invalide (' + requiredLen + ' chiffres requis).','error');ok=false;}
-    if(!ex||ex.length<5){showToast('Date d\'expiration invalide (MM/AA).','error');ok=false;}
-    if(!cv||cv.length<3){showToast('Code CVC invalide (3 chiffres requis).','error');ok=false;}
     if(!cp){showToast('Prénom du titulaire requis.','error');ok=false;}
     if(!cn2){showToast('Nom du titulaire requis.','error');ok=false;}
   }
@@ -984,31 +1117,138 @@ function valider(){
   return ok;
 }
 
-let enCours=false;
-document.getElementById('btn-confirm')?.addEventListener('click',async function(){
-  if(enCours)return;if(!valider())return;
-  enCours=true;const btn=this;btn.disabled=true;btn.textContent='Envoi en cours...';
-  const isLiv=document.querySelector('input[name="delivery"]:checked')?.value==='livraison';
-  const payload={
-    equipement_id:document.getElementById('equipement_id')?.value,
-    locataire_nom:(document.getElementById('firstname')?.value.trim()+' '+document.getElementById('lastname')?.value.trim()),
-    locataire_ville:isLiv?(adrinp?.value.trim()||''):'',
-    date_debut:document.getElementById('date-start')?.value,
-    date_fin:document.getElementById('date-end')?.value,
-    telephone:document.getElementById('phone')?.value.trim(),
-    statut:'en_cours',
+/* ══════════════════════════════════════════
+   💳 STRIPE — Initialisation & Paiement
+══════════════════════════════════════════ */
+const STRIPE_PK   = '<?= STRIPE_PUBLIC_KEY ?>';
+const API_INTENT  = '/integration/equipment/api/payment-intent';
+const PRIX_JOUR   = <?= (float)$prixDT ?>;
+
+const stripe   = Stripe(STRIPE_PK);
+const elements = stripe.elements();
+const cardEl   = elements.create('card', {
+  hidePostalCode: true,
+  style: {
+    base: {
+      iconColor: '#60a5fa',
+      color: '#ffffff',
+      fontFamily: "'Inter', sans-serif",
+      fontSize: '13.5px',
+      fontSmoothing: 'antialiased',
+      letterSpacing: '0.04em',
+      '::placeholder': { color: 'rgba(255,255,255,0.3)' },
+    },
+    invalid: { color: '#f87171', iconColor: '#f87171' },
+  },
+});
+cardEl.mount('#stripe-card-element');
+cardEl.on('change', e => {
+  document.getElementById('stripe-card-errors').textContent = e.error ? e.error.message : '';
+  // Update card visual brand
+  var cardVis  = document.getElementById('cv-card');
+  var brandLbl = document.getElementById('cv-brand-label');
+  if (cardVis) {
+    var brand = e.brand || 'unknown';
+    var labels = { visa:'VISA', mastercard:'MASTERCARD', amex:'AMEX', discover:'DISCOVER' };
+    cardVis.className = 'card-visual' + (brand !== 'unknown' ? ' brand-' + brand : '');
+    if (brandLbl) brandLbl.textContent = labels[brand] || '';
+  }
+});
+
+let enCours = false;
+document.getElementById('btn-confirm')?.addEventListener('click', async function() {
+  if (enCours) return;
+  if (!valider()) return;
+
+  enCours = true;
+  const btn = this;
+  btn.disabled = true;
+  btn.textContent = 'Traitement en cours...';
+
+  const isLiv    = document.querySelector('input[name="delivery"]:checked')?.value === 'livraison';
+  const isLigne  = document.querySelector('input[name="payment"]:checked')?.value === 'enligne';
+  const methode  = document.querySelector('input[name="payment"]:checked')?.value || 'espece';
+  const dateD    = document.getElementById('date-start')?.value;
+  const dateF    = document.getElementById('date-end')?.value;
+
+  // Calculate number of days for amount
+  const msPerDay = 86400000;
+  const jours    = dateD && dateF ? Math.max(1, Math.round((new Date(dateF) - new Date(dateD)) / msPerDay)) : 1;
+  const totalDT  = Math.round(PRIX_JOUR * jours);
+
+  const basePayload = {
+    equipement_id:  document.getElementById('equipement_id')?.value,
+    locataire_nom:  (document.getElementById('firstname')?.value.trim() + ' ' + document.getElementById('lastname')?.value.trim()),
+    locataire_ville: isLiv ? (adrinp?.value.trim() || '') : '',
+    date_debut:     dateD,
+    date_fin:       dateF,
+    telephone:      document.getElementById('phone')?.value.trim(),
+    statut:         'en_cours',
+    payment_method: methode,
   };
-  try{
-    const res=await fetch(API_RES,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const json=await res.json();
-    if(json.success){
-        // Mémoriser les dates pour détecter les doublons futurs
-        sauvegarderDerniereDemande(payload.date_debut, payload.date_fin);
-        showToast('Réservation confirmée avec succès !','success');
-        setTimeout(()=>window.location.href='/integration/mes-reservations',1800);
+
+  const reset = () => { enCours = false; btn.disabled = false; btn.textContent = 'Confirmer la réservation'; };
+
+  try {
+    if (isLigne) {
+      // 1 — Create PaymentIntent on server
+      btn.textContent = 'Connexion Stripe...';
+      const piRes  = await fetch(API_INTENT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount_cents: totalDT * 100 }),
+      });
+      const piData = await piRes.json();
+      if (!piRes.ok || !piData.clientSecret) {
+        showToast('Erreur Stripe : ' + (piData.error || 'Inconnue'), 'error');
+        return reset();
       }
-    else{showToast('Erreur : '+(json.message||'Inconnue'),'error');enCours=false;btn.disabled=false;btn.textContent='Confirmer la réservation';}
-  }catch(e){showToast('Erreur réseau.','error');enCours=false;btn.disabled=false;btn.textContent='Confirmer la réservation';}
+
+      // 2 — Confirm card payment in browser
+      btn.textContent = 'Vérification de la carte...';
+      const holderName = (document.getElementById('card-prenom')?.value.trim() + ' ' + document.getElementById('card-nom')?.value.trim()).trim();
+      const { paymentIntent, error } = await stripe.confirmCardPayment(piData.clientSecret, {
+        payment_method: { card: cardEl, billing_details: { name: holderName } },
+      });
+
+      if (error) {
+        document.getElementById('stripe-card-errors').textContent = error.message;
+        showToast(error.message, 'error');
+        return reset();
+      }
+
+      // 3 — Payment succeeded — save reservation
+      btn.textContent = 'Enregistrement...';
+      const payload = { ...basePayload, payment_status: 'paid', stripe_payment_id: paymentIntent.id };
+      const res  = await fetch(API_RES, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (json.success) {
+        sauvegarderDerniereDemande(payload.date_debut, payload.date_fin);
+        showToast('Paiement accepté ! Réservation confirmée.', 'success');
+        setTimeout(() => window.location.href = '/integration/mes-reservations', 1800);
+      } else {
+        showToast('Paiement OK mais erreur d\'enregistrement : ' + (json.message || ''), 'error');
+        reset();
+      }
+
+    } else {
+      // Cash or clinic — no Stripe
+      const payload = { ...basePayload, payment_status: 'pending' };
+      const res  = await fetch(API_RES, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (json.success) {
+        sauvegarderDerniereDemande(payload.date_debut, payload.date_fin);
+        showToast('Réservation confirmée avec succès !', 'success');
+        setTimeout(() => window.location.href = '/integration/mes-reservations', 1800);
+      } else {
+        showToast('Erreur : ' + (json.message || 'Inconnue'), 'error');
+        reset();
+      }
+    }
+  } catch(e) {
+    showToast('Erreur réseau.', 'error');
+    reset();
+  }
 });
 </script>
 <script>

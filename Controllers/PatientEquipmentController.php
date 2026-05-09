@@ -494,6 +494,58 @@ class PatientEquipmentController
         exit;
     }
 
+    /** Create a Stripe PaymentIntent and return the clientSecret */
+    public function createPaymentIntent(): void
+    {
+        $this->ensureSession();
+        $this->requireAuth();
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405); echo json_encode(['error' => 'Method not allowed']); return;
+        }
+
+        $body        = json_decode(file_get_contents('php://input'), true);
+        $amountCents = (int)($body['amount_cents'] ?? 0);
+
+        if ($amountCents < 50) {
+            http_response_code(400); echo json_encode(['error' => 'Montant invalide']); return;
+        }
+
+        $secretKey = STRIPE_SECRET_KEY;
+
+        $ch = curl_init('https://api.stripe.com/v1/payment_intents');
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => http_build_query([
+                'amount'                          => $amountCents,
+                'currency'                        => 'eur',
+                'automatic_payment_methods[enabled]' => 'true',
+            ]),
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $secretKey,
+                'Content-Type: application/x-www-form-urlencoded',
+            ],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 15,
+        ]);
+
+        $raw      = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            $err = json_decode($raw, true);
+            http_response_code(502);
+            echo json_encode(['error' => $err['error']['message'] ?? 'Erreur Stripe']);
+            return;
+        }
+
+        $intent = json_decode($raw, true);
+        echo json_encode(['clientSecret' => $intent['client_secret']]);
+    }
+
     /** Proxy for Reservation CRUD — GET / POST / PUT / DELETE */
     public function reservationApi(): void
     {
@@ -529,15 +581,21 @@ class PatientEquipmentController
 
                     $matricule = $_SESSION['user']['matricule'] ?? null;
 
+                    $allowedMethods = ['espece', 'enligne', 'clinique'];
+                    $allowedPStatus = ['pending', 'paid', 'failed'];
+
                     $ok = $model->create([
-                        'equipement_id'   => (int)$data['equipement_id'],
-                        'locataire_nom'   => htmlspecialchars(trim($data['locataire_nom'])),
-                        'matricule'       => $matricule,
-                        'locataire_ville' => htmlspecialchars(trim($data['locataire_ville'] ?? '')),
-                        'date_debut'      => $data['date_debut'],
-                        'date_fin'        => !empty($data['date_fin']) ? $data['date_fin'] : null,
-                        'statut'          => in_array($data['statut'] ?? '', ['en_cours','termine','en_retard']) ? $data['statut'] : 'en_cours',
-                        'telephone'       => htmlspecialchars(trim($data['telephone'] ?? '')),
+                        'equipement_id'     => (int)$data['equipement_id'],
+                        'locataire_nom'     => htmlspecialchars(trim($data['locataire_nom'])),
+                        'matricule'         => $matricule,
+                        'locataire_ville'   => htmlspecialchars(trim($data['locataire_ville'] ?? '')),
+                        'date_debut'        => $data['date_debut'],
+                        'date_fin'          => !empty($data['date_fin']) ? $data['date_fin'] : null,
+                        'statut'            => in_array($data['statut'] ?? '', ['en_cours','termine','en_retard']) ? $data['statut'] : 'en_cours',
+                        'telephone'         => htmlspecialchars(trim($data['telephone'] ?? '')),
+                        'payment_method'    => in_array($data['payment_method'] ?? '', $allowedMethods) ? $data['payment_method'] : 'espece',
+                        'payment_status'    => in_array($data['payment_status'] ?? '', $allowedPStatus) ? $data['payment_status'] : 'pending',
+                        'stripe_payment_id' => preg_match('/^pi_[a-zA-Z0-9_]+$/', $data['stripe_payment_id'] ?? '') ? $data['stripe_payment_id'] : null,
                     ]);
                     echo json_encode(['success' => $ok, 'message' => $ok ? 'Réservation créée.' : 'Échec insertion.']);
                     break;
