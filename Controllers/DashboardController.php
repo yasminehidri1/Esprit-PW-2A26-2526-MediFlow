@@ -66,6 +66,17 @@ class DashboardController
             $data['nbEnRetard']     = count(array_filter($myRes, fn($r) => ($r['statut']??'') === 'en_retard'));
             $data['nbTotal']        = count($myRes);
             $data['latestRes']      = array_slice($myRes, 0, 3);
+            
+            // Check if onboarding should be shown:
+            // Session takes priority (set immediately by AJAX) → then DB value
+            $sessionCompleted = $_SESSION['user']['onboarding_completed'] ?? false;
+            $dbCompleted      = (bool)($data['currentUser']['onboarding_completed'] ?? false);
+            $data['show_tour'] = !$sessionCompleted && !$dbCompleted;
+            
+            // Keep session in sync with DB
+            if ($dbCompleted && !$sessionCompleted) {
+                $_SESSION['user']['onboarding_completed'] = true;
+            }
 
         } elseif ($role === 'Technicien') {
             // Equipment manager sees inventory stats
@@ -288,12 +299,27 @@ class DashboardController
             if ($updateResult) {
                 error_log('Update successful! Updating session...');
                 
+                // Fetch fresh user data from database to get profile_pic and matricule
+                $freshUser = $userModel->getUserById($userId);
+                
+                if (!empty($password)) {
+                    \Core\NotificationService::push(
+                        \Core\NotificationService::TYPE_PASSWORD_CHANGE,
+                        'Mot de passe mis à jour',
+                        "L'utilisateur {$freshUser['prenom']} {$freshUser['nom']} (Matricule: {$freshUser['matricule']}) a mis à jour son mot de passe.",
+                        $userId
+                    );
+                }
+
                 // Update session
                 $_SESSION['user']['nom'] = $nom;
                 $_SESSION['user']['prenom'] = $prenom;
                 $_SESSION['user']['mail'] = $mail;
                 $_SESSION['user']['tel'] = $tel;
                 $_SESSION['user']['adresse'] = $adresse;
+                if (!empty($freshUser['profile_pic'])) {
+                    $_SESSION['user']['profile_pic'] = $freshUser['profile_pic'];
+                }
 
                 error_log('Session updated. Redirecting to /integration/profile?success=1');
                 header('Location: /integration/profile?success=1');
@@ -347,5 +373,54 @@ class DashboardController
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($data);
         exit;
+    }
+
+    /**
+     * Mark onboarding tour as completed
+     * Called via AJAX after user finishes the tour
+     * 
+     * @return void
+     */
+    public function completeOnboarding(): void
+    {
+        $this->ensureSession();
+        $this->requireAuth();
+
+        try {
+            $userId = $_SESSION['user']['id'];
+            $db = $this->getDatabase();
+
+            // Update onboarding_completed flag
+            $query = "UPDATE utilisateurs SET onboarding_completed = TRUE WHERE id_PK = :userId";
+            $stmt = $db->prepare($query);
+            $stmt->execute(['userId' => $userId]);
+
+            // Also update session
+            $_SESSION['user']['onboarding_completed'] = true;
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Visite guidée marquée comme complétée'
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('Error completing onboarding: ' . $e->getMessage());
+            http_response_code(500);
+            $this->jsonResponse([
+                'success' => false,
+                'message' => 'Erreur lors du marquage de la visite'
+            ]);
+        }
+    }
+
+    /**
+     * Get database connection
+     * 
+     * @return \PDO
+     */
+    private function getDatabase(): \PDO
+    {
+        require_once __DIR__ . '/../config.php';
+        return \config::getConnexion();
     }
 }

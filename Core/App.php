@@ -37,6 +37,21 @@ class App
             return;
         }
 
+        if (preg_match('#^/auth/google-callback(?:/|$)#', $path)) {
+            (new \Controllers\AuthController())->googleCallback();
+            return;
+        }
+
+        if (preg_match('#^/forgot-password(?:/|$)#', $path)) {
+            (new \Controllers\AuthController())->forgotPassword();
+            return;
+        }
+
+        if (preg_match('#^/reset-password(?:/|$)#', $path)) {
+            (new \Controllers\AuthController())->resetPassword();
+            return;
+        }
+
         if (preg_match('#^/terms(?:/|$)#', $path)) {
             (new \Controllers\LandingController())->terms();
             return;
@@ -68,6 +83,25 @@ class App
 
         if (preg_match('#^/profile(?:/|$)#', $path)) {
             (new \Controllers\DashboardController())->profile();
+            return;
+        }
+
+        if (preg_match('#^/api/complete-onboarding(?:/|$)#', $path)) {
+            (new \Controllers\DashboardController())->completeOnboarding();
+            return;
+        }
+
+        // ── Notification API ─────────────────────────────────────────────────
+        if (preg_match('#^/api/notifications/read-all(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->markAllRead();
+            return;
+        }
+        if (preg_match('#^/api/notifications/read(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->markRead();
+            return;
+        }
+        if (preg_match('#^/api/notifications(?:/|$)#', $path)) {
+            (new \Controllers\NotificationController())->list();
             return;
         }
 
@@ -265,7 +299,7 @@ class App
         }
 
         if (preg_match('#^/magazine/notifications/read(?:/|$)#', $path)) {
-            (new \Controllers\NotificationController())->markRead();
+            (new \Controllers\NotificationController())->markUserRead();
             return;
         }
 

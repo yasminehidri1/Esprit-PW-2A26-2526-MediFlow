@@ -280,6 +280,25 @@
                 </button>
             </form>
 
+            <div class="auth-divider"><span>ou</span></div>
+
+            <!-- Google Sign-up Button -->
+            <a href="<?php
+                $googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
+                    'client_id' => \config::getGoogleClientId(),
+                    'redirect_uri' => \config::getGoogleRedirectUri(),
+                    'response_type' => 'code',
+                    'scope' => 'openid email profile',
+                    'access_type' => 'offline'
+                ]);
+                echo htmlspecialchars($googleAuthUrl);
+            ?>" class="btn-google" style="width:100%;padding:13px;background:#f3f4f6;color:#374151;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:16px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032 c0-3.331,2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.461,2.268,15.365,1,12.545,1 C6.477,1,1.54,5.937,1.54,12s4.938,11,11.005,11c6.068,0,11.066-4.941,11.066-11c0-0.713-0.063-1.42-0.186-2.121H12.545z" fill="#4285F4"/>
+                </svg>
+                S'inscrire avec Google
+            </a>
+
             <div class="auth-divider"><span>déjà inscrit ?</span></div>
             <p class="auth-footer"><a href="/integration/login">← Se connecter à mon compte</a></p>
         </div>

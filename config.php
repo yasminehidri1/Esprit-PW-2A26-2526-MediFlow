@@ -16,6 +16,14 @@ class config {
     private static $password = "";
     private static $dbname = "mediflow";
     
+    public static function getGeminiApiKey(): string {
+        return GEMINI_API_KEY;
+    }
+
+    public static function getOpenRouterApiKey(): string {
+        return OPENROUTER_API_KEY;
+    }
+
     public static function getConnexion() {
         // Validate or create connection
         if (!isset(self::$pdo) || !self::isConnected()) {
@@ -76,6 +84,34 @@ class config {
 
     public static function getRecaptchaSecretKey(): string {
         return RECAPTCHA_SECRET_KEY;
+    }
+    
+    public static function getGoogleClientId(): string {
+        return GOOGLE_CLIENT_ID;
+    }
+
+    public static function getGoogleClientSecret(): string {
+        return GOOGLE_CLIENT_SECRET;
+    }
+
+    public static function getGoogleRedirectUri(): string {
+        return GOOGLE_REDIRECT_URI;
+    }
+
+    public static function getSmtpHost(): string {
+        return SMTP_HOST;
+    }
+
+    public static function getSmtpPort(): int {
+        return SMTP_PORT;
+    }
+
+    public static function getSmtpEmail(): string {
+        return SMTP_EMAIL;
+    }
+
+    public static function getSmtpPassword(): string {
+        return SMTP_PASSWORD;
     }
 }
 ?>

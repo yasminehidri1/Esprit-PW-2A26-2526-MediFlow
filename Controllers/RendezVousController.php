@@ -219,7 +219,7 @@ class RendezVousController
             $prev_date->modify('-1 month');
             $next_date->modify('+1 month');
             $url_prec = '/integration/rdv/planning?vue=mois&date=' . $prev_date->format('Y-m-01');
-            $url_suiv = '/integration/rdv/planning?vue=mois&date=' . $prev_date->format('Y-m-01');
+            $url_suiv = '/integration/rdv/planning?vue=mois&date=' . $next_date->format('Y-m-01');
         } else {
             $sem_prec = clone $date_debut; $sem_prec->modify('-7 days');
             $sem_suiv = clone $date_debut; $sem_suiv->modify('+7 days');

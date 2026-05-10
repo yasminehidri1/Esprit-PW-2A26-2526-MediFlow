@@ -13,112 +13,280 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
 
 <?php if ($role === 'Admin'): ?>
 <!-- ═══════════════ ADMIN ═══════════════ -->
-<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-  <?php
-  $kpis = [
-    ['label'=>'Utilisateurs totaux','val'=>$data['stats']['totalUsers']??0,'icon'=>'people','color'=>'primary'],
-    ['label'=>'Patients','val'=>$data['stats']['totalPatients']??0,'icon'=>'badge','color'=>'tertiary'],
-    ['label'=>'Rôles','val'=>isset($data['stats']['usersByRole'])?count($data['stats']['usersByRole']):0,'icon'=>'shield_person','color'=>'secondary'],
-    ['label'=>'Statut système','val'=>'✔ En ligne','icon'=>'check_circle','color'=>'primary','text'=>true],
-  ];
-  foreach ($kpis as $k): ?>
-  <div class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-6 rounded-xl shadow-sm border-t-2 border-<?= $k['color'] ?> border-r border-b border-outline/10">
-    <div class="flex justify-between items-start">
-      <div>
-        <p class="text-sm font-medium text-on-surface-variant"><?= $k['label'] ?></p>
-        <h3 class="text-3xl font-black mt-2 text-<?= $k['color'] ?>"><?= $k['val'] ?></h3>
-      </div>
-      <span class="material-symbols-outlined text-<?= $k['color'] ?> text-2xl"><?= $k['icon'] ?></span>
+
+<!-- Inline styles for admin dashboard -->
+<style>
+@keyframes countUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes barGrow { from { width:0; } to { width:var(--bar-w); } }
+@keyframes pulseRing { 0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.4);opacity:0} }
+.kpi-card { transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease; }
+.kpi-card:hover { transform: translateY(-5px); box-shadow: 0 20px 48px rgba(0,77,153,.18); }
+.kpi-num { animation: countUp .5s ease both; }
+.role-bar { animation: barGrow .8s cubic-bezier(.25,.46,.45,.94) both; }
+.activity-row { transition: background .2s ease; }
+.activity-row:hover { background: rgba(0,77,153,.04); }
+.status-ring { animation: pulseRing 2s ease-in-out infinite; }
+.admin-table tr { transition: background .15s ease; }
+.admin-table tbody tr:hover { background: #f0f5ff; }
+</style>
+
+<!-- KPI Cards -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+<?php
+$totalUsers    = $data['stats']['totalUsers']    ?? 0;
+$totalPatients = $data['stats']['totalPatients'] ?? 0;
+$totalRoles    = isset($data['stats']['usersByRole']) ? count($data['stats']['usersByRole']) : 0;
+
+$kpis = [
+  ['label'=>'Utilisateurs totaux', 'val'=>$totalUsers,    'icon'=>'group',         'from'=>'#004d99','to'=>'#1565c0', 'sub'=>'Tous rôles confondus'],
+  ['label'=>'Patients actifs',     'val'=>$totalPatients, 'icon'=>'personal_injury','from'=>'#005851','to'=>'#00736a', 'sub'=>'Patients enregistrés'],
+  ['label'=>'Rôles système',       'val'=>$totalRoles,    'icon'=>'shield_person',  'from'=>'#4a5f83','to'=>'#6b7db3', 'sub'=>'Types d\'accès définis'],
+  ['label'=>'Statut système',      'val'=>'En ligne',     'icon'=>'verified',       'from'=>'#1b5e20','to'=>'#2e7d32', 'sub'=>'Tous systèmes opérationnels','online'=>true],
+];
+foreach ($kpis as $k): ?>
+<div class="kpi-card rounded-2xl p-6 text-white relative overflow-hidden cursor-default"
+     style="background:linear-gradient(135deg,<?= $k['from'] ?>,<?= $k['to'] ?>);box-shadow:0 8px 24px <?= $k['from'] ?>44;">
+  <!-- bg glow blob -->
+  <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none;"></div>
+  <div class="flex items-start justify-between mb-4">
+    <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;">
+      <span class="material-symbols-outlined text-white" style="font-size:22px;font-variation-settings:'FILL' 1"><?= $k['icon'] ?></span>
     </div>
+    <?php if (!empty($k['online'])): ?>
+    <div style="position:relative;width:10px;height:10px;margin-top:4px;">
+      <div class="status-ring" style="position:absolute;inset:0;border-radius:50%;background:#4ade80;"></div>
+      <div style="position:absolute;inset:0;border-radius:50%;background:#4ade80;"></div>
+    </div>
+    <?php endif; ?>
   </div>
-  <?php endforeach; ?>
+  <p class="kpi-num" style="font-size:2.4rem;font-weight:900;line-height:1;letter-spacing:-1px;"><?= $k['val'] ?></p>
+  <p style="font-size:13px;font-weight:700;margin-top:6px;opacity:.95;"><?= $k['label'] ?></p>
+  <p style="font-size:11px;opacity:.65;margin-top:3px;"><?= $k['sub'] ?></p>
+</div>
+<?php endforeach; ?>
 </section>
 
-<!-- Répartition par rôle -->
-<section class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10">
-  <h3 class="text-xl font-bold text-on-surface mb-6">Répartition par rôle</h3>
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <?php foreach (($data['stats']['usersByRole'] ?? []) as $r): ?>
-    <div class="p-5 bg-surface-container-low rounded-xl border border-outline/5 hover:border-primary/20 transition-all">
-      <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"><?= htmlspecialchars($r['role_name']??'—') ?></p>
-      <p class="text-3xl font-black text-primary mt-3"><?= $r['user_count']??0 ?></p>
+<!-- Role Distribution + System Health -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+  <!-- Role distribution bars -->
+  <div class="lg:col-span-2 bg-white rounded-2xl p-7 border border-slate-100 shadow-sm">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h3 style="font-size:16px;font-weight:800;color:#191c1e;">Répartition des rôles</h3>
+        <p style="font-size:12px;color:#6b7280;margin-top:2px;">Distribution des utilisateurs par type d'accès</p>
+      </div>
+      <span style="background:#eff6ff;color:#004d99;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;"><?= $totalUsers ?> au total</span>
+    </div>
+    <?php
+    $roleColors = ['Admin'=>'#004d99','Patient'=>'#005851','Medecin'=>'#4a5f83','Technicien'=>'#7c3aed','redacteur'=>'#d97706','pharmacien'=>'#0891b2','Fournisseur'=>'#dc2626'];
+    $roles = $data['stats']['usersByRole'] ?? [];
+    $maxCount = max(1, max(array_column($roles, 'user_count') ?: [1]));
+    foreach ($roles as $r):
+      $cnt   = (int)($r['user_count'] ?? 0);
+      $name  = $r['role_name'] ?? '—';
+      $pct   = round($cnt / $maxCount * 100);
+      $color = $roleColors[$name] ?? '#6b7280';
+    ?>
+    <div style="margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:<?= $color ?>;"></div>
+          <span style="font-size:13px;font-weight:600;color:#374151;"><?= htmlspecialchars($name) ?></span>
+        </div>
+        <span style="font-size:13px;font-weight:800;color:<?= $color ?>;"><?= $cnt ?></span>
+      </div>
+      <div style="height:8px;background:#f1f5f9;border-radius:99px;overflow:hidden;">
+        <div class="role-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,<?= $color ?>,<?= $color ?>aa);--bar-w:<?= $pct ?>%;width:<?= $pct ?>%;"></div>
+      </div>
     </div>
     <?php endforeach; ?>
+    <?php if (empty($roles)): ?>
+      <p style="color:#9ca3af;text-align:center;padding:24px 0;">Aucun rôle défini</p>
+    <?php endif; ?>
   </div>
-</section>
 
-<!-- Activité récente + Stats -->
-<section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-  <div class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10">
-    <h3 class="text-xl font-bold text-on-surface mb-6">Activité récente</h3>
-    <div class="space-y-4">
-      <?php foreach (array_slice($data['recentActivity']??[], 0, 5) as $act): ?>
-      <div class="flex items-center space-x-4 p-3 rounded-lg hover:bg-surface-container/50 transition-colors">
-        <div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold">
-          <?= strtoupper(substr($act['prenom']??'?',0,1)) ?>
-        </div>
-        <div class="flex-1">
-          <p class="text-sm font-bold"><?= htmlspecialchars($act['prenom'].' '.$act['nom']) ?> — inscrit</p>
-          <p class="text-xs text-on-surface-variant"><?= htmlspecialchars($act['role_name']??'') ?> · <?= htmlspecialchars($act['mail']) ?></p>
-        </div>
-      </div>
-      <?php endforeach; ?>
-      <?php if (empty($data['recentActivity'])): ?>
-        <p class="text-on-surface-variant text-center py-6">Aucune activité récente</p>
-      <?php endif; ?>
+  <!-- System health panel -->
+  <div class="bg-white rounded-2xl p-7 border border-slate-100 shadow-sm flex flex-col gap-4">
+    <div>
+      <h3 style="font-size:16px;font-weight:800;color:#191c1e;">Santé du système</h3>
+      <p style="font-size:12px;color:#6b7280;margin-top:2px;">Vue d'ensemble en temps réel</p>
     </div>
-  </div>
-  <div class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10">
-    <h3 class="text-xl font-bold mb-6">Statistiques utilisateurs</h3>
-    <div class="space-y-4">
-      <div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline/5">
-        <span class="text-sm font-medium">Total inscrits</span>
-        <span class="text-lg font-black text-primary"><?= $data['stats']['totalUsers']??0 ?></span>
+    <?php
+    $health = [
+      ['label'=>'Base de données',  'status'=>true,  'icon'=>'database'],
+      ['label'=>'Authentification', 'status'=>true,  'icon'=>'lock'],
+      ['label'=>'Serveur web',      'status'=>true,  'icon'=>'dns'],
+      ['label'=>'Stockage fichiers','status'=>true,  'icon'=>'folder'],
+    ];
+    foreach ($health as $h): ?>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:#f8fafc;">
+      <div style="width:36px;height:36px;border-radius:10px;background:<?= $h['status'] ? '#f0fdf4' : '#fff5f5' ?>;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span class="material-symbols-outlined" style="font-size:18px;color:<?= $h['status'] ? '#16a34a' : '#dc2626' ?>;font-variation-settings:'FILL' 1;"><?= $h['icon'] ?></span>
       </div>
-      <div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline/5">
-        <span class="text-sm font-medium">Patients</span>
-        <span class="text-lg font-black text-tertiary"><?= $data['stats']['totalPatients']??0 ?></span>
-      </div>
-      <div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline/5">
-        <span class="text-sm font-medium">Statut système</span>
-        <span class="text-sm font-black text-green-600 flex items-center gap-2"><span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>Opérationnel</span>
-      </div>
+      <span style="flex:1;font-size:13px;font-weight:600;color:#374151;"><?= $h['label'] ?></span>
+      <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:<?= $h['status'] ? '#dcfce7' : '#fee2e2' ?>;color:<?= $h['status'] ? '#15803d' : '#dc2626' ?>;"><?= $h['status'] ? 'OK' : 'Erreur' ?></span>
+    </div>
+    <?php endforeach; ?>
+    <!-- Uptime -->
+    <div style="margin-top:auto;padding:14px;border-radius:12px;background:linear-gradient(135deg,#004d99,#1565c0);color:white;text-align:center;">
+      <p style="font-size:11px;opacity:.7;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Disponibilité</p>
+      <p style="font-size:28px;font-weight:900;letter-spacing:-1px;">99.9<span style="font-size:16px;">%</span></p>
+      <p style="font-size:11px;opacity:.6;">30 derniers jours</p>
     </div>
   </div>
 </section>
 
-<!-- Patients list -->
-<section class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10">
-  <div class="flex justify-between items-center mb-6">
-    <h3 class="text-xl font-bold">Patients enregistrés</h3>
-    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Total : <?= $data['stats']['totalPatients']??0 ?></span>
+<!-- Recent Activity + User Stats -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+  <!-- Activity feed -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div style="padding:24px 28px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <h3 style="font-size:16px;font-weight:800;color:#191c1e;">Activité récente</h3>
+        <p style="font-size:12px;color:#6b7280;margin-top:2px;">Dernières inscriptions sur la plateforme</p>
+      </div>
+      <div style="width:36px;height:36px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-outlined" style="color:#004d99;font-size:18px;">timeline</span>
+      </div>
+    </div>
+    <div style="padding:8px 0;">
+    <?php
+    $acts = array_slice($data['recentActivity'] ?? [], 0, 6);
+    $avatarColors = ['#004d99','#005851','#4a5f83','#7c3aed','#d97706','#0891b2'];
+    foreach ($acts as $i => $act):
+      $initials = strtoupper(substr($act['prenom']??'?',0,1).substr($act['nom']??'',0,1));
+      $bg = $avatarColors[$i % count($avatarColors)];
+      $rColor = $roleColors[$act['role_name']??''] ?? '#6b7280';
+    ?>
+    <div class="activity-row" style="display:flex;align-items:center;gap:14px;padding:12px 28px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:<?= $bg ?>;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="color:white;font-size:13px;font-weight:800;"><?= $initials ?></span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <p style="font-size:13px;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= htmlspecialchars(($act['prenom']??'').' '.($act['nom']??'')) ?></p>
+        <p style="font-size:11px;color:#9ca3af;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= htmlspecialchars($act['mail']??'') ?></p>
+      </div>
+      <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:<?= $rColor ?>18;color:<?= $rColor ?>;flex-shrink:0;"><?= htmlspecialchars($act['role_name']??'—') ?></span>
+    </div>
+    <?php endforeach; ?>
+    <?php if (empty($acts)): ?>
+      <div style="padding:40px;text-align:center;color:#9ca3af;">
+        <span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px;">inbox</span>
+        Aucune activité récente
+      </div>
+    <?php endif; ?>
+    </div>
   </div>
-  <div style="border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
-    <table style="width:100%;border-collapse:collapse;">
-      <tr style="background:#f0fdf4;border-bottom:2px solid #bbf7d0;">
-        <th style="padding:14px 20px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Matricule</th>
-        <th style="padding:14px 20px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Nom</th>
-        <th style="padding:14px 20px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Email</th>
-        <th style="padding:14px 20px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Tél</th>
-      </tr>
-      <?php foreach (($data['patients']??[]) as $p): ?>
-      <tr style="border-bottom:1px solid #f3f4f6;">
-        <td style="padding:13px 20px;font-size:13px;color:#16a34a;font-weight:700;"><?= htmlspecialchars($p['matricule']??'N/A') ?></td>
-        <td style="padding:13px 20px;font-size:13px;font-weight:600;"><?= htmlspecialchars($p['prenom'].' '.$p['nom']) ?></td>
-        <td style="padding:13px 20px;font-size:13px;color:#6b7280;"><?= htmlspecialchars($p['mail']) ?></td>
-        <td style="padding:13px 20px;font-size:13px;"><?= htmlspecialchars($p['tel']??'—') ?></td>
-      </tr>
+
+  <!-- User stats breakdown -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div style="padding:24px 28px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <h3 style="font-size:16px;font-weight:800;color:#191c1e;">Statistiques utilisateurs</h3>
+        <p style="font-size:12px;color:#6b7280;margin-top:2px;">Métriques clés de la plateforme</p>
+      </div>
+      <div style="width:36px;height:36px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-outlined" style="color:#004d99;font-size:18px;font-variation-settings:'FILL' 1;">bar_chart</span>
+      </div>
+    </div>
+    <div style="padding:20px 28px;display:flex;flex-direction:column;gap:14px;">
+    <?php
+    $statRows = [
+      ['label'=>'Total inscrits',      'val'=>$totalUsers,    'icon'=>'group',          'color'=>'#004d99','bg'=>'#eff6ff'],
+      ['label'=>'Patients',            'val'=>$totalPatients, 'icon'=>'personal_injury', 'color'=>'#005851','bg'=>'#f0fdf4'],
+      ['label'=>'Rôles définis',       'val'=>$totalRoles,    'icon'=>'shield_person',   'color'=>'#4a5f83','bg'=>'#f0f4ff'],
+      ['label'=>'Admins actifs',       'val'=>count(array_filter($data['stats']['usersByRole']??[],fn($r)=>($r['role_name']??'')==='Admin')), 'icon'=>'manage_accounts','color'=>'#7c3aed','bg'=>'#f5f3ff'],
+    ];
+    foreach ($statRows as $s): ?>
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:<?= $s['bg'] ?>;border:1px solid <?= $s['color'] ?>18;">
+      <div style="width:38px;height:38px;border-radius:10px;background:<?= $s['color'] ?>22;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span class="material-symbols-outlined" style="color:<?= $s['color'] ?>;font-size:18px;font-variation-settings:'FILL' 1;"><?= $s['icon'] ?></span>
+      </div>
+      <span style="flex:1;font-size:13px;font-weight:600;color:#374151;"><?= $s['label'] ?></span>
+      <span style="font-size:22px;font-weight:900;color:<?= $s['color'] ?>;"><?= $s['val'] ?></span>
+    </div>
+    <?php endforeach; ?>
+    <!-- System status -->
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,#004d9908,#1565c008);border:1px solid #004d9920;margin-top:4px;">
+      <div style="position:relative;width:10px;height:10px;flex-shrink:0;">
+        <div style="position:absolute;inset:0;border-radius:50%;background:#22c55e;animation:pulseRing 2s ease-in-out infinite;"></div>
+        <div style="position:absolute;inset:0;border-radius:50%;background:#22c55e;"></div>
+      </div>
+      <span style="flex:1;font-size:13px;font-weight:600;color:#374151;">Statut système</span>
+      <span style="font-size:13px;font-weight:800;color:#16a34a;">Opérationnel</span>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- Patients Table -->
+<section class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+  <div style="padding:24px 28px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <h3 style="font-size:16px;font-weight:800;color:#191c1e;">Patients enregistrés</h3>
+      <p style="font-size:12px;color:#6b7280;margin-top:2px;">Liste complète des patients de la plateforme</p>
+    </div>
+    <span style="background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;border:1px solid #bbf7d0;"><?= $totalPatients ?> patients</span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="admin-table" style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th style="padding:13px 24px;text-align:left;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #f1f5f9;">Matricule</th>
+          <th style="padding:13px 24px;text-align:left;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #f1f5f9;">Patient</th>
+          <th style="padding:13px 24px;text-align:left;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #f1f5f9;">Email</th>
+          <th style="padding:13px 24px;text-align:left;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #f1f5f9;">Téléphone</th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php foreach (($data['patients']??[]) as $i => $p):
+        $avatarBg = $avatarColors[$i % count($avatarColors)];
+        $initials2 = strtoupper(substr($p['prenom']??'?',0,1).substr($p['nom']??'',0,1));
+      ?>
+        <tr style="border-bottom:1px solid #f8fafc;">
+          <td style="padding:14px 24px;">
+            <span style="font-size:12px;font-weight:700;color:#15803d;background:#f0fdf4;padding:3px 10px;border-radius:20px;border:1px solid #bbf7d0;"><?= htmlspecialchars($p['matricule']??'N/A') ?></span>
+          </td>
+          <td style="padding:14px 24px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:34px;height:34px;border-radius:10px;background:<?= $avatarBg ?>;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span style="color:white;font-size:12px;font-weight:800;"><?= $initials2 ?></span>
+              </div>
+              <span style="font-size:13px;font-weight:700;color:#111827;"><?= htmlspecialchars(($p['prenom']??'').' '.($p['nom']??'')) ?></span>
+            </div>
+          </td>
+          <td style="padding:14px 24px;font-size:13px;color:#6b7280;"><?= htmlspecialchars($p['mail']??'') ?></td>
+          <td style="padding:14px 24px;font-size:13px;font-weight:600;color:#374151;"><?= htmlspecialchars($p['tel']??'—') ?></td>
+        </tr>
       <?php endforeach; ?>
       <?php if (empty($data['patients'])): ?>
-      <tr><td colspan="4" style="padding:40px;text-align:center;color:#9ca3af;">Aucun patient</td></tr>
+        <tr><td colspan="4" style="padding:48px;text-align:center;color:#9ca3af;">
+          <span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px;">person_off</span>
+          Aucun patient enregistré
+        </td></tr>
       <?php endif; ?>
+      </tbody>
     </table>
   </div>
 </section>
 
+
 <?php elseif ($role === 'Patient'): ?>
 <!-- ═══════════════ PATIENT ═══════════════ -->
-<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+<!-- Restart Tour Button (if onboarding completed) -->
+<?php if (!($data['show_tour'] ?? false)): ?>
+<div class="mb-6 flex justify-end">
+    <button class="restart-tour-btn" onclick="mediflowTour.restart()">
+        <span class="material-symbols-outlined">tour</span>
+        <span>Relancer la visite guidée</span>
+    </button>
+</div>
+<?php endif; ?>
+
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 dashboard-stats">
   <?php
   $pCards = [
     ['label'=>'Total réservations','val'=>$data['nbTotal']??0,'icon'=>'receipt_long','color'=>'#004d99','bg'=>'#eff6ff'],
@@ -140,7 +308,7 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
 </section>
 
 <!-- Dernières réservations -->
-<section class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10">
+<section class="hover-lift bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-8 rounded-xl shadow-sm border border-outline/10 reservations-table">
   <div class="flex justify-between items-center mb-6">
     <h3 class="text-xl font-bold">Mes dernières réservations</h3>
     <a href="/integration/mes-reservations" class="text-sm font-bold text-primary hover:underline">Voir tout →</a>
@@ -177,7 +345,7 @@ $prenom = htmlspecialchars($cu['prenom'] ?? 'Utilisateur');
 </section>
 
 <!-- Quick actions -->
-<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6 quick-actions">
   <a href="/integration/catalogue" class="hover-lift flex items-center gap-5 p-6 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl shadow-lg transition-all">
     <span class="material-symbols-outlined text-4xl opacity-80">medical_services</span>
     <div>

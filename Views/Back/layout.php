@@ -101,20 +101,28 @@
         aside::-webkit-scrollbar-track { background: transparent; }
         aside::-webkit-scrollbar-thumb { background: #c2c6d4; border-radius: 2px; }
     </style>
+    
+    <!-- Intro.js for onboarding tour (always loaded for Patient so Restart button works) -->
+    <?php if (isset($data['show_tour'])): ?>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
+    <link href="/integration/assets/css/tour.css" rel="stylesheet">
+    <?php endif; ?>
 </head>
-<body class="bg-surface text-on-surface">
+<body class="bg-surface text-on-surface" data-show-tour="<?= ($data['show_tour'] ?? false) ? 'true' : 'false' ?>">
 
 <?php
 /* ──────────────────────────────────────────────
    Navigation helpers
    ────────────────────────────────────────────── */
-$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 $role        = trim($_SESSION['user']['role'] ?? '');
 $userName    = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? 'User'));
 $userInitial = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1));
 
 /* Returns Tailwind classes for a sidebar link */
 function sidebarLink(string $href, string $currentPath, array $excludes = []): string {
+    // Remove trailing slashes for comparison
     $currentPathClean = rtrim($currentPath, '/');
     $hrefClean = rtrim($href, '/');
 
@@ -124,10 +132,17 @@ function sidebarLink(string $href, string $currentPath, array $excludes = []): s
         }
     }
 
-    $active = $currentPathClean === $hrefClean
-           || (strlen($hrefClean) > 20 && str_starts_with($currentPathClean, $hrefClean . '/'));
+    // Exact match (including query string)
+    if ($currentPathClean === $hrefClean) {
+        return 'nav-link-active';
+    }
+    
+    // Prefix match for longer paths
+    if (strlen($hrefClean) > 20 && str_starts_with($currentPathClean, $hrefClean . '/')) {
+        return 'nav-link-active';
+    }
            
-    return $active ? 'nav-link-active' : 'text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary';
+    return 'text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary';
 }
 
 /* Auto-open a details group if current path starts with given prefix */
@@ -169,19 +184,19 @@ function groupOpen(string $prefix, string $currentPath): string {
         <details class="nav-group" <?= groupOpen('/integration/admin', $currentPath) ?>>
             <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
                 <span class="material-symbols-outlined text-xl">manage_accounts</span>
-                <span class="flex-1">User Management</span>
+                <span class="flex-1">Gestion des utilisateurs</span>
                 <span class="material-symbols-outlined text-base chevron">chevron_right</span>
             </summary>
             <div class="mt-1 ml-4 pl-3 border-l-2 border-primary-fixed space-y-0.5">
                 <a href="/integration/admin"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/admin', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">people</span>
-                    <span>All Users</span>
+                    <span>Tous les utilisateurs</span>
                 </a>
                 <a href="/integration/admin?action=create"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/admin?action=create', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">person_add</span>
-                    <span>Add User</span>
+                    <span>Ajouter un utilisateur</span>
                 </a>
             </div>
         </details>
@@ -469,22 +484,40 @@ function groupOpen(string $prefix, string $currentPath): string {
     </nav><!-- /nav -->
 
 
-    <!-- User + logout -->
-    <div class="flex-shrink-0 border-t border-outline-variant/30 p-4 space-y-1">
-        <a href="/integration/profile"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150">
-            <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary text-sm font-bold flex-shrink-0">
-                <?= $userInitial ?>
+    <!-- Sidebar bottom: Profile widget + Logout -->
+    <div class="flex-shrink-0 border-t border-outline-variant/30 p-3 space-y-1">
+
+        <!-- Profile card -->
+        <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary-fixed/20">
+            <!-- Avatar: real pic or initial -->
+            <div class="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden bg-primary-container flex items-center justify-center text-on-primary text-sm font-bold ring-2 ring-primary/20">
+                <?php
+                $sidebarPic = $_SESSION['user']['profile_pic'] ?? null;
+                if (!empty($sidebarPic)): ?>
+                    <img src="<?= htmlspecialchars($sidebarPic) ?>?t=<?= time() ?>" alt="Profile" class="w-full h-full object-cover">
+                <?php else: ?>
+                    <?= $userInitial ?>
+                <?php endif; ?>
             </div>
+            <!-- Name + role -->
             <div class="flex-1 min-w-0">
                 <p class="text-xs font-bold text-on-surface truncate"><?= htmlspecialchars($userName) ?></p>
                 <p class="text-[10px] text-on-surface-variant truncate"><?= htmlspecialchars($role) ?></p>
             </div>
+        </div>
+
+        <!-- Mon Profil -->
+        <a href="/integration/profile"
+           class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 group">
+            <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors" style="font-variation-settings:'FILL' 0">manage_accounts</span>
+            <span>Mon Profil</span>
         </a>
+
+        <!-- Logout -->
         <a href="/integration/logout"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-error-container/30 hover:text-error transition-all duration-150">
-            <span class="material-symbols-outlined text-xl">logout</span>
-            <span>Logout</span>
+           class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-error-container/30 hover:text-error transition-all duration-150 group">
+            <span class="material-symbols-outlined text-xl group-hover:text-error transition-colors">logout</span>
+            <span>Déconnexion</span>
         </a>
     </div>
 
@@ -596,8 +629,14 @@ function groupOpen(string $prefix, string $currentPath): string {
                     <p class="text-sm font-bold text-on-surface"><?= htmlspecialchars($userName) ?></p>
                     <p class="text-[10px] text-on-surface-variant"><?= htmlspecialchars($role) ?></p>
                 </div>
-                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-on-primary font-bold text-sm shadow-sm">
-                    <?= $userInitial ?>
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-on-primary font-bold text-sm shadow-sm overflow-hidden">
+                    <?php 
+                    $profilePic = $currentUser['profile_pic'] ?? $_SESSION['user']['profile_pic'] ?? null;
+                    if (!empty($profilePic)): 
+                    ?>
+                        <img src="<?= htmlspecialchars($profilePic) ?>?t=<?= time() ?>" alt="Profile" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                    <?php endif; ?>
+                    <span class="<?= !empty($profilePic) ? 'hidden' : '' ?>"><?= $userInitial ?></span>
                 </div>
             </a>
         </div>
@@ -892,5 +931,11 @@ function groupOpen(string $prefix, string $currentPath): string {
         }).catch(() => {});
 })();
 </script>
+
+<!-- Onboarding Tour Script -->
+<?php if (isset($data['show_tour'])): ?>
+<script src="/integration/assets/js/tour.js"></script>
+<?php endif; ?>
+
 </body>
 </html>
