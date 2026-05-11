@@ -12,6 +12,7 @@
 namespace Controllers;
 
 use Core\SessionHelper;
+use Services\MailService;
 
 class FournisseurController
 {
@@ -293,6 +294,17 @@ class FournisseurController
                 $orderModel->restoreStock($orderId);
             }
             $orderModel->updateOrderStatus($orderId, $newStatut);
+
+            // Notification email — commande validée
+            if ($newStatut === \Order::STATUT_VALIDEE) {
+                try {
+                    $commandeAvecLignes = $orderModel->getOrderWithLines($orderId);
+                    (new MailService())->sendOrderValidated($orderId, $commandeAvecLignes);
+                } catch (\Throwable $e) {
+                    error_log('[MailService] sendOrderValidated: ' . $e->getMessage());
+                }
+            }
+
             $labels = [
                 \Order::STATUT_VALIDEE    => 'Validée',
                 \Order::STATUT_LIVREE     => 'Livrée',

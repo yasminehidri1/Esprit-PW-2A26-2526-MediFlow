@@ -265,6 +265,26 @@ class App
             return;
         }
 
+        // ── Facture PDF ───────────────────────────────────────────────────────
+        if (preg_match('#^/stock/orders/invoice(?:/|$)#', $path)) {
+            (new \Controllers\InvoiceController())->download();
+            return;
+        }
+        if (preg_match('#^/fournisseur/orders/invoice(?:/|$)#', $path)) {
+            (new \Controllers\InvoiceController())->download();
+            return;
+        }
+
+        // ── Paiement Stripe — Pharmacien ─────────────────────────────────────
+        if (preg_match('#^/stock/payment/success(?:/|$)#', $path)) {
+            (new \Controllers\PaymentController())->success();
+            return;
+        }
+        if (preg_match('#^/stock/payment/cancel(?:/|$)#', $path)) {
+            (new \Controllers\PaymentController())->cancel();
+            return;
+        }
+
         // ── Stock Médicament module — Pharmacien ──────────────────────────────
         // Commandes
         if (preg_match('#^/stock/orders/create(?:/|$)#', $path)) {

@@ -14,6 +14,7 @@
 namespace Controllers;
 
 use Core\SessionHelper;
+use Services\MailService;
 
 class StockMedicamentController
 {
@@ -28,6 +29,7 @@ class StockMedicamentController
         require_once __DIR__ . '/../Models/Product.php';
         require_once __DIR__ . '/../Models/Order.php';
         require_once __DIR__ . '/../config.php';
+        require_once __DIR__ . '/../config_stripe.php';
     }
 
     private function requireRole(): void
@@ -191,11 +193,41 @@ class StockMedicamentController
             $matricule  = $_SESSION['user']['matricule'] ?? null;
             $commandeId = $orderModel->createOrder($cart, $matricule);
 
+            // Notification email — commande créée
+            try {
+                (new MailService())->sendOrderCreated($commandeId, $cart, $matricule ?? 'Inconnu');
+            } catch (\Throwable $e) {
+                error_log('[MailService] sendOrderCreated: ' . $e->getMessage());
+            }
+
+            // Création session Stripe Checkout
+            \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
+            $lineItems = [];
+            foreach ($cart as $item) {
+                $lineItems[] = [
+                    'price_data' => [
+                        'currency'     => STRIPE_CURRENCY,
+                        'product_data' => ['name' => $item['nom']],
+                        'unit_amount'  => (int) round(floatval($item['prix_unitaire']) * 100),
+                    ],
+                    'quantity' => (int) ($item['quantite'] ?? 1),
+                ];
+            }
+            $stripeSession = \Stripe\Checkout\Session::create([
+                'payment_method_types' => ['card'],
+                'line_items'           => $lineItems,
+                'mode'                 => 'payment',
+                'success_url'          => APP_BASE_URL . '/stock/payment/success?session_id={CHECKOUT_SESSION_ID}&order_id=' . $commandeId,
+                'cancel_url'           => APP_BASE_URL . '/stock/payment/cancel?order_id=' . $commandeId,
+                'metadata'             => ['order_id' => $commandeId],
+            ]);
+            $orderModel->saveStripeSession($commandeId, $stripeSession->id);
+
             echo json_encode([
-                'success'     => true,
-                'message'     => 'Commande créée avec succès.',
-                'commande_id' => $commandeId,
-                'redirect'    => '/integration/stock/orders/view?id=' . $commandeId,
+                'success'      => true,
+                'message'      => 'Redirection vers le paiement...',
+                'commande_id'  => $commandeId,
+                'checkout_url' => $stripeSession->url,
             ]);
         } catch (\Exception $e) {
             http_response_code(400);

@@ -232,14 +232,12 @@ if ($editOrderId) {
             const totalQty = cartData.reduce((sum, item) => sum + item.quantite, 0);
             const totalPrice = cart.getTotalPrice();
 
-            document.getElementById('summary-items').textContent = totalItems;
-            document.getElementById('summary-qty').textContent = totalQty;
-            document.getElementById('summary-total').textContent = totalPrice.toFixed(2);
-            document.getElementById('cart-total-items').textContent = totalQty;
-            
-            // Mettre à jour la barre de progression (max 50 articles)
-            const progress = Math.min((totalQty / 50) * 100, 100);
-            document.getElementById('cart-progress').style.width = progress + '%';
+            const el = id => document.getElementById(id);
+            if (el('summary-items'))  el('summary-items').textContent  = totalItems;
+            if (el('summary-qty'))    el('summary-qty').textContent    = totalQty;
+            if (el('summary-total'))  el('summary-total').textContent  = totalPrice.toFixed(2);
+            if (el('cart-total-items')) el('cart-total-items').textContent = totalQty;
+            if (el('cart-progress'))  el('cart-progress').style.width  = Math.min((totalQty / 50) * 100, 100) + '%';
         }
 
         /**
@@ -302,13 +300,16 @@ if ($editOrderId) {
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    const message = isEdit ? '✅ Commande modifiée avec succès!' : '✅ Commande créée avec succès!';
-                    cart.showToast(message, 'success');
+                if (data.success && data.checkout_url) {
+                    // Redirection vers Stripe Checkout
+                    cart.clearCart();
+                    window.location.href = data.checkout_url;
+                } else if (data.success) {
+                    cart.showToast('✅ Commande créée avec succès!', 'success');
                     cart.clearCart();
                     setTimeout(() => {
-                        window.location.href = data.redirect || '?action=orders&method=list';
-                    }, 2000);
+                        window.location.href = data.redirect || '/integration/stock/orders';
+                    }, 1500);
                 } else {
                     cart.showToast('❌ ' + (data.message || 'Erreur lors de la validation'), 'error');
                     btn.disabled = false;

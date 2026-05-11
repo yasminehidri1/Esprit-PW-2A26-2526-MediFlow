@@ -12,6 +12,9 @@
 
 declare(strict_types=1);
 
+// Composer autoloader (PHPMailer + Services\)
+require_once __DIR__ . '/vendor/autoload.php';
+
 // Load the autoloader
 require_once __DIR__ . '/Core/Autoloader.php';
 \Core\Autoloader::register();

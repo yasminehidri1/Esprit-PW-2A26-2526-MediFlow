@@ -134,6 +134,16 @@ function sidebarLink(string $href, string $currentPath, array $excludes = []): s
 function groupOpen(string $prefix, string $currentPath): string {
     return str_contains($currentPath, $prefix) ? 'open' : '';
 }
+
+// Alertes stock bas — pharmacien & Admin uniquement
+$stockAlerts = [];
+if (in_array($role, ['Admin', 'pharmacien'])) {
+    try {
+        if (!class_exists('config'))  require_once __DIR__ . '/../../config.php';
+        if (!class_exists('Product')) require_once __DIR__ . '/../../Models/Product.php';
+        $stockAlerts = (new \Product())->getLowStock();
+    } catch (\Throwable $e) { /* ne pas casser le layout */ }
+}
 ?>
 
 <!-- ═══════════════════════════════════════════ -->
@@ -507,10 +517,71 @@ function groupOpen(string $prefix, string $currentPath): string {
 
 
             <!-- Notification bell -->
-            <button class="relative p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 rounded-xl transition-all">
-                <span class="material-symbols-outlined text-xl">notifications</span>
-                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-            </button>
+            <div class="relative" id="notif-wrapper">
+                <button id="notif-btn" onclick="toggleNotif(event)"
+                        class="relative p-2 text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 rounded-xl transition-all">
+                    <span class="material-symbols-outlined text-xl">notifications</span>
+                    <?php if (!empty($stockAlerts)): ?>
+                    <span class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
+                        <?= count($stockAlerts) ?>
+                    </span>
+                    <?php endif; ?>
+                </button>
+
+                <!-- Dropdown alertes -->
+                <div id="notif-dropdown"
+                     class="hidden absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-outline-variant/30 z-50 overflow-hidden">
+
+                    <!-- Header -->
+                    <div class="px-4 py-3 border-b border-outline-variant/20 flex items-center justify-between bg-surface-container-low">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base text-error" style="font-variation-settings:'FILL' 1">warning</span>
+                            <span class="font-semibold text-sm text-on-surface">Alertes stock</span>
+                        </div>
+                        <?php if (!empty($stockAlerts)): ?>
+                        <span class="bg-error text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                            <?= count($stockAlerts) ?> produit<?= count($stockAlerts) > 1 ? 's' : '' ?>
+                        </span>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if (empty($stockAlerts)): ?>
+                    <!-- Aucune alerte -->
+                    <div class="px-4 py-7 text-center">
+                        <span class="material-symbols-outlined text-4xl text-tertiary block mb-2" style="font-variation-settings:'FILL' 1">check_circle</span>
+                        <p class="text-sm font-medium text-on-surface">Tous les stocks sont OK</p>
+                        <p class="text-xs text-on-surface-variant mt-1">Aucun produit sous le seuil d'alerte</p>
+                    </div>
+                    <?php else: ?>
+                    <!-- Liste produits en alerte -->
+                    <div class="max-h-72 overflow-y-auto divide-y divide-outline-variant/10">
+                        <?php foreach ($stockAlerts as $alert): ?>
+                        <a href="/integration/stock/products"
+                           class="flex items-center gap-3 px-4 py-3 hover:bg-error-container/20 transition-colors group">
+                            <div class="w-9 h-9 bg-error-container rounded-xl flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-error text-lg" style="font-variation-settings:'FILL' 1">medication</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-on-surface truncate"><?= htmlspecialchars($alert['nom']) ?></p>
+                                <p class="text-xs text-error font-medium">
+                                    Stock : <strong><?= (int)$alert['quantite_disponible'] ?></strong>
+                                    &nbsp;/&nbsp; seuil : <?= (int)$alert['seuil_alerte'] ?>
+                                </p>
+                            </div>
+                            <span class="material-symbols-outlined text-on-surface-variant text-base group-hover:text-error transition-colors">chevron_right</span>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                    <!-- Footer lien -->
+                    <div class="px-4 py-2.5 border-t border-outline-variant/20 bg-surface-container-low">
+                        <a href="/integration/stock/products" class="text-xs text-primary font-semibold hover:underline">
+                            Voir tous les produits →
+                        </a>
+                    </div>
+                    <?php endif; ?>
+
+                </div>
+            </div>
 
             <!-- User pill -->
             <a href="/integration/profile" class="flex items-center gap-3 pl-4 border-l border-outline-variant/30 hover:opacity-80 transition-opacity">
@@ -602,5 +673,17 @@ function groupOpen(string $prefix, string $currentPath): string {
 </div>
 
 <script src="/integration/assets/js_magazine/backOffice.js"></script>
+<script>
+function toggleNotif(e) {
+    e.stopPropagation();
+    document.getElementById('notif-dropdown').classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    var w = document.getElementById('notif-wrapper');
+    if (w && !w.contains(e.target)) {
+        document.getElementById('notif-dropdown').classList.add('hidden');
+    }
+});
+</script>
 </body>
 </html>

@@ -50,9 +50,15 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
             </a>
             <h1 class="text-xl font-bold text-on-surface font-['Manrope']">Commande #<?= $commande['id'] ?></h1>
         </div>
-        <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-colors">
-            <span class="material-symbols-outlined text-base">print</span> Imprimer
-        </button>
+        <div class="flex items-center gap-2">
+            <a href="/integration/stock/orders/invoice?id=<?= $commande['id'] ?>"
+               class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors">
+                <span class="material-symbols-outlined text-base">picture_as_pdf</span> Télécharger PDF
+            </a>
+            <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-colors">
+                <span class="material-symbols-outlined text-base">print</span> Imprimer
+            </button>
+        </div>
     </div>
 </header>
 
@@ -73,9 +79,15 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
         <span class="text-outline/40">/</span>
         <span class="text-on-surface font-bold text-sm">Commande #<?= $commande['id'] ?></span>
     </div>
-    <button onclick="window.print()" class="flex items-center gap-2 px-3 py-1.5 bg-surface-container text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-high transition-colors">
-        <span class="material-symbols-outlined text-base">print</span> Imprimer
-    </button>
+    <div class="flex items-center gap-2">
+        <a href="/integration/stock/orders/invoice?id=<?= $commande['id'] ?>"
+           class="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+            <span class="material-symbols-outlined text-base">picture_as_pdf</span> PDF
+        </a>
+        <button onclick="window.print()" class="flex items-center gap-2 px-3 py-1.5 bg-surface-container text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-high transition-colors">
+            <span class="material-symbols-outlined text-base">print</span> Imprimer
+        </button>
+    </div>
 </div>
 <?php endif; ?>
 
