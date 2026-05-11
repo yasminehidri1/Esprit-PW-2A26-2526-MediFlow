@@ -149,6 +149,16 @@ function sidebarLink(string $href, string $currentPath, array $excludes = []): s
 function groupOpen(string $prefix, string $currentPath): string {
     return str_contains($currentPath, $prefix) ? 'open' : '';
 }
+
+// Alertes stock bas — pharmacien & Admin uniquement
+$stockAlerts = [];
+if (in_array($role, ['Admin', 'pharmacien'])) {
+    try {
+        if (!class_exists('config'))  require_once __DIR__ . '/../../config.php';
+        if (!class_exists('Product')) require_once __DIR__ . '/../../Models/Product.php';
+        $stockAlerts = (new \Product())->getLowStock();
+    } catch (\Throwable $e) { /* ne pas casser le layout */ }
+}
 ?>
 
 <!-- ═══════════════════════════════════════════ -->
@@ -719,223 +729,176 @@ function groupOpen(string $prefix, string $currentPath): string {
 </div>
 
 <script src="/integration/assets/js_magazine/backOffice.js"></script>
-<script>
-// ── Notification dropdown (back-office nav) ──────────────────
-(function () {
-    const btn       = document.getElementById('boNotifBtn');
-    const dropdown  = document.getElementById('boNotifDropdown');
-    const list      = document.getElementById('boNotifList');
-    const badge     = document.getElementById('boNotifBadge');
-    const markAllBtn= document.getElementById('boNotifMarkAll');
-    const wrap      = document.getElementById('boNotifWrap');
-    if (!btn) return;
 
-    let open = false;
+<script>
+/* ── Notification bell ── */
+(function () {
+    const btn      = document.getElementById('boNotifBtn');
+    const dropdown = document.getElementById('boNotifDropdown');
+    const badge    = document.getElementById('boNotifBadge');
+    const list     = document.getElementById('boNotifList');
+    const markAll  = document.getElementById('boNotifMarkAll');
+
+    if (!btn || !dropdown) return;
 
     const colorMap = {
-        rose:    { bg: '#fff1f2', icon: '#f43f5e' },
-        blue:    { bg: '#eff6ff', icon: '#3b82f6' },
-        violet:  { bg: '#f5f3ff', icon: '#8b5cf6' },
-        primary: { bg: '#eff6ff', icon: '#004d99' },
+        primary:   'bg-primary/10 text-primary',
+        secondary: 'bg-secondary/10 text-secondary',
+        tertiary:  'bg-tertiary-container text-on-tertiary-fixed',
+        error:     'bg-error-container text-error',
     };
 
-    function esc(s) {
-        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-    function timeAgo(str) {
-        const d = (Date.now() - new Date(str.replace(' ','T')).getTime()) / 1000;
-        if (d < 60)    return 'Just now';
-        if (d < 3600)  return Math.floor(d/60)   + 'm ago';
-        if (d < 86400) return Math.floor(d/3600)  + 'h ago';
-        return Math.floor(d/86400) + 'd ago';
-    }
-
-    function renderNotifs(items) {
-        if (!items.length) {
-            list.innerHTML = '<p class="text-sm text-slate-400 text-center py-10">No notifications yet.</p>';
-            return;
-        }
-        list.innerHTML = items.map(n => {
-            const c = colorMap[n.color] || colorMap.primary;
-            return `
-            <div class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer notif-row ${n.is_read ? 'opacity-60' : ''}"
-                 data-id="${n.id}">
-              <div style="min-width:34px;height:34px;border-radius:10px;background:${c.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px">
-                <span class="material-symbols-outlined" style="font-size:16px;color:${c.icon}">${esc(n.icon)}</span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-xs font-bold text-slate-800 leading-snug">${esc(n.title)}</p>
-                <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-2">${esc(n.message)}</p>
-                <p class="text-[10px] text-slate-400 mt-1">${timeAgo(n.created_at)}</p>
-              </div>
-              ${!n.is_read ? '<span style="min-width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-top:6px;flex-shrink:0;display:inline-block"></span>' : ''}
-            </div>`;
-        }).join('');
-
-        list.querySelectorAll('.notif-row').forEach(el => {
-            el.addEventListener('click', async function () {
-                const id = this.dataset.id;
-                await fetch('/integration/magazine/notifications/read', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: parseInt(id) })
-                });
-                this.classList.add('opacity-60');
-                this.querySelector('span[style*="border-radius:50%"]')?.remove();
-            });
-        });
-    }
-
-    function updateBadge(n) {
-        if (n > 0) {
-            badge.textContent = n > 99 ? '99+' : n;
-            badge.classList.remove('hidden');
-            badge.classList.add('flex');
-        } else {
-            badge.classList.add('hidden');
-            badge.classList.remove('flex');
-        }
-    }
-
-    async function load() {
-        list.innerHTML = `<div class="flex justify-center py-8"><span class="material-symbols-outlined text-2xl text-slate-300 animate-spin" style="animation-duration:1.4s">progress_activity</span></div>`;
-        try {
-            const res  = await fetch('/integration/magazine/notifications');
-            const data = await res.json();
-            renderNotifs(data.notifications || []);
-            updateBadge(data.unread || 0);
-        } catch(e) {
-            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-8">Could not load notifications.</p>';
-        }
-    }
-
-    btn.addEventListener('click', e => {
-        e.stopPropagation();
-        open = !open;
-        dropdown.classList.toggle('hidden', !open);
-        if (open) load();
-    });
-
-    document.addEventListener('click', e => {
-        if (open && !wrap.contains(e.target)) { open = false; dropdown.classList.add('hidden'); }
-    });
-
-    markAllBtn?.addEventListener('click', async () => {
-        await fetch('/integration/magazine/notifications/read', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
-        });
-        updateBadge(0);
-        list.querySelectorAll('.notif-row').forEach(el => {
-            el.classList.add('opacity-60');
-            el.querySelector('span[style*="border-radius:50%"]')?.remove();
-        });
-    });
-
-    // Badge on page load + poll every 30s
-    async function pollBadge() {
-        try {
-            const res  = await fetch('/integration/magazine/notifications');
-            const data = await res.json();
-            updateBadge(data.unread || 0);
-        } catch(e) {}
-    }
-    pollBadge();
-    setInterval(pollBadge, 30000);
-})();
-
-// ── Bookmark dropdown (back-office nav) ──────────────────────
-(function () {
-    const btn      = document.getElementById('bkNavBtn');
-    const dropdown = document.getElementById('bkNavDropdown');
-    const list     = document.getElementById('bkNavList');
-    const badge    = document.getElementById('bkNavBadge');
-    const wrap     = document.getElementById('bkNavWrap');
-    if (!btn) return;
-
-    let open = false;
-
-    function esc(s) {
-        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-    function timeAgo(str) {
-        const d = (Date.now() - new Date(str.replace(' ','T')).getTime()) / 1000;
-        if (d < 60)    return 'Just now';
-        if (d < 3600)  return Math.floor(d/60)   + 'm ago';
-        if (d < 86400) return Math.floor(d/3600)  + 'h ago';
-        return Math.floor(d/86400) + 'd ago';
-    }
-
-    function renderList(items) {
-        if (!items.length) {
-            list.innerHTML = `
-              <div class="flex flex-col items-center py-10 px-4 text-center">
-                <span class="material-symbols-outlined text-4xl text-blue-200 mb-3">bookmark_border</span>
-                <p class="text-sm font-semibold text-slate-600 mb-1">No saved articles yet</p>
-                <p class="text-xs text-slate-400">Open an article and tap the bookmark icon to save it.</p>
-              </div>`;
-            badge.classList.add('hidden');
-            return;
-        }
-        badge.textContent = items.length > 99 ? '99+' : items.length;
-        badge.classList.remove('hidden');
-        badge.classList.add('flex');
-
-        list.innerHTML = items.map(b => `
-          <a href="/integration/magazine/article?id=${b.id}"
-             class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50/60 transition-colors group">
-            ${b.image_url
-              ? `<img src="${esc(b.image_url)}" alt="" class="w-11 h-11 rounded-lg object-cover flex-shrink-0"/>`
-              : `<div class="w-11 h-11 rounded-lg bg-gradient-to-br from-blue-100 to-sky-100 flex items-center justify-center flex-shrink-0">
-                   <span class="material-symbols-outlined text-blue-300 text-lg">article</span>
-                 </div>`}
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors">${esc(b.titre)}</p>
-              <div class="flex items-center gap-1.5 mt-1">
-                <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">${esc(b.categorie)}</span>
-                <span class="text-[10px] text-slate-400">${timeAgo(b.bookmarked_at)}</span>
-              </div>
+    function renderItem(n) {
+        const iconColor = colorMap[n.color] || colorMap.primary;
+        const unreadDot = !n.is_read
+            ? '<span class="w-2 h-2 rounded-full bg-primary flex-shrink-0"></span>'
+            : '<span class="w-2 h-2 flex-shrink-0"></span>';
+        return `
+        <div class="flex items-start gap-3 px-5 py-3.5 hover:bg-surface-container-low transition-colors cursor-default ${!n.is_read ? 'bg-primary-fixed/10' : ''}">
+            <div class="w-9 h-9 rounded-xl ${iconColor} flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span class="material-symbols-outlined text-[18px]">${n.icon}</span>
             </div>
-          </a>`).join('');
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-on-surface truncate">${n.title}</p>
+                <p class="text-xs text-on-surface-variant line-clamp-2">${n.message}</p>
+                <p class="text-[10px] text-on-surface-variant/60 mt-1">${n.time_ago}</p>
+            </div>
+            ${unreadDot}
+        </div>`;
     }
 
-    async function load() {
-        list.innerHTML = `<div class="flex justify-center py-8"><span class="material-symbols-outlined text-2xl text-slate-300 animate-spin" style="animation-duration:1.4s">progress_activity</span></div>`;
-        try {
-            const res  = await fetch('/integration/magazine/bookmarks/data');
-            const data = await res.json();
-            renderList(data.bookmarks || []);
-        } catch(e) {
-            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-8">Could not load bookmarks.</p>';
-        }
+    function loadNotifications() {
+        fetch('/integration/api/notifications')
+            .then(r => r.ok ? r.json() : Promise.reject(r.status))
+            .then(data => {
+                const count = data.unread_count || 0;
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+
+                if (!data.notifications || data.notifications.length === 0) {
+                    list.innerHTML = '<div class="flex flex-col items-center justify-center py-10 text-on-surface-variant"><span class="material-symbols-outlined text-3xl mb-2">notifications_off</span><p class="text-sm">Aucune notification</p></div>';
+                    return;
+                }
+                list.innerHTML = data.notifications.map(renderItem).join('');
+            })
+            .catch(() => {
+                list.innerHTML = '<div class="flex items-center justify-center py-8 text-on-surface-variant text-sm">Erreur de chargement</div>';
+            });
     }
 
-    btn.addEventListener('click', e => {
+    // Toggle dropdown
+    btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        open = !open;
-        dropdown.classList.toggle('hidden', !open);
-        if (open) load();
+        const isHidden = dropdown.classList.toggle('hidden');
+        if (!isHidden) loadNotifications();
     });
 
-    document.addEventListener('click', e => {
-        if (open && !wrap.contains(e.target)) {
-            open = false;
+    // Mark all read
+    if (markAll) {
+        markAll.addEventListener('click', function () {
+            fetch('/integration/api/notifications/read-all', { method: 'POST' })
+                .then(r => r.json())
+                .then(() => {
+                    badge.classList.add('hidden');
+                    loadNotifications();
+                });
+        });
+    }
+
+    // Close on outside click
+    document.addEventListener('click', function (e) {
+        if (!dropdown.contains(e.target) && e.target !== btn) {
             dropdown.classList.add('hidden');
         }
     });
 
-    // Badge on load
-    fetch('/integration/magazine/bookmarks/data')
-        .then(r => r.json())
+    // Initial badge load
+    fetch('/integration/api/notifications')
+        .then(r => r.ok ? r.json() : null)
         .then(data => {
-            const n = (data.bookmarks || []).length;
-            if (n > 0) { badge.textContent = n > 99 ? '99+' : n; badge.classList.remove('hidden'); badge.classList.add('flex'); }
-        }).catch(() => {});
+            if (data && data.unread_count > 0) {
+                badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                badge.classList.remove('hidden');
+            }
+        })
+        .catch(() => {});
+})();
+
+/* ── Bookmark nav dropdown ── */
+(function () {
+    const btn      = document.getElementById('bkNavBtn');
+    const dropdown = document.getElementById('bkNavDropdown');
+    const badge    = document.getElementById('bkNavBadge');
+    const list     = document.getElementById('bkNavList');
+
+    if (!btn || !dropdown) return;
+
+    function renderBookmark(b) {
+        const img = b.image_url
+            ? `<img src="${b.image_url}" alt="" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">`
+            : `<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-primary text-base">article</span></div>`;
+        return `
+        <a href="/integration/magazine/article?id=${b.id}"
+           class="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors">
+            ${img}
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-on-surface truncate">${b.titre}</p>
+                <p class="text-[11px] text-on-surface-variant">${b.categorie || ''}</p>
+            </div>
+        </a>`;
+    }
+
+    function loadBookmarks() {
+        fetch('/integration/magazine/bookmarks/data')
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => {
+                const items = data.bookmarks || [];
+                if (badge) {
+                    if (items.length > 0) {
+                        badge.textContent = items.length > 99 ? '99+' : items.length;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+                if (items.length === 0) {
+                    list.innerHTML = '<div class="flex flex-col items-center justify-center py-10 text-on-surface-variant"><span class="material-symbols-outlined text-3xl mb-2">bookmarks</span><p class="text-sm">Aucun article sauvegardé</p></div>';
+                    return;
+                }
+                list.innerHTML = items.slice(0, 6).map(renderBookmark).join('');
+            })
+            .catch(() => {
+                list.innerHTML = '<div class="flex items-center justify-center py-8 text-on-surface-variant text-sm">Erreur de chargement</div>';
+            });
+    }
+
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isHidden = dropdown.classList.toggle('hidden');
+        if (!isHidden) loadBookmarks();
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!dropdown.contains(e.target) && e.target !== btn) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    // Initial badge count
+    fetch('/integration/magazine/bookmarks/data')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (data && badge && data.bookmarks && data.bookmarks.length > 0) {
+                badge.textContent = data.bookmarks.length > 99 ? '99+' : data.bookmarks.length;
+                badge.classList.remove('hidden');
+            }
+        })
+        .catch(() => {});
 })();
 </script>
-
-<!-- Onboarding Tour Script -->
-<?php if (isset($data['show_tour'])): ?>
-<script src="/integration/assets/js/tour.js"></script>
-<?php endif; ?>
-
 </body>
 </html>

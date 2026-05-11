@@ -147,6 +147,66 @@ class NotificationService
     }
 
     /**
+     * Check if any of the given product IDs are now below their seuil_alerte
+     * and push a low-stock notification to every active pharmacien.
+     *
+     * @param int[] $productIds
+     */
+    public static function notifyLowStockProducts(array $productIds): void
+    {
+        if (empty($productIds)) return;
+
+        try {
+            require_once __DIR__ . '/../config.php';
+            $db = \config::getConnexion();
+
+            // Find ordered products now below their alert threshold
+            $placeholders = implode(',', array_fill(0, count($productIds), '?'));
+            $stmt = $db->prepare(
+                "SELECT id, nom, quantite_disponible, seuil_alerte
+                 FROM produits
+                 WHERE id IN ($placeholders)
+                   AND quantite_disponible < seuil_alerte"
+            );
+            $stmt->execute(array_values($productIds));
+            $lowProducts = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (empty($lowProducts)) return;
+
+            // Get all active pharmacien user IDs (id_role = 4)
+            $pharmaciens = $db->query(
+                "SELECT id_PK FROM utilisateurs WHERE id_role = 4 AND status = 'active'"
+            )->fetchAll(\PDO::FETCH_COLUMN);
+
+            if (empty($pharmaciens)) return;
+
+            $insert = $db->prepare(
+                "INSERT INTO notifications (type, title, message, icon, color, user_id, created_at)
+                 VALUES (:type, :title, :message, :icon, :color, :user_id, NOW())"
+            );
+
+            foreach ($lowProducts as $product) {
+                $title   = "Stock critique — {$product['nom']}";
+                $message = "Il reste {$product['quantite_disponible']} unité(s) de «\u{a0}{$product['nom']}\u{a0}» "
+                         . "(seuil\u{a0}: {$product['seuil_alerte']}). Pensez à passer une commande.";
+
+                foreach ($pharmaciens as $userId) {
+                    $insert->execute([
+                        ':type'    => self::TYPE_LOW_STOCK,
+                        ':title'   => $title,
+                        ':message' => $message,
+                        ':icon'    => 'inventory_2',
+                        ':color'   => 'error',
+                        ':user_id' => $userId,
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('[NotificationService] notifyLowStockProducts() failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Mark all notifications as read.
      */
     public static function markAllRead(): void

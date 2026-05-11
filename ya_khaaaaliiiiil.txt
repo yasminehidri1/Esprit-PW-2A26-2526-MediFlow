@@ -9,7 +9,8 @@ Patient	john.doe@gmail.com	JohnDoe123!
 technicien : nada11@gmail.com / nada2005
 admin: admin11@gmail.com / fathi2004
 fournisseur : mehdiF@gmail.com / mehdi2004  
-pharmacien :mehdi12@gmail.com / mehdi2004
+pharmacien :     / Warning: Constant STRIPE_SECRET_KEY already defined in C:\xampp\htdocs\integration\config_stripe.php on line 7
+
 redacteur : khalil12@gmail.com / khalil2005 
 
 el base el jdida : ELBASE.sql 

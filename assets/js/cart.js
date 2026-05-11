@@ -90,9 +90,11 @@ function checkout() {
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
+        if (data.success && data.checkout_url) {
             cart.clearCart();
-            alert('Commande enregistrée avec succès!');
+            window.location.href = data.checkout_url;
+        } else if (data.success) {
+            cart.clearCart();
             window.location.href = data.redirect || '/integration/stock/orders';
         } else {
             alert('Erreur: ' + data.message);

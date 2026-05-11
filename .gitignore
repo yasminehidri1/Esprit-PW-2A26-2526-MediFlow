@@ -39,3 +39,6 @@ build/
 .windows-build-tools
 .gradle/
 config_keys.php
+config_mail.php
+config_stripe.php
+composer.phar

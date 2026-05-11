@@ -224,6 +224,23 @@ class Order {
         }
     }
 
+    // ─── Stripe ───────────────────────────────────────────────────────────────
+
+    public function saveStripeSession(int $commandeId, string $sessionId): void
+    {
+        $this->pdo->prepare("UPDATE commandes SET stripe_session_id = ? WHERE id = ?")
+                  ->execute([$sessionId, $commandeId]);
+    }
+
+    public function markAsPaid(int $commandeId, string $sessionId): void
+    {
+        $this->pdo->prepare(
+            "UPDATE commandes SET paiement_statut = 'payée', stripe_session_id = ? WHERE id = ?"
+        )->execute([$sessionId, $commandeId]);
+    }
+
+    // ─── Compte les commandes par statut ──────────────────────────────────────
+
     /**
      * Compte les commandes par statut
      */

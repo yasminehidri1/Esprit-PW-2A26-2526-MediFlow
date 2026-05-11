@@ -55,10 +55,17 @@ class NotificationController
 
     public function list(): void
     {
-        $this->requireAdmin();
+        $role   = $_SESSION['user']['role'] ?? '';
+        $userId = (int)($_SESSION['user']['id'] ?? 0);
 
-        $notifications = NotificationService::getRecent(30);
-        $unreadCount   = NotificationService::countUnread();
+        if ($role === 'Admin') {
+            $notifications = NotificationService::getRecent(30);
+            $unreadCount   = NotificationService::countUnread();
+        } else {
+            if (!$userId) $this->json(['notifications' => [], 'unread_count' => 0]);
+            $notifications = $this->notifModel->getForUser($userId, 30);
+            $unreadCount   = $this->notifModel->countUnread($userId);
+        }
 
         foreach ($notifications as &$n) {
             $n['time_ago'] = NotificationService::timeAgo($n['created_at']);
@@ -90,8 +97,15 @@ class NotificationController
 
     public function markAllRead(): void
     {
-        $this->requireAdmin();
-        NotificationService::markAllRead();
+        $role   = $_SESSION['user']['role'] ?? '';
+        $userId = (int)($_SESSION['user']['id'] ?? 0);
+
+        if ($role === 'Admin') {
+            NotificationService::markAllRead();
+        } else {
+            if ($userId) $this->notifModel->markAllRead($userId);
+        }
+
         $this->json(['success' => true, 'unread_count' => 0]);
     }
 

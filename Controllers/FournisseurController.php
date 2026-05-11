@@ -12,6 +12,7 @@
 namespace Controllers;
 
 use Core\SessionHelper;
+use Services\MailService;
 
 class FournisseurController
 {
@@ -48,10 +49,9 @@ class FournisseurController
     {
         extract($vars);
 
-        // Strip .php extension for $currentView (layout uses bare names)
-        $currentView = str_replace('.php', '', basename($viewFile));
+        $currentView      = str_replace('.php', '', basename($viewFile));
+        $embeddedInLayout = true;
 
-        // Always use the main back-office layout so sidebar/topbar remain
         include __DIR__ . '/../Views/Back/layout.php';
     }
 
@@ -294,6 +294,17 @@ class FournisseurController
                 $orderModel->restoreStock($orderId);
             }
             $orderModel->updateOrderStatus($orderId, $newStatut);
+
+            // Notification email — commande validée
+            if ($newStatut === \Order::STATUT_VALIDEE) {
+                try {
+                    $commandeAvecLignes = $orderModel->getOrderWithLines($orderId);
+                    (new MailService())->sendOrderValidated($orderId, $commandeAvecLignes);
+                } catch (\Throwable $e) {
+                    error_log('[MailService] sendOrderValidated: ' . $e->getMessage());
+                }
+            }
+
             $labels = [
                 \Order::STATUT_VALIDEE    => 'Validée',
                 \Order::STATUT_LIVREE     => 'Livrée',
