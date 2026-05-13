@@ -189,7 +189,7 @@
                                     class="w-8 h-8 rounded-lg flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition-colors">
                                 <span class="material-symbols-outlined text-[18px]">close</span>
                             </button>
-                            <a href="/integration/dossier/nouvelle-consultation?patient_id=<?= $d['id_patient'] ?>" title="Créer une ordonnance/consultation"
+                            <a href="/integration/dossier/ordonnance/from-demande?demande_id=<?= (int)$d['id_demande'] ?>&patient_id=<?= (int)$d['id_patient'] ?>" title="Créer une ordonnance pour cette demande"
                                class="flex items-center gap-2 px-3 py-1.5 text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg transition-colors ml-2">
                                 <span class="material-symbols-outlined text-[16px]">history_edu</span>
                                 Créer Ordo.

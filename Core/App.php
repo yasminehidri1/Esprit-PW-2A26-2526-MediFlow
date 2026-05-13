@@ -161,6 +161,11 @@ class App
             return;
         }
 
+        if (preg_match('#^/mes-favoris(?:/|$)#', $path)) {
+            (new \Controllers\PatientEquipmentController())->mesFavoris();
+            return;
+        }
+
         if (preg_match('#^/reservation(?:/|$)#', $path)) {
             (new \Controllers\PatientEquipmentController())->reservation();
             return;
@@ -543,6 +548,10 @@ class App
         }
 
         // Ordonnances (Medecin)
+        if (preg_match('#^/dossier/ordonnance/from-demande(?:/|$)#', $path)) {
+            (new \Controllers\OrdonnanceController())->createFromDemande();
+            return;
+        }
         if (preg_match('#^/dossier/ordonnance/add(?:/|$)#', $path)) {
             (new \Controllers\OrdonnanceController())->add();
             return;

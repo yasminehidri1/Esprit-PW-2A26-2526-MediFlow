@@ -63,6 +63,21 @@ $_patientKey = 'u' . preg_replace('/[^a-z0-9]/i', '', strtolower(($user['prenom'
   .btn-eye-card:hover { background: #dbeafe; transform: scale(1.08); }
   .btn-eye-card .material-symbols-outlined { font-size: 17px; }
 
+  .btn-fav-card {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #9ca3af;
+    flex-shrink: 0;
+    transition: background .18s, color .18s, border-color .18s, transform .15s;
+  }
+  .btn-fav-card:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; transform: scale(1.08); }
+  .btn-fav-card.favori { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+  .btn-fav-card .material-symbols-outlined { font-size: 17px; }
+
   .btn-filter { padding:7px 14px; border-radius:8px; background:#f3f4f6; border:1px solid #e5e7eb; font-size:12.5px; font-weight:600; color:#6b7280; cursor:pointer; font-family:'Inter',sans-serif; transition:all .18s; }
   .btn-filter.active, .btn-filter:hover { background:#004d99; color:#fff; border-color:#004d99; }
   .empty-state { grid-column:1/-1; text-align:center; padding:80px 20px; color:#9ca3af; }
@@ -184,11 +199,20 @@ $_patientKey = 'u' . preg_replace('/[^a-z0-9]/i', '', strtolower(($user['prenom'
 <div class="pt-24 pb-12 px-10 space-y-8">
 
   <!-- Page header -->
-  <section>
-    <h2 class="text-3xl font-extrabold bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent">
-      Catalogue de Location
-    </h2>
-    <p class="text-on-surface-variant mt-1 font-medium">Certified medical equipment for home care.</p>
+  <section class="flex items-start justify-between flex-wrap gap-4">
+    <div>
+      <h2 class="text-3xl font-extrabold bg-gradient-to-r from-primary via-primary-container to-primary bg-clip-text text-transparent">
+        Catalogue de Location
+      </h2>
+      <p class="text-on-surface-variant mt-1 font-medium">Certified medical equipment for home care.</p>
+    </div>
+    <a href="/integration/mes-favoris"
+       id="btn-mes-favoris"
+       style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;background:#fff;border:1.5px solid #fca5a5;color:#dc2626;font-size:13.5px;font-weight:700;font-family:'Inter',sans-serif;text-decoration:none;transition:background .18s,box-shadow .18s;box-shadow:0 2px 8px rgba(220,38,38,.08);">
+      <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1;">favorite</span>
+      Mes Favoris
+      <span id="fav-badge" style="display:none;background:#dc2626;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;"></span>
+    </a>
   </section>
 
   <!-- Filters -->
@@ -265,6 +289,13 @@ $_patientKey = 'u' . preg_replace('/[^a-z0-9]/i', '', strtolower(($user['prenom'
                   Unavailable
                 </button>
               <?php endif; ?>
+              <button class="btn-fav-card"
+                      type="button"
+                      title="Ajouter aux favoris"
+                      data-eq-id="<?= $eq['id'] ?>"
+                      data-fav-eq='<?= $eqJson ?>'>
+                <span class="material-symbols-outlined">favorite</span>
+              </button>
               <button class="btn-eye-card"
                       type="button"
                       title="Voir le détail"
@@ -691,4 +722,86 @@ function soumettreRating() {
 
 // Charger au démarrage
 chargerTousRatings();
+</script>
+<script>
+/* ════════════════════════════════════════
+   ❤️ SYSTÈME DE FAVORIS
+   Stocké en localStorage par patient
+════════════════════════════════════════ */
+(function() {
+  var FAV_KEY = 'fav_' + PATIENT_KEY;
+
+  function getFavoris() {
+    try { var r = localStorage.getItem(FAV_KEY); return r ? JSON.parse(r) : []; }
+    catch(e) { return []; }
+  }
+  function saveFavoris(favs) {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch(e) {}
+  }
+  function isFavori(eqId) {
+    return getFavoris().some(function(f) { return String(f.id) === String(eqId); });
+  }
+
+  function showFavToast(msg, color) {
+    var container = document.querySelector('.toast-container');
+    if (!container) return;
+    var toast = document.createElement('div');
+    toast.style.cssText = 'background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:' + color + ';box-shadow:0 4px 16px rgba(0,0,0,.10);display:flex;align-items:center;gap:8px;animation:fadeIn .2s ease;';
+    toast.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;">favorite</span>' + msg;
+    container.appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 2500);
+  }
+
+  function updateFavBtn(btn, active) {
+    if (active) {
+      btn.classList.add('favori');
+      btn.title = 'Retirer des favoris';
+    } else {
+      btn.classList.remove('favori');
+      btn.title = 'Ajouter aux favoris';
+    }
+  }
+
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-fav-card');
+    if (!btn) return;
+    var eqId = btn.dataset.eqId;
+    var eq;
+    try { eq = JSON.parse(btn.getAttribute('data-fav-eq') || '{}'); } catch(err) { return; }
+    var favs = getFavoris();
+    var idx = favs.findIndex(function(f) { return String(f.id) === String(eqId); });
+    if (idx === -1) {
+      favs.push(eq);
+      saveFavoris(favs);
+      updateFavBtn(btn, true);
+      showFavToast('Ajouté aux favoris !', '#dc2626');
+    } else {
+      favs.splice(idx, 1);
+      saveFavoris(favs);
+      updateFavBtn(btn, false);
+      showFavToast('Retiré des favoris', '#6b7280');
+    }
+  });
+
+  function updateBadge() {
+    var count = getFavoris().length;
+    var badge = document.getElementById('fav-badge');
+    if (!badge) return;
+    if (count > 0) { badge.textContent = count; badge.style.display = ''; }
+    else { badge.style.display = 'none'; }
+  }
+
+  // Restore state on page load
+  document.querySelectorAll('.btn-fav-card').forEach(function(btn) {
+    if (isFavori(btn.dataset.eqId)) updateFavBtn(btn, true);
+  });
+  updateBadge();
+
+  // Patch toggleFavori to also update badge
+  var _origClick = document.addEventListener;
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-fav-card');
+    if (btn) setTimeout(updateBadge, 0);
+  });
+})();
 </script>

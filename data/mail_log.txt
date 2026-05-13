@@ -222,3 +222,24 @@ Sujet  : Votre demande d'ordonnance — MediFlow
 ERREUR SMTP : SMTP Error: Could not connect to SMTP host. Failed to connect to server SMTP server error: Failed to connect to server Additional SMTP info: php_network_getaddresses: getaddrinfo failed: H�te inconnu. 
 ============================================================
 
+[2026-05-12 23:31:41]
+À      : John Doe <hafidhaganouni@gmail.com>
+Sujet  : Votre demande d'ordonnance a été acceptée — MediFlow
+------------------------------------------------------------
+OK
+============================================================
+
+[2026-05-13 18:22:05]
+À      : John Doe <khalil05cherif@gmail.com>
+Sujet  : Votre demande d'ordonnance a été acceptée — MediFlow
+------------------------------------------------------------
+OK
+============================================================
+
+[2026-05-13 18:22:06]
+À      : John Doe <khalil05cherif@gmail.com>
+Sujet  : Votre demande d'ordonnance a été acceptée — MediFlow
+------------------------------------------------------------
+OK
+============================================================
+

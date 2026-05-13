@@ -24,10 +24,6 @@ class config {
         return OPENROUTER_API_KEY;
     }
 
-    //CAPTCHAv2
-    private static $recaptcha_site_key = "6LfuaMUsAAAAAIoHHjWv2avAH21eXKxFTvDxtDpT";
-    private static $recaptcha_secret_key = "6LfuaMUsAAAAAI7ovH5xCdgKsZ6PB8UHg6BQpvJs";
-
     // Google Gemini API — aistudio.google.com
     private static $claude_api_key = "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";
 
@@ -133,8 +129,6 @@ class config {
         return self::$claude_api_key;
     }
 
-    public static function getSmtpHost(): string     { return self::$smtp_host; }
-    public static function getSmtpPort(): int        { return self::$smtp_port; }
     public static function getSmtpUser(): string     { return self::$smtp_user; }
     public static function getSmtpPass(): string     { return self::$smtp_pass; }
     public static function getSmtpFrom(): string     { return self::$smtp_from; }

@@ -1,70 +1,68 @@
 <?php
+require_once __DIR__ . '/../config.php';
 
 class NotificationModel {
 
-    private string $filePath;
+    private \PDO $db;
+
+    private static array $typeMap = [
+        'new_demande'     => ['icon' => 'assignment',    'color' => 'blue'],
+        'demande_traitee' => ['icon' => 'check_circle',  'color' => 'green'],
+        'demande_refusee' => ['icon' => 'cancel',        'color' => 'red'],
+    ];
 
     public function __construct() {
-        $this->filePath = __DIR__ . '/../data/notifications.json';
-        $this->initFile();
+        $this->db = \config::getConnexion();
     }
 
-    private function initFile(): void {
-        $dir = dirname($this->filePath);
-        if (!is_dir($dir)) mkdir($dir, 0755, true);
-        if (!file_exists($this->filePath)) {
-            file_put_contents($this->filePath, json_encode([], JSON_PRETTY_PRINT));
-        }
-    }
-
-    private function readAll(): array {
-        return json_decode(file_get_contents($this->filePath), true) ?: [];
-    }
-
-    private function writeAll(array $data): void {
-        file_put_contents($this->filePath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
-    }
-
-    /** Crée une notification pour un médecin. */
+    /** Crée une notification pour un utilisateur (médecin ou patient). */
     public function add(int $medecinId, string $type, string $title, string $message, int $demandeId = 0): void {
-        $all   = $this->readAll();
-        $maxId = empty($all) ? 0 : max(array_column($all, 'id'));
+        $icon  = self::$typeMap[$type]['icon']  ?? 'notifications';
+        $color = self::$typeMap[$type]['color'] ?? 'primary';
 
-        $all[] = [
-            'id'         => $maxId + 1,
-            'medecin_id' => $medecinId,
-            'type'       => $type,      // new_demande | demande_traitee | demande_refusee
-            'title'      => $title,
-            'message'    => $message,
-            'demande_id' => $demandeId,
-            'read'       => false,
-            'created_at' => date('Y-m-d H:i:s'),
-        ];
-
-        $this->writeAll($all);
+        $this->db->prepare(
+            "INSERT INTO notifications (user_id, type, title, message, icon, color)
+             VALUES (:uid, :type, :title, :msg, :icon, :color)"
+        )->execute([
+            ':uid'   => $medecinId,
+            ':type'  => $type,
+            ':title' => $title,
+            ':msg'   => $message,
+            ':icon'  => $icon,
+            ':color' => $color,
+        ]);
     }
 
-    /** Retourne les notifications d'un médecin (non lues en premier). */
+    /** Retourne les notifications d'un utilisateur (les plus récentes en premier). */
     public function getByMedecin(int $medecinId, int $limit = 20): array {
-        $all      = $this->readAll();
-        $filtered = array_filter($all, fn($n) => (int)$n['medecin_id'] === $medecinId);
-        usort($filtered, fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
-        return array_values(array_slice($filtered, 0, $limit));
+        $stmt = $this->db->prepare(
+            "SELECT * FROM notifications WHERE user_id = :uid ORDER BY created_at DESC LIMIT :lim"
+        );
+        $stmt->bindValue(':uid', $medecinId, \PDO::PARAM_INT);
+        $stmt->bindValue(':lim', $limit,     \PDO::PARAM_INT);
+        $stmt->execute();
+        return array_map([$this, 'normalize'], $stmt->fetchAll());
     }
 
-    /** Compte les notifications non lues d'un médecin. */
+    /** Compte les notifications non lues d'un utilisateur. */
     public function countUnread(int $medecinId): int {
-        $all = $this->readAll();
-        return count(array_filter($all, fn($n) => (int)$n['medecin_id'] === $medecinId && !$n['read']));
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) AS n FROM notifications WHERE user_id = :uid AND is_read = 0"
+        );
+        $stmt->execute([':uid' => $medecinId]);
+        return (int)($stmt->fetch()['n'] ?? 0);
     }
 
-    /** Marque toutes les notifications d'un médecin comme lues. */
+    /** Marque toutes les notifications d'un utilisateur comme lues. */
     public function markAllRead(int $medecinId): void {
-        $all = $this->readAll();
-        foreach ($all as &$n) {
-            if ((int)$n['medecin_id'] === $medecinId) $n['read'] = true;
-        }
-        unset($n);
-        $this->writeAll($all);
+        $this->db->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = :uid")
+                 ->execute([':uid' => $medecinId]);
+    }
+
+    /** Normalise les noms de colonnes DB vers ce qu'attend la vue (topbar). */
+    private function normalize(array $row): array {
+        $row['read']       = (bool)($row['is_read'] ?? false);
+        $row['medecin_id'] = $row['user_id'] ?? 0;
+        return $row;
     }
 }

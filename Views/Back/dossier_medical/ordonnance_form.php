@@ -1,12 +1,16 @@
 <?php // Views/Back/dossier_medical/ordonnance_form.php
-$isEdit     = ($mode ?? 'add') === 'edit';
-$pName      = htmlspecialchars(($patient['prenom'] ?? '') . ' ' . ($patient['nom'] ?? ''));
-$patientId  = $patient['id_PK'] ?? 0;
-$consultId  = $consultation['id_consultation'] ?? 0;
-$ve         = $validation_errors ?? [];
+$isEdit        = ($mode ?? 'add') === 'edit';
+$pName         = htmlspecialchars(($patient['prenom'] ?? '') . ' ' . ($patient['nom'] ?? ''));
+$patientId     = $patient['id_PK'] ?? 0;
+$consultId     = $consultation['id_consultation'] ?? 0;
+$ve            = $validation_errors ?? [];
+$fromDemandeId = $from_demande_id ?? 0;
+$patientEmail  = $patient_email   ?? '';
 $formAction = $isEdit
     ? '/integration/dossier/ordonnance/edit?id=' . (int)($ordonnance['id_ordonnance'] ?? 0)
-    : '/integration/dossier/ordonnance/add?consult_id=' . $consultId;
+    : ($fromDemandeId
+        ? '/integration/dossier/ordonnance/from-demande?consult_id=' . $consultId . '&demande_id=' . (int)$fromDemandeId
+        : '/integration/dossier/ordonnance/add?consult_id=' . $consultId);
 ?>
 
 <div class="max-w-4xl mx-auto">
@@ -52,6 +56,11 @@ $formAction = $isEdit
         <input type="hidden" name="id_consultation" value="<?= $consultId ?>"/>
         <?php if ($isEdit): ?>
         <input type="hidden" name="id" value="<?= $ordonnance['id_ordonnance'] ?? '' ?>"/>
+        <?php endif ?>
+        <?php if ($fromDemandeId): ?>
+        <input type="hidden" name="from_demande_id" value="<?= (int)$fromDemandeId ?>"/>
+        <input type="hidden" name="patient_email"   value="<?= htmlspecialchars($patientEmail) ?>"/>
+        <input type="hidden" name="patient_name"    value="<?= $pName ?>"/>
         <?php endif ?>
 
         <!-- Date & Statut -->

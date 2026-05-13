@@ -88,6 +88,86 @@ class OrdonnanceController {
         $patient  = $this->consultationModel->getPatientById((int)$consultation['id_patient']);
         $mode     = 'add'; $medecin = $this->medecinInfo; $medecinId = $this->medecinId;
         $ordonnance = null; $medicaments = [];
+        $from_demande_id = 0; $patient_email = '';
+        $validation_errors = $_SESSION['validation_errors'] ?? []; unset($_SESSION['validation_errors']);
+        $currentView = 'dossier_medical/ordonnance_form';
+        include __DIR__ . '/../Views/Back/layout.php';
+    }
+
+    /** Called from "Créer Ordo." on the demandes list. GET shows the form; POST saves + emails the patient. */
+    public function createFromDemande(): void {
+        $demandeId  = (int)($_GET['demande_id']  ?? $_POST['from_demande_id'] ?? 0);
+        $patientId  = (int)($_GET['patient_id']  ?? 0);
+        $consultationId = (int)($_GET['consult_id'] ?? $_POST['id_consultation'] ?? 0);
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if ($consultationId === 0) $this->redirect('/integration/dossier/demandes');
+            $medicaments = $this->buildMedicamentsJson();
+            $data = [
+                'id_consultation' => $consultationId, 'numero_ordonnance' => '',
+                'date_emission'   => $_POST['date_emission'] ?? date('Y-m-d'),
+                'medicaments'     => $medicaments,
+                'note_pharmacien' => htmlspecialchars(trim($_POST['note_pharmacien'] ?? '')),
+                'statut'          => 'active',
+            ];
+            $errors = $this->validateOrdonnance($data);
+            if (!empty($errors)) {
+                $_SESSION['validation_errors'] = $errors;
+                $this->redirect("/integration/dossier/ordonnance/from-demande?consult_id={$consultationId}&demande_id={$demandeId}");
+            }
+            $ordonnanceId = $this->ordonnanceModel->create($data);
+
+            // Send ordonnance to patient by email
+            $toEmail   = trim($_POST['patient_email'] ?? '');
+            $toName    = trim($_POST['patient_name']  ?? '');
+            $emailSent = false;
+            if (!empty($toEmail)) {
+                $medsDecoded = json_decode($medicaments, true) ?: [];
+                $doctorName  = 'Dr. ' . $this->medecinInfo['prenom'] . ' ' . $this->medecinInfo['nom'];
+                require_once __DIR__ . '/../Services/MailService.php';
+                $emailSent = (new \Services\MailService())->sendOrdonnance(
+                    $toEmail, $toName, $doctorName,
+                    $data['date_emission'], $medsDecoded, $data['note_pharmacien']
+                );
+            }
+
+            if ($emailSent) {
+                $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Ordonnance créée · Email envoyé au patient.'];
+            } elseif (!empty($toEmail)) {
+                $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Ordonnance créée, mais l\'envoi de l\'email a échoué. Vérifiez data/mail_log.txt.'];
+            } else {
+                $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Ordonnance créée avec succès.'];
+            }
+            $this->redirect("/integration/dossier/ordonnance/view?id={$ordonnanceId}");
+        }
+
+        // GET — find or auto-create a consultation
+        if ($patientId === 0) $this->redirect('/integration/dossier/demandes');
+        $patient = $this->consultationModel->getPatientById($patientId);
+        if (!$patient) $this->redirect('/integration/dossier/demandes');
+
+        // Find the latest consultation for this patient+doctor
+        $consultations = $this->consultationModel->getConsultationsByPatient($patientId, $this->medecinId);
+        if (!empty($consultations)) {
+            $consultation = $consultations[0];
+            $consultationId = (int)$consultation['id_consultation'];
+        } else {
+            // Auto-create a minimal consultation linked to the demande
+            $consultationId = $this->consultationModel->createConsultation([
+                'id_medecin'        => $this->medecinId,
+                'id_patient'        => $patientId,
+                'date_consultation' => date('Y-m-d'),
+                'type_consultation' => 'Consultation (ordonnance sur demande)',
+                'diagnostic'        => 'Ordonnance suite à demande patient',
+                'compte_rendu'      => '',
+            ]);
+            $consultation = $this->consultationModel->getConsultationById($consultationId);
+        }
+
+        $from_demande_id = $demandeId;
+        $patient_email   = $patient['mail'] ?? '';
+        $mode     = 'add'; $medecin = $this->medecinInfo; $medecinId = $this->medecinId;
+        $ordonnance = null; $medicaments = [];
         $validation_errors = $_SESSION['validation_errors'] ?? []; unset($_SESSION['validation_errors']);
         $currentView = 'dossier_medical/ordonnance_form';
         include __DIR__ . '/../Views/Back/layout.php';

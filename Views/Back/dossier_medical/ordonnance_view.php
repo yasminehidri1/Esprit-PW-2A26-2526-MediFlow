@@ -4,10 +4,15 @@ $dName = htmlspecialchars(($ordonnance['prenom_medecin'] ?? '') . ' ' . ($ordonn
 ?>
 
 <!-- Flash -->
-<?php if (!empty($flash)): ?>
-<div id="flash-msg" class="mb-6 flex items-center gap-3 p-4 rounded-xl max-w-6xl mx-auto fade-in
-    <?= $flash['type'] === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-blue-50 text-blue-700 border border-blue-200' ?>">
-    <span class="material-symbols-outlined text-[20px]"><?= $flash['type'] === 'success' ? 'check_circle' : 'info' ?></span>
+<?php if (!empty($flash)):
+    [$bgClass, $icon] = match($flash['type']) {
+        'success' => ['bg-emerald-50 text-emerald-700 border-emerald-200', 'check_circle'],
+        'error'   => ['bg-red-50 text-red-700 border-red-200',             'error'],
+        default   => ['bg-blue-50 text-blue-700 border-blue-200',           'info'],
+    };
+?>
+<div id="flash-msg" class="mb-6 flex items-center gap-3 p-4 rounded-xl max-w-6xl mx-auto fade-in border <?= $bgClass ?>">
+    <span class="material-symbols-outlined text-[20px]"><?= $icon ?></span>
     <span class="font-medium text-sm"><?= htmlspecialchars($flash['msg']) ?></span>
     <button onclick="this.parentElement.remove()" class="ml-auto opacity-60 hover:opacity-100">
         <span class="material-symbols-outlined text-sm">close</span>

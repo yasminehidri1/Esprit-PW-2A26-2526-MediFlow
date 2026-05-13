@@ -100,6 +100,25 @@ class PatientEquipmentController
         include __DIR__ . '/../Views/Back/layout.php';
     }
 
+    /** Patient's saved favourites page */
+    public function mesFavoris(): void
+    {
+        $this->ensureSession();
+        $this->requireAuth();
+
+        require_once __DIR__ . '/../Models/Equipement.php';
+        $equipements = (new \Equipement())->getAll();
+
+        $data = [
+            'equipements' => $equipements,
+            'currentUser' => $_SESSION['user'] ?? [],
+            'pageTitle'   => 'Mes Favoris',
+        ];
+
+        $currentView = '../Front/mes-favoris';
+        include __DIR__ . '/../Views/Back/layout.php';
+    }
+
     /** Equipment manager — backoffice CRUD view */
     public function gestionEquipements(): void
     {

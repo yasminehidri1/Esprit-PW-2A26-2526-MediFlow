@@ -208,5 +208,35 @@
         "demande_id": 14,
         "read": false,
         "created_at": "2026-05-06 22:59:09"
+    },
+    {
+        "id": 22,
+        "medecin_id": 24,
+        "type": "new_demande",
+        "title": "Nouvelle demande d'ordonnance",
+        "message": "John Doe vous a envoyé une demande d'ordonnance.",
+        "demande_id": 1,
+        "read": false,
+        "created_at": "2026-05-11 23:35:01"
+    },
+    {
+        "id": 23,
+        "medecin_id": 24,
+        "type": "demande_refusee",
+        "title": "Demande refusée",
+        "message": "Email de refus envoyé à John Doe.",
+        "demande_id": 1,
+        "read": false,
+        "created_at": "2026-05-11 23:40:47"
+    },
+    {
+        "id": 24,
+        "medecin_id": 25,
+        "type": "demande_refusee",
+        "title": "Demande d'ordonnance non retenue",
+        "message": "Votre médecin n'a pas pu donner suite à votre demande. Consultez votre email pour les détails.",
+        "demande_id": 1,
+        "read": false,
+        "created_at": "2026-05-11 23:40:47"
     }
 ]
