@@ -1,27 +1,76 @@
 <?php
 // Views/Back/dossier_medical/patients_liste.php
-// Partial: rendered inside layout.php — NO html/head/body tags
 $search     = htmlspecialchars($_GET['q'] ?? '');
+$sortActive = $_GET['sort'] ?? 'recent';
 $totalToday = $stats['total_today'] ?? 0;
 $termines   = $stats['termines']    ?? 0;
 $enAttente  = $stats['en_attente']  ?? 0;
 $totalCount = count($patients ?? []);
+
+$sortOptions = [
+    'recent'        => ['label' => 'Dernière visite',        'icon' => 'schedule'],
+    'alpha_asc'     => ['label' => 'Nom A → Z',              'icon' => 'sort_by_alpha'],
+    'alpha_desc'    => ['label' => 'Nom Z → A',              'icon' => 'sort_by_alpha'],
+    'consultations' => ['label' => 'Plus de consultations',  'icon' => 'bar_chart'],
+];
+$sortLabel = $sortOptions[$sortActive]['label'] ?? 'Trier par';
+$baseUrl   = '/integration/dossier/patients?' . ($search ? 'q='.urlencode(html_entity_decode($search)).'&' : '');
 ?>
 <div class="space-y-8 max-w-6xl mx-auto">
 
   <!-- Header -->
-  <div class="flex flex-wrap items-center justify-between gap-4 fade-in">
+  <div class="flex flex-wrap items-center justify-between gap-4 fade-in relative z-10">
     <div>
       <h1 class="font-headline text-[32px] font-extrabold text-[#1a2b4b] tracking-tight">Ma Liste de Patients</h1>
       <p class="text-[15px] font-medium text-slate-500 mt-1">Vous avez <strong class="text-slate-700"><?= $totalCount ?> dossiers</strong> enregistrés.</p>
     </div>
-    
+
     <div class="flex items-center gap-3">
-        <!-- Filter Button (as seen in screenshot) -->
-        <button class="flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">
-            <span class="material-symbols-outlined text-[20px]">filter_list</span>
-            Filtrer
+
+      <!-- Dropdown Filtrer -->
+      <div class="relative" id="filter-wrapper">
+        <button onclick="toggleFilter()"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-colors border
+                       <?= $sortActive !== 'recent' ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200' ?>">
+          <span class="material-symbols-outlined text-[18px]">filter_list</span>
+          <?= $sortActive !== 'recent' ? htmlspecialchars($sortLabel) : 'Filtrer' ?>
+          <?php if ($sortActive !== 'recent'): ?>
+          <span class="w-1.5 h-1.5 rounded-full bg-white/70 ml-0.5"></span>
+          <?php endif ?>
         </button>
+
+        <div id="filter-dropdown"
+             class="hidden absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 z-[999] overflow-hidden py-2">
+          <p class="px-4 pt-1 pb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Trier par</p>
+          <?php foreach ($sortOptions as $key => $opt): ?>
+          <a href="<?= $baseUrl ?>sort=<?= $key ?>"
+             class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors
+                    <?= $sortActive === $key ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50' ?>">
+            <span class="material-symbols-outlined text-[18px] <?= $sortActive === $key ? 'text-blue-500' : 'text-slate-400' ?>"><?= $opt['icon'] ?></span>
+            <?= $opt['label'] ?>
+            <?php if ($sortActive === $key): ?>
+            <span class="ml-auto material-symbols-outlined text-sm text-blue-500">check</span>
+            <?php endif ?>
+          </a>
+          <?php endforeach ?>
+          <?php if ($sortActive !== 'recent'): ?>
+          <div class="mx-3 my-1 border-t border-slate-100"></div>
+          <a href="<?= $baseUrl ?>sort=recent"
+             class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+            Réinitialiser
+          </a>
+          <?php endif ?>
+        </div>
+      </div>
+
+      <!-- Nouvelle Consultation -->
+      <a href="/integration/dossier/nouvelle-consultation"
+         class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-200">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        Nouvelle Consultation
+      </a>
+
     </div>
   </div>
 
@@ -215,3 +264,15 @@ $totalCount = count($patients ?? []);
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .fade-in { opacity: 0; animation: fadeIn 0.4s ease forwards; }
 </style>
+
+<script>
+function toggleFilter() {
+    document.getElementById('filter-dropdown').classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    const w = document.getElementById('filter-wrapper');
+    if (w && !w.contains(e.target)) {
+        document.getElementById('filter-dropdown')?.classList.add('hidden');
+    }
+});
+</script>

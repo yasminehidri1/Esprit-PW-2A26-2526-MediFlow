@@ -1,50 +1,74 @@
 [
     {
         "id_demande": 1,
-        "id_patient": 1,
-        "id_medecin": 2,
-        "description": "wfeeekhgub",
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "ya boutiadzadzad",
+        "urgence": "tres_urgent",
+        "ai_urgence": "tres_urgent",
+        "ai_justification": "",
+        "ai_refus_message": "Madame, Monsieur, votre demande d'ordonnance n'a pas pu être traitée : Informations insuffisantes. Nous vous invitons à prendre rendez-vous pour en discuter avec votre médecin.",
         "statut": "traitee",
-        "created_at": "2026-04-21 21:34:16"
+        "created_at": "2026-05-11 23:35:00"
     },
     {
         "id_demande": 2,
-        "id_patient": 1,
-        "id_medecin": 2,
-        "description": "[NORMALE] hhhhhhhhhh",
-        "statut": "refusee",
-        "created_at": "2026-04-23 13:54:27"
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "kkkkkkkkkkkkkkkkkkkkk",
+        "urgence": "tres_urgent",
+        "ai_urgence": "tres_urgent",
+        "ai_justification": "",
+        "ai_refus_message": null,
+        "statut": "traitee",
+        "created_at": "2026-05-12 22:06:18"
     },
     {
         "id_demande": 3,
-        "id_patient": 1,
-        "id_medecin": 2,
-        "description": "[NORMALE] aaaaaaaaaa",
-        "statut": "traitee",
-        "created_at": "2026-04-23 15:08:15"
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "urgence": "tres_urgent",
+        "ai_urgence": "tres_urgent",
+        "ai_justification": "",
+        "ai_refus_message": "Madame, Monsieur, votre demande d'ordonnance n'a pas pu être traitée : Hors périmètre du médecin. Nous vous invitons à prendre rendez-vous pour en discuter avec votre médecin.",
+        "statut": "refusee",
+        "created_at": "2026-05-12 22:14:18"
     },
     {
         "id_demande": 4,
-        "id_patient": 1,
-        "id_medecin": 2,
-        "description": "[NORMALE] hjjjjjjjjjh",
-        "statut": "en_attente",
-        "created_at": "2026-04-23 16:46:22"
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "Yasmine Passat ka7la",
+        "urgence": "tres_urgent",
+        "ai_urgence": "tres_urgent",
+        "ai_justification": "",
+        "ai_refus_message": null,
+        "statut": "traitee",
+        "created_at": "2026-05-12 22:31:27"
     },
     {
         "id_demande": 5,
         "id_patient": 25,
         "id_medecin": 24,
-        "description": "Bellaih aman",
-        "statut": "en_attente",
-        "created_at": "2026-04-30 13:40:43"
+        "description": "zdaadzdazazddzadazadz",
+        "urgence": "tres_urgent",
+        "ai_urgence": "tres_urgent",
+        "ai_justification": "",
+        "ai_refus_message": null,
+        "statut": "traitee",
+        "created_at": "2026-05-12 23:11:55"
     },
     {
         "id_demande": 6,
-        "id_patient": 84,
-        "id_medecin": 79,
-        "description": "alooooooof",
-        "statut": "en_attente",
-        "created_at": "2026-05-07 01:37:49"
+        "id_patient": 25,
+        "id_medecin": 24,
+        "description": "dzadazdazdazdzadaz",
+        "urgence": "tres_urgent",
+        "ai_urgence": "tres_urgent",
+        "ai_justification": "",
+        "ai_refus_message": null,
+        "statut": "traitee",
+        "created_at": "2026-05-12 23:31:20"
     }
 ]

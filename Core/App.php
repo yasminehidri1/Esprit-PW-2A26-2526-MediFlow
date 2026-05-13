@@ -533,6 +533,10 @@ class App
             (new \Controllers\PatientDossierController())->requestPrescription();
             return;
         }
+        if (preg_match('#^/dossier/patient/chatbot(?:/|$)#', $path)) {
+            (new \Controllers\PatientDossierController())->chatbot();
+            return;
+        }
         if (preg_match('#^/dossier/patient(?:/|$)#', $path)) {
             (new \Controllers\PatientDossierController())->dashboard();
             return;
@@ -560,7 +564,26 @@ class App
             return;
         }
 
+        // Notifications
+        if (preg_match('#^/notifications/read(?:/|$)#', $path)) {
+            header('Content-Type: application/json');
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $data = json_decode(file_get_contents('php://input'), true);
+                $mid  = (int)($data['medecin_id'] ?? 0);
+                if ($mid > 0) {
+                    require_once __DIR__ . '/../Models/NotificationModel.php';
+                    (new \NotificationModel())->markAllRead($mid);
+                }
+                echo json_encode(['success' => true]);
+            }
+            return;
+        }
+
         // Demandes (Medecin)
+        if (preg_match('#^/dossier/demandes/ai-refus(?:/|$)#', $path)) {
+            (new \Controllers\DemandeController())->aiGenerateRefus();
+            return;
+        }
         if (preg_match('#^/dossier/demandes/statut(?:/|$)#', $path)) {
             (new \Controllers\DemandeController())->updateStatut();
             return;

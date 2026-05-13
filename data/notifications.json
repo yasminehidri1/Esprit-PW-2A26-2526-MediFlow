@@ -1,0 +1,212 @@
+[
+    {
+        "id": 1,
+        "medecin_id": 24,
+        "type": "demande_traitee",
+        "title": "Demande traitée ✓",
+        "message": "Email de confirmation envoyé à Adam Smith.",
+        "demande_id": 8,
+        "read": true,
+        "created_at": "2026-05-05 21:40:19"
+    },
+    {
+        "id": 2,
+        "medecin_id": 24,
+        "type": "new_demande",
+        "title": "Nouvelle demande d'ordonnance",
+        "message": "John Doe vous a envoyé une demande d'ordonnance.",
+        "demande_id": 13,
+        "read": true,
+        "created_at": "2026-05-05 22:12:41"
+    },
+    {
+        "id": 3,
+        "medecin_id": 24,
+        "type": "demande_traitee",
+        "title": "Demande traitée ✓",
+        "message": "Email de confirmation envoyé à John Doe.",
+        "demande_id": 12,
+        "read": true,
+        "created_at": "2026-05-05 22:13:02"
+    },
+    {
+        "id": 4,
+        "medecin_id": 25,
+        "type": "demande_traitee",
+        "title": "Demande d'ordonnance acceptée ✓",
+        "message": "Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.",
+        "demande_id": 12,
+        "read": false,
+        "created_at": "2026-05-05 22:13:02"
+    },
+    {
+        "id": 5,
+        "medecin_id": 24,
+        "type": "demande_traitee",
+        "title": "Demande traitée ✓",
+        "message": "Email de confirmation envoyé à John Doe.",
+        "demande_id": 13,
+        "read": true,
+        "created_at": "2026-05-05 22:18:18"
+    },
+    {
+        "id": 6,
+        "medecin_id": 25,
+        "type": "demande_traitee",
+        "title": "Demande d'ordonnance acceptée ✓",
+        "message": "Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.",
+        "demande_id": 13,
+        "read": false,
+        "created_at": "2026-05-05 22:18:18"
+    },
+    {
+        "id": 7,
+        "medecin_id": 24,
+        "type": "new_demande",
+        "title": "Nouvelle demande d'ordonnance",
+        "message": "John Doe vous a envoyé une demande d'ordonnance.",
+        "demande_id": 14,
+        "read": true,
+        "created_at": "2026-05-05 22:44:13"
+    },
+    {
+        "id": 8,
+        "medecin_id": 24,
+        "type": "demande_refusee",
+        "title": "Demande refusée",
+        "message": "Email de refus envoyé à John Doe.",
+        "demande_id": 14,
+        "read": true,
+        "created_at": "2026-05-05 22:44:52"
+    },
+    {
+        "id": 9,
+        "medecin_id": 25,
+        "type": "demande_refusee",
+        "title": "Demande d'ordonnance non retenue",
+        "message": "Votre médecin n'a pas pu donner suite à votre demande. Consultez votre email pour les détails.",
+        "demande_id": 14,
+        "read": false,
+        "created_at": "2026-05-05 22:44:52"
+    },
+    {
+        "id": 10,
+        "medecin_id": 24,
+        "type": "demande_traitee",
+        "title": "Demande traitée ✓",
+        "message": "Email de confirmation envoyé à John Doe.",
+        "demande_id": 7,
+        "read": false,
+        "created_at": "2026-05-05 22:50:12"
+    },
+    {
+        "id": 11,
+        "medecin_id": 25,
+        "type": "demande_traitee",
+        "title": "Demande d'ordonnance acceptée ✓",
+        "message": "Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.",
+        "demande_id": 7,
+        "read": false,
+        "created_at": "2026-05-05 22:50:13"
+    },
+    {
+        "id": 12,
+        "medecin_id": 24,
+        "type": "demande_traitee",
+        "title": "Demande traitée ✓",
+        "message": "Email de confirmation envoyé à John Doe.",
+        "demande_id": 7,
+        "read": false,
+        "created_at": "2026-05-05 22:50:15"
+    },
+    {
+        "id": 13,
+        "medecin_id": 25,
+        "type": "demande_traitee",
+        "title": "Demande d'ordonnance acceptée ✓",
+        "message": "Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.",
+        "demande_id": 7,
+        "read": false,
+        "created_at": "2026-05-05 22:50:15"
+    },
+    {
+        "id": 14,
+        "medecin_id": 24,
+        "type": "demande_refusee",
+        "title": "Demande refusée",
+        "message": "Email de refus envoyé à John Doe.",
+        "demande_id": 5,
+        "read": false,
+        "created_at": "2026-05-05 22:50:48"
+    },
+    {
+        "id": 15,
+        "medecin_id": 25,
+        "type": "demande_refusee",
+        "title": "Demande d'ordonnance non retenue",
+        "message": "Votre médecin n'a pas pu donner suite à votre demande. Consultez votre email pour les détails.",
+        "demande_id": 5,
+        "read": false,
+        "created_at": "2026-05-05 22:50:48"
+    },
+    {
+        "id": 16,
+        "medecin_id": 24,
+        "type": "demande_refusee",
+        "title": "Demande refusée",
+        "message": "Email de refus envoyé à John Doe.",
+        "demande_id": 14,
+        "read": false,
+        "created_at": "2026-05-05 22:52:14"
+    },
+    {
+        "id": 17,
+        "medecin_id": 25,
+        "type": "demande_refusee",
+        "title": "Demande d'ordonnance non retenue",
+        "message": "Votre médecin n'a pas pu donner suite à votre demande. Consultez votre email pour les détails.",
+        "demande_id": 14,
+        "read": false,
+        "created_at": "2026-05-05 22:52:14"
+    },
+    {
+        "id": 18,
+        "medecin_id": 24,
+        "type": "demande_refusee",
+        "title": "Demande refusée",
+        "message": "Email de refus envoyé à John Doe.",
+        "demande_id": 14,
+        "read": false,
+        "created_at": "2026-05-05 22:52:14"
+    },
+    {
+        "id": 19,
+        "medecin_id": 25,
+        "type": "demande_refusee",
+        "title": "Demande d'ordonnance non retenue",
+        "message": "Votre médecin n'a pas pu donner suite à votre demande. Consultez votre email pour les détails.",
+        "demande_id": 14,
+        "read": false,
+        "created_at": "2026-05-05 22:52:14"
+    },
+    {
+        "id": 20,
+        "medecin_id": 24,
+        "type": "demande_refusee",
+        "title": "Demande refusée",
+        "message": "Email de refus envoyé à John Doe.",
+        "demande_id": 14,
+        "read": false,
+        "created_at": "2026-05-06 22:59:09"
+    },
+    {
+        "id": 21,
+        "medecin_id": 25,
+        "type": "demande_refusee",
+        "title": "Demande d'ordonnance non retenue",
+        "message": "Votre médecin n'a pas pu donner suite à votre demande. Consultez votre email pour les détails.",
+        "demande_id": 14,
+        "read": false,
+        "created_at": "2026-05-06 22:59:09"
+    }
+]

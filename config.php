@@ -24,6 +24,21 @@ class config {
         return OPENROUTER_API_KEY;
     }
 
+    //CAPTCHAv2
+    private static $recaptcha_site_key = "6LfuaMUsAAAAAIoHHjWv2avAH21eXKxFTvDxtDpT";
+    private static $recaptcha_secret_key = "6LfuaMUsAAAAAI7ovH5xCdgKsZ6PB8UHg6BQpvJs";
+
+    // Google Gemini API — aistudio.google.com
+    private static $claude_api_key = "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";
+
+    // SMTP (PHPMailer) — configurer avec Gmail ou autre fournisseur
+    private static $smtp_host     = "smtp.gmail.com";
+    private static $smtp_port     = 587;
+    private static $smtp_user     = "hafidhaganouni@gmail.com";
+    private static $smtp_pass     = "swrf pfgl evbo nzkb";
+    private static $smtp_from     = "hafidhaganouni@gmail.com";
+    private static $smtp_from_name = "mediflow";
+    
     public static function getConnexion() {
         // Validate or create connection
         if (!isset(self::$pdo) || !self::isConnected()) {
@@ -113,5 +128,16 @@ class config {
     public static function getSmtpPassword(): string {
         return SMTP_PASSWORD;
     }
+
+    public static function getClaudeApiKey(): string {
+        return self::$claude_api_key;
+    }
+
+    public static function getSmtpHost(): string     { return self::$smtp_host; }
+    public static function getSmtpPort(): int        { return self::$smtp_port; }
+    public static function getSmtpUser(): string     { return self::$smtp_user; }
+    public static function getSmtpPass(): string     { return self::$smtp_pass; }
+    public static function getSmtpFrom(): string     { return self::$smtp_from; }
+    public static function getSmtpFromName(): string { return self::$smtp_from_name; }
 }
 ?>

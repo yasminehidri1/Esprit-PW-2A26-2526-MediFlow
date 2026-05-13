@@ -228,7 +228,6 @@
                 <th class="px-5 py-3 text-center">Consultations</th>
                 <th class="px-5 py-3 text-center">Ordonnances</th>
                 <th class="px-5 py-3">Dernière Visite</th>
-                <th class="px-5 py-3 text-center">Dossier Complet</th>
               </tr>
             </thead>
             <tbody id="patientsTableBody" class="divide-y divide-slate-50"></tbody>
@@ -328,11 +327,6 @@ function viewDoctorPatients(doctorId, doctorName) {
             </td>
             <td class="px-5 py-4 text-xs text-slate-600 font-medium">
               ${p.last_consultation ? new Date(p.last_consultation).toLocaleDateString('fr-FR', {year:'numeric',month:'short',day:'numeric'}) : '—'}
-            </td>
-            <td class="px-5 py-4 text-center">
-               <a href="/integration/dossier/admin/doctors/patients?doctor_id=${doctorId}&patient_id=${p.id_PK}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-500 transition-colors shadow-sm" title="Voir tout le dossier">
-                 <span class="material-symbols-outlined text-[18px]">folder_open</span>
-               </a>
             </td>
           </tr>`).join('');
         content.classList.remove('hidden');

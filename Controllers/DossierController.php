@@ -53,17 +53,27 @@ class DossierController {
         $offset     = ($page - 1) * $perPage;
         $search     = trim($_GET['q'] ?? '');
 
+        $sort       = $_GET['sort'] ?? 'recent';
         $patients   = $this->consultationModel->getAllPatients($this->medecinId, $perPage, $offset);
         $totalCount = $this->consultationModel->countPatients($this->medecinId);
         $totalPages = (int) ceil($totalCount / $perPage);
         $stats      = $this->consultationModel->getTodayStats($this->medecinId);
 
         if ($search !== '') {
-            $patients = array_filter($patients, function ($p) use ($search) {
+            $patients = array_values(array_filter($patients, function ($p) use ($search) {
                 $full = strtolower($p['prenom'] . ' ' . $p['nom'] . ' ' . $p['mail']);
                 return str_contains($full, strtolower($search));
-            });
+            }));
         }
+
+        usort($patients, function ($a, $b) use ($sort) {
+            return match($sort) {
+                'alpha_asc'     =>  strcasecmp($a['prenom'].' '.$a['nom'], $b['prenom'].' '.$b['nom']),
+                'alpha_desc'    =>  strcasecmp($b['prenom'].' '.$b['nom'], $a['prenom'].' '.$a['nom']),
+                'consultations' =>  (int)$b['nb_consultations'] - (int)$a['nb_consultations'],
+                default         =>  strtotime($b['derniere_visite'] ?? '1970-01-01') - strtotime($a['derniere_visite'] ?? '1970-01-01'),
+            };
+        });
 
         $medecin   = $this->medecinInfo;
         $medecinId = $this->medecinId;
@@ -71,6 +81,8 @@ class DossierController {
 
         include __DIR__ . '/../Views/Back/layout.php';
     }
+
+
 
     // ── Nouvelle Consultation ────────────────────────────────────
 

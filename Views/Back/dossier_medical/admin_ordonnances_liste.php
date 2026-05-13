@@ -9,7 +9,7 @@ $statColors=['active'=>'bg-tertiary-fixed/40 text-tertiary','archivee'=>'bg-surf
     <?php else: ?>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
-        <thead class="bg-surface-container-low"><tr><?php foreach(['Numéro','Patient','Médecin','Date','Médicaments','Statut','Actions'] as $h): ?><th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-on-surface-variant"><?=$h?></th><?php endforeach ?></tr></thead>
+        <thead class="bg-surface-container-low"><tr><?php foreach(['Numéro','Patient','Médecin','Date','Médicaments','Statut'] as $h): ?><th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-on-surface-variant"><?=$h?></th><?php endforeach ?></tr></thead>
         <tbody class="divide-y divide-outline-variant/10">
           <?php foreach ($ordonnances as $o):
             $meds = json_decode($o['medicaments']??'[]', true) ?: [];
@@ -22,12 +22,6 @@ $statColors=['active'=>'bg-tertiary-fixed/40 text-tertiary','archivee'=>'bg-surf
             <td class="px-5 py-3.5 text-xs text-on-surface-variant"><?= date('d/m/Y', strtotime($o['date_emission'])) ?></td>
             <td class="px-5 py-3.5 text-xs text-on-surface-variant"><?= count($meds) ?> médicament(s)</td>
             <td class="px-5 py-3.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold <?= $statColors[$st]??'' ?>"><?= ucfirst($st) ?></span></td>
-            <td class="px-5 py-3.5">
-              <a href="/integration/dossier/admin/ordonnances/view?id=<?= $o['id_ordonnance'] ?>"
-                 class="flex items-center gap-1 px-2.5 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-semibold hover:bg-primary/20 transition-colors w-fit">
-                <span class="material-symbols-outlined text-sm">visibility</span>Voir
-              </a>
-            </td>
           </tr>
           <?php endforeach ?>
         </tbody>

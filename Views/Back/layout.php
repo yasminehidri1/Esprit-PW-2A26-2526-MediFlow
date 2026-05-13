@@ -119,6 +119,26 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 $role        = trim($_SESSION['user']['role'] ?? '');
 $userName    = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? 'User'));
 $userInitial = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1));
+$currentPath   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$role          = trim($_SESSION['user']['role'] ?? '');
+$userName      = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? 'User'));
+$userInitial   = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1));
+
+// ── Notifications dynamiques ───────────────────────────────────────
+$_notifUserId  = (int)($_SESSION['user']['id'] ?? 0);
+$_notifUnread  = 0;
+$_notifList    = [];
+if ($_notifUserId > 0) {
+    require_once __DIR__ . '/../../Models/NotificationModel.php';
+    $_nm          = new NotificationModel();
+    $_notifUnread = $_nm->countUnread($_notifUserId);
+    $_notifList   = $_nm->getByMedecin($_notifUserId, 8);
+}
+$_notifIcons = [
+    'new_demande'     => ['icon' => 'assignment',   'color' => 'text-blue-500',    'bg' => 'bg-blue-50'],
+    'demande_traitee' => ['icon' => 'check_circle', 'color' => 'text-emerald-500', 'bg' => 'bg-emerald-50'],
+    'demande_refusee' => ['icon' => 'cancel',       'color' => 'text-red-500',     'bg' => 'bg-red-50'],
+];
 
 /* Returns Tailwind classes for a sidebar link */
 function sidebarLink(string $href, string $currentPath, array $excludes = []): string {
@@ -296,7 +316,7 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
 
         <!-- ── Patient ── -->
         <?php if ($role === 'Patient'): ?>
-        <details class="nav-group" <?= groupOpen('/integration/catalogue', $currentPath) || groupOpen('/integration/mes-reservations', $currentPath) ? 'open' : '' ?>>
+        <details class="nav-group" <?= groupOpen('/integration/catalogue', $currentPath) || groupOpen('/integration/mes-reservations', $currentPath) || groupOpen('/integration/mes-favoris', $currentPath) ? 'open' : '' ?>>
             <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
                 <span class="material-symbols-outlined text-xl">medical_services</span>
                 <span class="flex-1">Equipment Rental</span>
@@ -312,6 +332,11 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/mes-reservations', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">shopping_cart</span>
                     <span>My Reservations</span>
+                </a>
+                <a href="/integration/mes-favoris"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/mes-favoris', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">favorite</span>
+                    <span>My Favourites</span>
                 </a>
             </div>
         </details>
