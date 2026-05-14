@@ -107,6 +107,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
     <link href="/integration/assets/css/tour.css" rel="stylesheet">
+    <script src="/integration/assets/js/tour.js"></script>
     <?php endif; ?>
 </head>
 <body class="bg-surface text-on-surface" data-show-tour="<?= ($data['show_tour'] ?? false) ? 'true' : 'false' ?>">
@@ -119,10 +120,6 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 $role        = trim($_SESSION['user']['role'] ?? '');
 $userName    = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? 'User'));
 $userInitial = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1));
-$currentPath   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-$role          = trim($_SESSION['user']['role'] ?? '');
-$userName      = trim(($_SESSION['user']['prenom'] ?? '') . ' ' . ($_SESSION['user']['nom'] ?? 'User'));
-$userInitial   = strtoupper(substr($_SESSION['user']['prenom'] ?? 'U', 0, 1));
 
 // ── Notifications dynamiques ───────────────────────────────────────
 $_notifUserId  = (int)($_SESSION['user']['id'] ?? 0);
@@ -141,24 +138,38 @@ $_notifIcons = [
 ];
 
 /* Returns Tailwind classes for a sidebar link */
-function sidebarLink(string $href, string $currentPath, array $excludes = []): string {
-    // Remove trailing slashes for comparison
-    $currentPathClean = rtrim($currentPath, '/');
-    $hrefClean = rtrim($href, '/');
-
+function sidebarLink(string $href, string $currentUri, array $excludes = []): string {
+    $currentParts = parse_url($currentUri);
+    $hrefParts = parse_url($href);
+    
+    $cPath = rtrim($currentParts['path'] ?? '', '/');
+    $hPath = rtrim($hrefParts['path'] ?? '', '/');
+    
     foreach ($excludes as $exclude) {
-        if ($currentPathClean === rtrim($exclude, '/') || str_starts_with($currentPathClean, rtrim($exclude, '/') . '/')) {
+        $excludePath = rtrim(parse_url($exclude, PHP_URL_PATH) ?? '', '/');
+        if ($cPath === $excludePath || str_starts_with($cPath, $excludePath . '/')) {
             return 'text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary';
         }
     }
 
-    // Exact match (including query string)
-    if ($currentPathClean === $hrefClean) {
-        return 'nav-link-active';
+    if ($cPath === $hPath) {
+        parse_str($currentParts['query'] ?? '', $currentQuery);
+        parse_str($hrefParts['query'] ?? '', $hrefQuery);
+        
+        $cAction = $currentQuery['action'] ?? '';
+        $hAction = $hrefQuery['action'] ?? '';
+        
+        if ($cPath === '/integration/admin') {
+            if ($cAction === '') $cAction = 'list';
+            if ($hAction === '') $hAction = 'list';
+        }
+        
+        if ($cAction === $hAction) {
+            return 'nav-link-active';
+        }
     }
     
-    // Prefix match for longer paths
-    if (strlen($hrefClean) > 20 && str_starts_with($currentPathClean, $hrefClean . '/')) {
+    if (strlen($hPath) > 20 && str_starts_with($cPath, $hPath . '/')) {
         return 'nav-link-active';
     }
            
@@ -166,8 +177,12 @@ function sidebarLink(string $href, string $currentPath, array $excludes = []): s
 }
 
 /* Auto-open a details group if current path starts with given prefix */
-function groupOpen(string $prefix, string $currentPath): string {
-    return str_contains($currentPath, $prefix) ? 'open' : '';
+function groupOpen(string $prefix, string $currentUri): string {
+    $path = parse_url($currentUri, PHP_URL_PATH);
+    if ($prefix === '/integration/admin' && str_starts_with($path, '/integration/magazine/admin')) {
+        return '';
+    }
+    return str_starts_with($path, $prefix) ? 'open' : '';
 }
 
 // Alertes stock bas — pharmacien & Admin uniquement
@@ -228,6 +243,11 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
                     <span class="material-symbols-outlined text-base">person_add</span>
                     <span>Ajouter un utilisateur</span>
                 </a>
+                <a href="/integration/admin?action=logs"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/admin?action=logs', $currentPath) ?>">
+                    <span class="material-symbols-outlined text-base">history</span>
+                    <span>Logs d'activité</span>
+                </a>
             </div>
         </details>
 
@@ -260,32 +280,32 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
                 <a href="/integration/magazine/admin"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/magazine/admin', $currentPath, ['/integration/magazine/admin/stats', '/integration/magazine/admin/articles', '/integration/magazine/admin/article-form', '/integration/magazine/admin/comments', '/integration/magazine/admin/save', '/integration/magazine/admin/delete', '/integration/magazine/admin/rephrase']) ?>">
                     <span class="material-symbols-outlined text-base">bar_chart</span>
-                    <span>Dashboard</span>
+                    <span>Tableau de bord</span>
                 </a>
                 <a href="/integration/magazine/admin/stats"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/magazine/admin/stats', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">analytics</span>
-                    <span>Statistics</span>
+                    <span>Statistiques</span>
                 </a>
                 <a href="/integration/magazine/admin/articles"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/magazine/admin/articles', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">article</span>
-                    <span>Content Library</span>
+                    <span>Bibliotheque de contenu</span>
                 </a>
                 <a href="/integration/magazine/admin/comments"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/magazine/admin/comments', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">forum</span>
-                    <span>Comments</span>
+                    <span>Commentaires</span>
                 </a>
                 <a href="/integration/magazine/admin/article-form"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/magazine/admin/article-form', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">add_circle</span>
-                    <span>New Article</span>
+                    <span>Nouvel article</span>
                 </a>
                 <a href="/integration/magazine"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary" target="_blank">
                     <span class="material-symbols-outlined text-base">open_in_new</span>
-                    <span>View Magazine</span>
+                      <span>Voir le Magazine</span>
                 </a>
             </div>
         </details>
@@ -296,19 +316,19 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
         <details class="nav-group" <?= groupOpen('/integration/equipements', $currentPath) || groupOpen('/integration/historique', $currentPath) ? 'open' : '' ?>>
             <summary class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary transition-all duration-150 select-none">
                 <span class="material-symbols-outlined text-xl">medical_services</span>
-                <span class="flex-1">Equipment</span>
+                  <span class="flex-1">Équipements</span>
                 <span class="material-symbols-outlined text-base chevron">chevron_right</span>
             </summary>
             <div class="mt-1 ml-4 pl-3 border-l-2 border-secondary-fixed space-y-0.5">
                 <a href="/integration/equipements"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/equipements', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">inventory_2</span>
-                    <span>Equipment List</span>
-                </a>
-                <a href="/integration/historique-location"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/historique-location', $currentPath) ?>">
-                    <span class="material-symbols-outlined text-base">history</span>
-                    <span>Rental History</span>
+                      <span>Liste des équipements</span>
+                  </a>
+                  <a href="/integration/historique-location"
+                     class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/historique-location', $currentPath) ?>">
+                      <span class="material-symbols-outlined text-base">history</span>
+                      <span>Historique de location</span>
                 </a>
             </div>
         </details>
@@ -326,17 +346,17 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
                 <a href="/integration/catalogue"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/catalogue', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">store</span>
-                    <span>Browse Catalogue</span>
+                    <span>Catalogue</span>
                 </a>
                 <a href="/integration/mes-reservations"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/mes-reservations', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">shopping_cart</span>
-                    <span>My Reservations</span>
+                    <span>mes reservations</span>
                 </a>
                 <a href="/integration/mes-favoris"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 <?= sidebarLink('/integration/mes-favoris', $currentPath) ?>">
                     <span class="material-symbols-outlined text-base">favorite</span>
-                    <span>My Favourites</span>
+                    <span>mes favoris</span>
                 </a>
             </div>
         </details>
@@ -529,10 +549,9 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
                 <?php
                 $sidebarPic = $_SESSION['user']['profile_pic'] ?? null;
                 if (!empty($sidebarPic)): ?>
-                    <img src="<?= htmlspecialchars($sidebarPic) ?>?t=<?= time() ?>" alt="Profile" class="w-full h-full object-cover">
-                <?php else: ?>
-                    <?= $userInitial ?>
-                <?php endif; ?>
+                      <img src="<?= htmlspecialchars($sidebarPic) ?><?= strpos($sidebarPic, '?') === false ? '?' : '&' ?>t=<?= time() ?>" alt="Profile" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                  <?php endif; ?>
+                  <span class="<?= !empty($sidebarPic) ? 'hidden' : '' ?>"><?= $userInitial ?></span>
             </div>
             <!-- Name + role -->
             <div class="flex-1 min-w-0">
@@ -669,7 +688,7 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
                     $profilePic = $currentUser['profile_pic'] ?? $_SESSION['user']['profile_pic'] ?? null;
                     if (!empty($profilePic)): 
                     ?>
-                        <img src="<?= htmlspecialchars($profilePic) ?>?t=<?= time() ?>" alt="Profile" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                          <img src="<?= htmlspecialchars($profilePic) ?><?= strpos($profilePic, '?') === false ? '?' : '&' ?>t=<?= time() ?>" alt="Profile" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
                     <?php endif; ?>
                     <span class="<?= !empty($profilePic) ? 'hidden' : '' ?>"><?= $userInitial ?></span>
                 </div>

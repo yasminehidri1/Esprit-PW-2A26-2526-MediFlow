@@ -616,6 +616,36 @@ class PatientEquipmentController
                         'payment_status'    => in_array($data['payment_status'] ?? '', $allowedPStatus) ? $data['payment_status'] : 'pending',
                         'stripe_payment_id' => preg_match('/^pi_[a-zA-Z0-9_]+$/', $data['stripe_payment_id'] ?? '') ? $data['stripe_payment_id'] : null,
                     ]);
+
+                    if ($ok) {
+                        (new \Equipement())->updateStatut((int)$data['equipement_id'], 'loue');
+                        
+                        // Notify all technicians about the new reservation
+                        require_once __DIR__ . '/../Models/NotificationModel.php';
+                        $nm = new \NotificationModel();
+                        $db = $this->getDatabase();
+                        // Find all active technicians
+                        $stmtTechs = $db->query("
+                            SELECT u.id_PK 
+                            FROM utilisateurs u 
+                            JOIN roles r ON u.id_role = r.id_role 
+                            WHERE r.libelle = 'Technicien' AND u.status = 'active'
+                        ");
+                        $technicians = $stmtTechs->fetchAll(\PDO::FETCH_COLUMN);
+                        
+                        $eqName = $eq['nom'] ?? 'Équipement';
+                        $patientName = htmlspecialchars(trim($data['locataire_nom']));
+                        
+                        foreach ($technicians as $techId) {
+                            $nm->add(
+                                (int)$techId, 
+                                'new_demande', 
+                                'Nouvelle Réservation', 
+                                "Le patient {$patientName} a réservé : {$eqName}."
+                            );
+                        }
+                    }
+
                     echo json_encode(['success' => $ok, 'message' => $ok ? 'Réservation créée.' : 'Échec insertion.']);
                     break;
 
@@ -624,6 +654,7 @@ class PatientEquipmentController
                     $data = json_decode(file_get_contents('php://input'), true);
                     if (!$data) { echo json_encode(['success' => false, 'message' => 'Invalid JSON.']); exit; }
 
+                    $oldRes = $model->getById($id);
                     $ok = $model->update($id, [
                         'equipement_id'   => (int)($data['equipement_id'] ?? 0),
                         'locataire_nom'   => htmlspecialchars(trim($data['locataire_nom'] ?? '')),
@@ -633,12 +664,27 @@ class PatientEquipmentController
                         'statut'          => in_array($data['statut'] ?? '', ['en_cours','termine','en_retard']) ? $data['statut'] : 'en_cours',
                         'telephone'       => htmlspecialchars(trim($data['telephone'] ?? '')),
                     ]);
+
+                    if ($ok && $oldRes) {
+                        if (($data['statut'] ?? '') === 'termine') {
+                            (new \Equipement())->updateStatut((int)$oldRes['equipement_id'], 'disponible');
+                        }
+                        if (isset($data['equipement_id']) && (int)$data['equipement_id'] !== (int)$oldRes['equipement_id']) {
+                            (new \Equipement())->updateStatut((int)$oldRes['equipement_id'], 'disponible');
+                            (new \Equipement())->updateStatut((int)$data['equipement_id'], 'loue');
+                        }
+                    }
+
                     echo json_encode(['success' => $ok, 'message' => $ok ? 'Réservation modifiée.' : 'Échec modification.']);
                     break;
 
                 case 'DELETE':
                     if (!$id) { echo json_encode(['success' => false, 'message' => 'ID missing.']); exit; }
+                    $oldRes = $model->getById($id);
                     $ok = $model->delete($id);
+                    if ($ok && $oldRes) {
+                        (new \Equipement())->updateStatut((int)$oldRes['equipement_id'], 'disponible');
+                    }
                     echo json_encode(['success' => $ok, 'message' => $ok ? 'Réservation supprimée.' : 'Échec suppression.']);
                     break;
 

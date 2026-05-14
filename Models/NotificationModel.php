@@ -36,7 +36,7 @@ class NotificationModel {
     /** Retourne les notifications d'un utilisateur (les plus récentes en premier). */
     public function getByMedecin(int $medecinId, int $limit = 20): array {
         $stmt = $this->db->prepare(
-            "SELECT * FROM notifications WHERE user_id = :uid ORDER BY created_at DESC LIMIT :lim"
+            "SELECT * FROM notifications WHERE user_id = :uid AND type NOT IN ('new_user', 'password_changed', 'user_suspended', 'user_activated', 'user_deleted', 'user_updated', 'google_signup', 'new_rdv', 'new_order', 'low_stock') ORDER BY created_at DESC LIMIT :lim"
         );
         $stmt->bindValue(':uid', $medecinId, \PDO::PARAM_INT);
         $stmt->bindValue(':lim', $limit,     \PDO::PARAM_INT);
@@ -47,7 +47,7 @@ class NotificationModel {
     /** Compte les notifications non lues d'un utilisateur. */
     public function countUnread(int $medecinId): int {
         $stmt = $this->db->prepare(
-            "SELECT COUNT(*) AS n FROM notifications WHERE user_id = :uid AND is_read = 0"
+            "SELECT COUNT(*) AS n FROM notifications WHERE user_id = :uid AND type NOT IN ('new_user', 'password_changed', 'user_suspended', 'user_activated', 'user_deleted', 'user_updated', 'google_signup', 'new_rdv', 'new_order', 'low_stock') AND is_read = 0"
         );
         $stmt->execute([':uid' => $medecinId]);
         return (int)($stmt->fetch()['n'] ?? 0);

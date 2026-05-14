@@ -1,9 +1,9 @@
-﻿<?php
+<?php
 /**
  * Back Office â€” Article Create/Edit Form
  */
 $isEdit = !empty($post);
-$pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
+$pageTitle = $isEdit ? 'Modifier l\'Article' : 'Créer un Nouvel Article';
 ?>
 
 <div class="max-w-4xl">
@@ -13,7 +13,7 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
         </a>
         <div>
             <h2 class="text-2xl font-bold"><?= $pageTitle ?></h2>
-            <p class="text-sm text-on-surface-variant"><?= $isEdit ? 'Editing: ' . htmlspecialchars($post['titre']) : 'Fill in the details for your new article' ?></p>
+            <p class="text-sm text-on-surface-variant"><?= $isEdit ? 'Modification de : ' . htmlspecialchars($post['titre']) : 'Remplissez les détails pour votre nouvel article' ?></p>
         </div>
     </div>
 
@@ -28,11 +28,11 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
             <label class="block">
                 <span class="text-sm font-bold text-on-surface flex items-center gap-2 mb-2">
                     <span class="material-symbols-outlined text-sm text-primary">title</span>
-                    Article Title <span class="text-error">*</span>
+                    Titre de l'Article <span class="text-error">*</span>
                 </span>
                 <input type="text" name="titre" required
                        value="<?= htmlspecialchars($post['titre'] ?? '') ?>"
-                       placeholder="Enter a compelling title..."
+                       placeholder="Entrez un titre accrocheur..."
                        class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-lg font-semibold"/>
             </label>
 
@@ -41,14 +41,14 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                 <label class="block">
                     <span class="text-sm font-bold text-on-surface flex items-center gap-2 mb-2">
                         <span class="material-symbols-outlined text-sm text-tertiary">category</span>
-                        Category
+                        Catégorie
                     </span>
                     <select name="categorie" class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
                         <?php 
-                        $defaultCategories = ['General Health', 'Mental Wellness', 'Diet & Nutrition', 'Active Living', 'Research', 'Journals'];
+                        $defaultCategories = ['Santé Générale', 'Bien-être Mental', 'Alimentation & Nutrition', 'Vie Active', 'Recherche', 'Journaux'];
                         foreach ($defaultCategories as $cat): 
                         ?>
-                        <option value="<?= $cat ?>" <?= ($post['categorie'] ?? 'General Health') === $cat ? 'selected' : '' ?>>
+                        <option value="<?= $cat ?>" <?= ($post['categorie'] ?? 'Santé Générale') === $cat ? 'selected' : '' ?>>
                             <?= $cat ?>
                         </option>
                         <?php endforeach; ?>
@@ -57,12 +57,12 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                 <label class="block">
                     <span class="text-sm font-bold text-on-surface flex items-center gap-2 mb-2">
                         <span class="material-symbols-outlined text-sm text-secondary">toggle_on</span>
-                        Status
+                        Statut
                     </span>
                     <select name="statut" class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
-                        <option value="brouillon" <?= ($post['statut'] ?? 'brouillon') === 'brouillon' ? 'selected' : '' ?>>Draft</option>
-                        <option value="publie" <?= ($post['statut'] ?? '') === 'publie' ? 'selected' : '' ?>>Published</option>
-                        <option value="archive" <?= ($post['statut'] ?? '') === 'archive' ? 'selected' : '' ?>>Archived</option>
+                        <option value="brouillon" <?= ($post['statut'] ?? 'brouillon') === 'brouillon' ? 'selected' : '' ?>>Brouillon</option>
+                        <option value="publie" <?= ($post['statut'] ?? '') === 'publie' ? 'selected' : '' ?>>Publié</option>
+                        <option value="archive" <?= ($post['statut'] ?? '') === 'archive' ? 'selected' : '' ?>>Archivé</option>
                     </select>
                 </label>
             </div>
@@ -71,7 +71,7 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
             <label class="block">
                 <span class="text-sm font-bold text-on-surface flex items-center gap-2 mb-2">
                     <span class="material-symbols-outlined text-sm text-secondary">image</span>
-                    Cover Image <span class="text-on-surface-variant font-normal">(optional)</span>
+                    Image de Couverture <span class="text-on-surface-variant font-normal">(optionnel)</span>
                 </span>
             </label>
 
@@ -83,7 +83,7 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                 <?php if (!empty($post['image_url']) && !isset($_FILES['image_file'])): ?>
                 <div id="imagePreviewContainer" class="mb-4">
                     <img id="imagePreview" src="<?= htmlspecialchars($post['image_url']) ?>" alt="Current image" class="max-h-48 mx-auto rounded-lg mb-3"/>
-                    <button type="button" onclick="removeImage()" class="text-xs font-bold text-error hover:text-error/80 transition-colors">Remove Image</button>
+                    <button type="button" onclick="removeImage()" class="text-xs font-bold text-error hover:text-error/80 transition-colors">Retirer l'Image</button>
                 </div>
                 <?php else: ?>
                 <div id="imagePreviewContainer" class="hidden mb-4">
@@ -94,12 +94,12 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                 <!-- Upload prompt -->
                 <div id="uploadPrompt" <?= !empty($post['image_url']) && !isset($_FILES['image_file']) ? 'style="display:none;"' : '' ?>>
                     <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2 inline-block group-hover:text-primary transition-colors">cloud_upload</span>
-                    <p class="text-sm font-bold text-on-surface mb-1">Drag and drop your image here</p>
-                    <p class="text-xs text-on-surface-variant mb-3">or</p>
+                    <p class="text-sm font-bold text-on-surface mb-1">Glissez et déposez votre image ici</p>
+                    <p class="text-xs text-on-surface-variant mb-3">ou</p>
                     <button type="button" onclick="document.getElementById('imageInput').click()" class="px-4 py-2 text-xs font-bold rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity">
-                        Browse Files
+                        Parcourir les fichiers
                     </button>
-                    <p class="text-xs text-on-surface-variant mt-3">Supported formats: JPG, PNG, WebP (Max 5MB)</p>
+                    <p class="text-xs text-on-surface-variant mt-3">Formats supportés: JPG, PNG, WebP (Max 5Mo)</p>
                 </div>
             </div>
 
@@ -108,7 +108,7 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                 <button type="button" id="openImageEditorBtn"
                         class="flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-bold hover:bg-blue-100 hover:border-blue-300 transition-all shadow-sm shadow-blue-100">
                     <span class="material-symbols-outlined text-sm">tune</span>
-                    Edit Image
+                    Modifier l'Image
                 </button>
             </div>
             <!-- Hidden input to store edited image data -->
@@ -119,7 +119,7 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                 <label class="block">
                     <span class="text-xs font-bold text-on-surface-variant flex items-center gap-2 mb-2">
                         <span class="material-symbols-outlined text-xs">link</span>
-                        Or use external image URL
+                        Ou utiliser une URL d'image externe
                     </span>
                     <input type="text" name="image_url" id="imageUrlField"
                            value="<?= htmlspecialchars($post['image_url'] ?? '') ?>"
@@ -210,14 +210,14 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
             <label class="block">
                 <span class="text-sm font-bold text-on-surface flex items-center gap-2 mb-2">
                     <span class="material-symbols-outlined text-sm text-primary">edit_note</span>
-                    Article Content <span class="text-error">*</span>
+                    Contenu de l'Article <span class="text-error">*</span>
                 </span>
                 <textarea id="contentTextarea" name="contenu" required rows="16"
-                          placeholder="Write your article content here..."
+                          placeholder="Écrivez le contenu de votre article ici..."
                           class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all leading-relaxed resize-y"><?= htmlspecialchars($post['contenu'] ?? '') ?></textarea>
                 <div class="flex items-center justify-between mt-2">
-                    <span class="text-xs text-on-surface-variant" id="charCount">0 characters</span>
-                    <span class="text-xs text-on-surface-variant" id="readTime">~0 min read</span>
+                    <span class="text-xs text-on-surface-variant" id="charCount">0 caractères</span>
+                    <span class="text-xs text-on-surface-variant" id="readTime">~0 min de lecture</span>
                 </div>
             </label>
 
@@ -230,8 +230,8 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                             <span class="material-symbols-outlined text-white text-[15px]">auto_fix_high</span>
                         </div>
                         <div>
-                            <p class="text-xs font-bold text-blue-800 leading-none">AI Writing Assistant</p>
-                            <p class="text-[10px] text-blue-400 mt-0.5">Select text in the editor, then click Rephrase</p>
+                            <p class="text-xs font-bold text-blue-800 leading-none">Assistant de Rédaction IA</p>
+                            <p class="text-[10px] text-blue-400 mt-0.5">Sélectionnez du texte, puis cliquez sur Reformuler</p>
                         </div>
                     </div>
                     <button id="rephraseBtn" type="button" disabled
@@ -239,7 +239,7 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                                    bg-blue-100 text-blue-300 cursor-not-allowed
                                    transition-all duration-200">
                         <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
-                        <span id="rephraseBtnLabel">Rephrase Selected</span>
+                        <span id="rephraseBtnLabel">Reformuler la Sélection</span>
                     </button>
                 </div>
 
@@ -253,7 +253,7 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0284c7;animation:aiDotBO 1.2s ease-in-out infinite;animation-delay:180ms"></span>
                             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#38bdf8;animation:aiDotBO 1.2s ease-in-out infinite;animation-delay:360ms"></span>
                         </div>
-                        <span class="text-sm text-slate-500 font-medium">Rephrasing with AIâ€¦</span>
+                        <span class="text-sm text-slate-500 font-medium">Reformulation par l'IA...</span>
                     </div>
 
                     <!-- Result content -->
@@ -268,7 +268,7 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                             </div>
                             <!-- Rephrased -->
                             <div>
-                                <p class="text-[10px] font-extrabold text-blue-600 uppercase tracking-widest mb-2">Rephrased</p>
+                                <p class="text-[10px] font-extrabold text-blue-600 uppercase tracking-widest mb-2">Reformulé</p>
                                 <div class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-3 max-h-32 overflow-y-auto">
                                     <p id="rephraseOutput" class="text-xs text-slate-800 leading-relaxed"></p>
                                 </div>
@@ -278,15 +278,15 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                         <div class="flex items-center gap-2 pt-1">
                             <button id="rephraseApply" type="button"
                                     class="flex items-center gap-1.5 px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200">
-                                <span class="material-symbols-outlined text-[15px]">check_circle</span> Apply
+                                <span class="material-symbols-outlined text-[15px]">check_circle</span> Appliquer
                             </button>
                             <button id="rephraseRetry" type="button"
                                     class="flex items-center gap-1.5 px-4 py-2 text-blue-600 text-xs font-bold rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors">
-                                <span class="material-symbols-outlined text-[15px]">refresh</span> Try Again
+                                <span class="material-symbols-outlined text-[15px]">refresh</span> Réessayer
                             </button>
                             <button id="rephraseDismiss" type="button"
                                     class="ml-auto px-3 py-2 text-slate-400 text-xs font-medium rounded-lg hover:bg-slate-50 transition-colors">
-                                Dismiss
+                                Fermer
                             </button>
                         </div>
                     </div>
@@ -426,16 +426,16 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
         <!-- Action Buttons -->
         <div class="flex items-center justify-between">
             <a href="/integration/magazine/admin/articles" class="px-6 py-3 text-sm font-semibold text-on-surface-variant bg-surface-container rounded-lg hover:bg-surface-container-high transition-colors">
-                Cancel
+                Annuler
             </a>
             <div class="flex gap-3">
                 <button type="submit" name="statut" value="brouillon" class="px-6 py-3 text-sm font-semibold text-on-surface border border-outline-variant/30 rounded-lg hover:bg-surface-container transition-colors flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">save</span>
-                    Save as Draft
+                    Enregistrer comme Brouillon
                 </button>
                 <button type="submit" class="px-6 py-3 text-sm font-semibold text-on-primary bg-gradient-to-r from-primary to-primary-container rounded-lg hover:opacity-90 transition-opacity shadow-sm flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm"><?= $isEdit ? 'update' : 'publish' ?></span>
-                    <?= $isEdit ? 'Update Article' : 'Create Article' ?>
+                    <?= $isEdit ? 'Mettre à jour l\'Article' : 'Créer l\'Article' ?>
                 </button>
             </div>
         </div>
@@ -456,8 +456,8 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
           <span class="material-symbols-outlined text-white text-[18px]">tune</span>
         </div>
         <div>
-          <p class="font-bold text-slate-800 text-sm leading-none">Image Editor</p>
-          <p class="text-[11px] text-slate-400 mt-0.5">Crop, adjust, and apply filters</p>
+          <p class="font-bold text-slate-800 text-sm leading-none">Éditeur d'Image</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Recadrer, ajuster, et appliquer des filtres</p>
         </div>
       </div>
       <button id="closeImageEditor" type="button"
@@ -477,22 +477,22 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
       <!-- Transform tools -->
       <div class="flex items-center gap-1 flex-wrap">
         <button class="editor-tool-btn" type="button" id="btnCropMode">
-          <span class="material-symbols-outlined text-lg">crop</span>Crop
+          <span class="material-symbols-outlined text-lg">crop</span>Recadrer
         </button>
         <button class="editor-tool-btn" type="button" onclick="editorCropper?.rotate(-90)">
-          <span class="material-symbols-outlined text-lg">rotate_left</span>Rotate L
+          <span class="material-symbols-outlined text-lg">rotate_left</span>Rotation G
         </button>
         <button class="editor-tool-btn" type="button" onclick="editorCropper?.rotate(90)">
-          <span class="material-symbols-outlined text-lg">rotate_right</span>Rotate R
+          <span class="material-symbols-outlined text-lg">rotate_right</span>Rotation D
         </button>
         <button class="editor-tool-btn" type="button" onclick="editorCropper?.scaleX(-editorCropper.getData().scaleX||1)">
-          <span class="material-symbols-outlined text-lg">flip</span>Flip H
+          <span class="material-symbols-outlined text-lg">flip</span>Miroir H
         </button>
         <button class="editor-tool-btn" type="button" onclick="editorCropper?.scaleY(-editorCropper.getData().scaleY||1)">
-          <span class="material-symbols-outlined text-lg" style="transform:rotate(90deg)">flip</span>Flip V
+          <span class="material-symbols-outlined text-lg" style="transform:rotate(90deg)">flip</span>Miroir V
         </button>
         <button class="editor-tool-btn" type="button" onclick="editorCropper?.reset()">
-          <span class="material-symbols-outlined text-lg">restart_alt</span>Reset
+          <span class="material-symbols-outlined text-lg">restart_alt</span>Réinit.
         </button>
 
         <!-- Brightness & Contrast sliders -->
@@ -500,21 +500,21 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
           <label class="flex items-center gap-1.5 text-xs font-bold text-slate-500">
             <span class="material-symbols-outlined text-sm">light_mode</span>
             <input id="brightnessSlider" type="range" min="-100" max="100" value="0"
-                   class="w-20 accent-blue-600" title="Brightness"/>
+                   class="w-20 accent-blue-600" title="Luminosité"/>
           </label>
           <label class="flex items-center gap-1.5 text-xs font-bold text-slate-500">
             <span class="material-symbols-outlined text-sm">contrast</span>
             <input id="contrastSlider" type="range" min="-100" max="100" value="0"
-                   class="w-20 accent-sky-500" title="Contrast"/>
+                   class="w-20 accent-sky-500" title="Contraste"/>
           </label>
         </div>
       </div>
 
       <!-- CSS Filter presets -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1">
-        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex-shrink-0">Filters:</span>
+        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex-shrink-0">Filtres:</span>
         <button class="editor-tool-btn active flex-shrink-0 !flex-row !p-1.5 !gap-2 text-[11px]"
-                type="button" data-filter="" id="filterNone">None</button>
+                type="button" data-filter="" id="filterNone">Aucun</button>
         <button class="editor-tool-btn flex-shrink-0 !flex-row !p-1.5 !gap-2 text-[11px]"
                 type="button" data-filter="grayscale(100%)">B&W</button>
         <button class="editor-tool-btn flex-shrink-0 !flex-row !p-1.5 !gap-2 text-[11px]"
@@ -536,12 +536,12 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
     <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 flex-shrink-0 bg-white">
       <button type="button" id="cancelImageEditor"
               class="px-5 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">
-        Cancel
+        Annuler
       </button>
       <button type="button" id="applyImageEdit"
               class="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-sky-500 text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity shadow-md shadow-blue-200">
         <span class="material-symbols-outlined text-sm">check_circle</span>
-        Apply & Use This Image
+        Appliquer et Utiliser
       </button>
     </div>
   </div>
@@ -724,9 +724,9 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
                 style="font-variation-settings:'FILL' 1">warning</span>
         </div>
         <div class="pt-0.5">
-          <p class="font-bold text-slate-800 text-base leading-snug">Unsaved Changes</p>
+          <p class="font-bold text-slate-800 text-base leading-snug">Modifications non sauvegardées</p>
           <p class="text-sm text-slate-500 mt-1 leading-relaxed">
-            You have unsaved changes that will be lost if you leave this page.
+            Vous avez des modifications non sauvegardées qui seront perdues si vous quittez.
           </p>
         </div>
       </div>
@@ -734,11 +734,11 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
     <div class="flex gap-3 px-6 pb-6">
       <button id="unsavedStay" type="button"
               class="flex-1 py-2.5 text-sm font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors">
-        Continue Editing
+        Continuer à Éditer
       </button>
       <button id="unsavedLeave" type="button"
               class="flex-1 py-2.5 text-sm font-bold text-white bg-slate-700 rounded-xl hover:bg-slate-800 transition-colors">
-        Discard &amp; Leave
+        Ignorer &amp; Quitter
       </button>
     </div>
   </div>
@@ -775,15 +775,15 @@ $pageTitle = $isEdit ? 'Edit Article' : 'Create New Article';
 
     function validateTitle() {
         const v = titleInput.value.trim();
-        if (!v)           { setFieldState(titleInput, 'error', 'Title is required.'); return false; }
-        if (v.length < 5) { setFieldState(titleInput, 'error', 'Title must be at least 5 characters.'); return false; }
+        if (!v)           { setFieldState(titleInput, 'error', 'Le titre est requis.'); return false; }
+        if (v.length < 5) { setFieldState(titleInput, 'error', 'Le titre doit contenir au moins 5 caractères.'); return false; }
         setFieldState(titleInput, 'ok'); return true;
     }
 
     function validateContent() {
         const v = contentArea.value.trim();
-        if (!v)            { setFieldState(contentArea, 'error', 'Article content is required.'); return false; }
-        if (v.length < 20) { setFieldState(contentArea, 'error', 'Content is too short (minimum 20 characters).'); return false; }
+        if (!v)            { setFieldState(contentArea, 'error', 'Le contenu de l\'article est requis.'); return false; }
+        if (v.length < 20) { setFieldState(contentArea, 'error', 'Le contenu est trop court (minimum 20 caractères).'); return false; }
         setFieldState(contentArea, 'ok'); return true;
     }
 

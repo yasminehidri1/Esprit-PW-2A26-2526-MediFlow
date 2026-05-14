@@ -111,6 +111,8 @@ try {
     $s->execute([$p, $userId]);
     file_put_contents($log, "18. Database updated successfully\n", FILE_APPEND);
     
+    $_SESSION['user']['profile_pic'] = $p;
+    
     ob_end_clean();
     echo json_encode(['success' => true, 'filename' => $p]);
     

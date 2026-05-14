@@ -58,40 +58,37 @@
 </head>
 <body class="bg-surface text-on-surface min-h-screen">
 
-<!-- Top nav bar (matches magazine front-office) -->
-<header class="fixed top-0 left-0 right-0 z-40 h-16 bg-white/90 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_1px_12px_rgba(0,77,153,0.06)]">
-    <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
-
-        <!-- Logo -->
-        <a href="/integration/" class="flex items-center gap-3 group">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shadow-sm">
-                <span class="material-symbols-outlined text-white text-lg" style="font-variation-settings:'FILL' 1">local_hospital</span>
-            </div>
-            <span class="text-lg font-black tracking-tight text-on-surface font-headline group-hover:text-primary transition-colors">
-                Medi<span class="text-primary">Flow</span>
-            </span>
-        </a>
-
-        <!-- Nav links -->
-        <nav class="hidden md:flex items-center gap-8">
-            <a href="#services"    class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Services</a>
-            <a href="#modules"     class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Modules</a>
-            <a href="#specialites" class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Spécialités</a>
-            <a href="/integration/magazine" class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Magazine</a>
-        </nav>
-
-        <!-- CTA -->
-        <div class="flex items-center gap-3">
-            <a href="/integration/login"
-               class="text-sm font-semibold text-primary hover:text-primary-container transition-colors">
-                Connexion
-            </a>
-            <a href="/integration/register"
-               class="px-4 py-2 bg-primary text-on-primary text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm">
-                Créer un compte
-            </a>
+<!-- Modern Floating Top Bar -->
+<header class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl bg-white/70 backdrop-blur-2xl border border-white/80 shadow-[0_8px_32px_rgba(0,77,153,0.08)] rounded-2xl transition-all duration-300 px-6 py-3 flex items-center justify-between animate-fadeInDown">
+    
+    <!-- Logo -->
+    <a href="/integration/" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+            <span class="material-symbols-outlined text-white text-[20px]" style="font-variation-settings:'FILL' 1">local_hospital</span>
         </div>
+        <span class="text-xl font-black tracking-tight text-slate-800 font-headline group-hover:text-primary transition-colors duration-300">
+            Medi<span class="text-primary">Flow</span>
+        </span>
+    </a>
+
+    <!-- Center Nav Links -->
+    <nav class="hidden md:flex items-center gap-1 bg-slate-100/50 p-1 rounded-xl border border-slate-200/50">
+        <a href="#modules" class="relative px-4 py-1.5 text-sm font-bold text-slate-600 hover:text-primary transition-colors rounded-lg hover:bg-white hover:shadow-sm">Modules</a>
+        <a href="#specialites" class="relative px-4 py-1.5 text-sm font-bold text-slate-600 hover:text-primary transition-colors rounded-lg hover:bg-white hover:shadow-sm">Spécialités</a>
+        <a href="/integration/magazine" class="relative px-4 py-1.5 text-sm font-bold text-slate-600 hover:text-primary transition-colors rounded-lg hover:bg-white hover:shadow-sm">Magazine</a>
+    </nav>
+
+    <!-- Call to Actions -->
+    <div class="flex items-center gap-2">
+        <a href="/integration/login"
+           class="hidden sm:flex px-4 py-2 text-sm font-bold text-slate-600 hover:text-primary hover:bg-blue-50 rounded-xl transition-all items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px]">login</span> Connexion
+        </a>
+        <a href="/integration/register"
+           class="px-5 py-2.5 bg-gradient-to-r from-primary to-blue-500 text-white text-sm font-bold rounded-xl shadow-[0_4px_14px_rgba(0,77,153,0.3)] hover:shadow-[0_6px_20px_rgba(0,77,153,0.4)] hover:-translate-y-0.5 transition-all flex items-center gap-2">
+            Créer un compte <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </a>
     </div>
 </header>
 
-<main class="pt-16">
+<main class="pt-28">

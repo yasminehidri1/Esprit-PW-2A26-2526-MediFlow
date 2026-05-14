@@ -13,6 +13,7 @@ namespace Controllers;
 
 use Core\SessionHelper;
 use Models\UserModel;
+use Models\LogModel;
 
 class AdminController
 {
@@ -57,6 +58,7 @@ class AdminController
             'update' => $this->update(),
             'delete' => $this->delete(),
             'toggle_status' => $this->toggleStatus(),
+            'logs' => $this->logs(),
             default => $this->list()
         };
     }
@@ -144,6 +146,28 @@ class AdminController
     }
 
     /**
+     * Display admin logs
+     * 
+     * @return void
+     */
+    private function logs(): void
+    {
+        $logModel = new LogModel();
+        
+        $filters = [
+            'action_type' => $_GET['action_type'] ?? null,
+            'module'      => $_GET['module'] ?? null,
+            'date_from'   => $_GET['date_from'] ?? null,
+            'date_to'     => $_GET['date_to'] ?? null,
+        ];
+
+        $logs = $logModel->getLogs($filters, 100);
+        
+        $currentView = 'logs'; // Points to Views/Back/logs.php
+        include __DIR__ . '/../Views/Back/layout.php';
+    }
+
+    /**
      * Store new user in database
      * 
      * @return void
@@ -195,6 +219,14 @@ class AdminController
                 'Nouvel utilisateur (Admin)',
                 "L'administrateur a créé le compte de {$userData['prenom']} {$userData['nom']} (Matricule: {$matricule}).",
                 $_SESSION['user']['id'] ?? null
+            );
+            \Core\LogService::logAction(
+                $_SESSION['user']['id'] ?? null, 
+                $_SESSION['user']['role'] ?? null, 
+                'CREATE', 
+                'USERS', 
+                "Création du compte utilisateur: {$userData['prenom']} {$userData['nom']} (Matricule: {$matricule})",
+                ['new' => $userData]
             );
             $_SESSION['message'] = 'Utilisateur créé avec succès.';
             header('Location: /integration/admin');
@@ -289,6 +321,8 @@ class AdminController
             $userData['password'] = $formData['password'];
         }
 
+        $oldUser = $this->userModel->getUserById($userId);
+
         if ($this->userModel->updateUser($userId, $userData)) {
             $freshUser = $this->userModel->getUserById($userId);
             $matricule = $freshUser['matricule'] ?? 'N/A';
@@ -297,6 +331,14 @@ class AdminController
                 'Utilisateur modifié',
                 "Le compte de {$userData['prenom']} {$userData['nom']} (Matricule: {$matricule}) a été modifié par un administrateur.",
                 $_SESSION['user']['id'] ?? null
+            );
+            \Core\LogService::logAction(
+                $_SESSION['user']['id'] ?? null, 
+                $_SESSION['user']['role'] ?? null, 
+                'UPDATE', 
+                'USERS', 
+                "Mise à jour du compte de {$userData['prenom']} {$userData['nom']} (Matricule: {$matricule})",
+                ['old' => $oldUser, 'new' => $freshUser]
             );
             $_SESSION['message'] = 'Utilisateur mis à jour avec succès.';
             header('Location: /integration/admin');
@@ -331,6 +373,14 @@ class AdminController
                 'Utilisateur supprimé',
                 "Un compte utilisateur (Matricule: {$matricule}) a été supprimé par l'administrateur.",
                 $_SESSION['user']['id'] ?? null
+            );
+            \Core\LogService::logAction(
+                $_SESSION['user']['id'] ?? null, 
+                $_SESSION['user']['role'] ?? null, 
+                'DELETE', 
+                'USERS', 
+                "Suppression du compte (Matricule: {$matricule})",
+                ['deleted_user' => $userToDelete]
             );
             $_SESSION['message'] = 'Utilisateur supprimé avec succès.';
         } else {
@@ -381,6 +431,14 @@ class AdminController
                 "Compte $actionWord",
                 "Le compte de {$user['prenom']} {$user['nom']} (Matricule: {$matricule}) a été $actionWord.",
                 $_SESSION['user']['id'] ?? null
+            );
+            \Core\LogService::logAction(
+                $_SESSION['user']['id'] ?? null, 
+                $_SESSION['user']['role'] ?? null, 
+                'UPDATE', 
+                'USERS', 
+                "Statut modifié ($newStatus) pour (Matricule: {$matricule})",
+                ['old_status' => $user['status'], 'new_status' => $newStatus]
             );
             $_SESSION['message'] = $newStatus === 'active' ? 'Utilisateur réactivé avec succès.' : 'Utilisateur suspendu avec succès.';
         } else {

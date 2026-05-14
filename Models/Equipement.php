@@ -93,4 +93,13 @@ class Equipement {
         $stmt = $this->pdo->prepare("DELETE FROM equipement WHERE id = ?");
         return $stmt->execute([(int)$id]);
     }
+
+    /**
+     * Update equipment status (disponible, loue, maintenance)
+     */
+    public function updateStatut(int $id, string $statut): bool
+    {
+        $stmt = $this->pdo->prepare("UPDATE equipement SET statut = ? WHERE id = ?");
+        return $stmt->execute([$statut, $id]);
+    }
 }

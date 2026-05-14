@@ -12,7 +12,7 @@
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold flex items-center gap-2">
                     <span class="w-1 h-6 bg-tertiary rounded-full"></span>
-                    Active Publications
+                    Publications Actives
                 </h2>
                 <span class="text-xs font-bold text-primary bg-primary-fixed px-3 py-1 rounded-full"><?= $result['total'] ?? 0 ?> TOTAL</span>
             </div>
@@ -21,7 +21,7 @@
             <div class="flex items-center gap-3 flex-wrap">
                 <a href="/integration/magazine/admin/articles" 
                    class="text-xs font-bold px-3 py-1.5 rounded-full transition-colors <?= empty($_GET['categorie']) && empty($_GET['statut']) ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high' ?>">
-                    All
+                    Tout
                 </a>
                 <?php if (!empty($categories)): ?>
                     <?php foreach ($categories as $cat): ?>
@@ -34,11 +34,11 @@
                 <div class="h-4 w-px bg-outline-variant/30 mx-1"></div>
                 <a href="/integration/magazine/admin/articles?statut=publie" 
                    class="text-xs font-bold px-3 py-1.5 rounded-full transition-colors <?= ($_GET['statut'] ?? '') === 'publie' ? 'bg-tertiary text-on-tertiary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high' ?>">
-                    Published
+                    Publié
                 </a>
                 <a href="/integration/magazine/admin/articles?statut=brouillon" 
                    class="text-xs font-bold px-3 py-1.5 rounded-full transition-colors <?= ($_GET['statut'] ?? '') === 'brouillon' ? 'bg-secondary text-on-secondary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high' ?>">
-                    Drafts
+                    Brouillons
                 </a>
             </div>
 
@@ -49,7 +49,7 @@
                     <div class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg hover:bg-slate-50 transition-colors">
                         <div class="flex items-center gap-4">
                             <?php if (!empty($post['image_url'])): ?>
-                            <img alt="Post Thumbnail" class="w-14 h-14 rounded-lg object-cover" src="<?= htmlspecialchars($post['image_url']) ?>"/>
+                            <img alt="Vignette de l'article" class="w-14 h-14 rounded-lg object-cover" src="<?= htmlspecialchars($post['image_url']) ?>"/>
                             <?php else: ?>
                             <div class="w-14 h-14 rounded-lg bg-primary-fixed flex items-center justify-center">
                                 <span class="material-symbols-outlined text-primary">article</span>
@@ -65,9 +65,9 @@
                                         'archive'   => 'bg-surface-container-high text-on-surface-variant',
                                     ];
                                     $statusLabels = [
-                                        'publie'    => 'Published',
-                                        'brouillon' => 'Draft',
-                                        'archive'   => 'Archived',
+                                        'publie'    => 'Publié',
+                                        'brouillon' => 'Brouillon',
+                                        'archive'   => 'Archivé',
                                     ];
                                     ?>
                                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full <?= $statusColors[$post['statut']] ?? '' ?>">
@@ -76,8 +76,8 @@
                                 </div>
                                 <p class="text-xs text-on-surface-variant flex items-center gap-2 mt-1">
                                     <span class="font-semibold text-tertiary"><?= htmlspecialchars($post['categorie']) ?></span>
-                                    • <?= date('M d, Y', strtotime($post['date_creation'])) ?>
-                                    • By <?= htmlspecialchars(($post['prenom'] ?? '') . ' ' . ($post['nom'] ?? '')) ?>
+                                    • <?= date('d M Y', strtotime($post['date_creation'])) ?>
+                                    • Par <?= htmlspecialchars(($post['prenom'] ?? '') . ' ' . ($post['nom'] ?? '')) ?>
                                 </p>
                             </div>
                         </div>
@@ -104,8 +104,8 @@
                 <?php else: ?>
                     <div class="text-center py-12 text-on-surface-variant">
                         <span class="material-symbols-outlined text-5xl mb-3 text-outline">search_off</span>
-                        <p class="text-lg font-semibold mb-1">No articles found</p>
-                        <p class="text-sm">Try adjusting your filters or <a href="/integration/magazine/admin/article-form" class="text-primary font-bold hover:underline">create a new post</a>.</p>
+                        <p class="text-lg font-semibold mb-1">Aucun article trouvé</p>
+                        <p class="text-sm">Essayez d'ajuster vos filtres ou <a href="/integration/magazine/admin/article-form" class="text-primary font-bold hover:underline">créer un nouvel article</a>.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -136,23 +136,23 @@
         <a href="/integration/magazine/admin/article-form" class="block bg-gradient-to-br from-primary to-primary-container rounded-2xl p-6 text-on-primary hover:scale-[1.01] transition-transform shadow-lg">
             <div class="flex items-center gap-3 mb-3">
                 <span class="material-symbols-outlined text-3xl">edit_square</span>
-                <h3 class="text-lg font-bold">New Article</h3>
+                <h3 class="text-lg font-bold">Nouvel Article</h3>
             </div>
-            <p class="text-sm text-on-primary-container/80">Create a new health article, research paper, or clinical update for the magazine.</p>
+            <p class="text-sm text-on-primary-container/80">Créez un nouvel article de santé, une recherche, ou une mise à jour clinique pour le magazine.</p>
         </a>
 
         <a href="/integration/magazine/admin/comments" class="block bg-surface-container-low rounded-2xl p-6 hover:bg-surface-container transition-colors">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-bold">Moderation Queue</h3>
+                <h3 class="text-lg font-bold">Modération</h3>
                 <span class="material-symbols-outlined text-tertiary">gavel</span>
             </div>
-            <p class="text-sm text-on-surface-variant">Review and manage community comments across all articles.</p>
+            <p class="text-sm text-on-surface-variant">Examinez et gérez les commentaires de la communauté sur tous les articles.</p>
         </a>
 
         <div class="bg-tertiary-container text-on-tertiary-container p-6 rounded-2xl text-center">
             <span class="material-symbols-outlined text-4xl mb-3">auto_stories</span>
-            <h3 class="text-lg font-bold mb-2">Content Tips</h3>
-            <p class="text-xs opacity-80 leading-relaxed">Write engaging health articles with clear headings, evidence-based claims, and actionable takeaways for patients.</p>
+            <h3 class="text-lg font-bold mb-2">Conseils de Rédaction</h3>
+            <p class="text-xs opacity-80 leading-relaxed">Rédigez des articles engageants avec des titres clairs, des sources fiables, et des conseils pratiques pour les patients.</p>
         </div>
     </div>
 </div>

@@ -14,8 +14,12 @@ foreach ($reservations as $r) {
     $nom = trim($r['locataire_nom'] ?? 'Inconnu');
     $groupes[$nom][] = $r;
 }
-// Trier les groupes par nom alphabétique
-ksort($groupes);
+// Trier les groupes par activité la plus récente (ID max dans le groupe)
+uasort($groupes, function($a, $b) {
+    $maxA = max(array_column($a, 'id'));
+    $maxB = max(array_column($b, 'id'));
+    return $maxB <=> $maxA;
+});
 
 // Stats globales
 $totalRes = count($reservations);
@@ -496,7 +500,7 @@ $today = date('Y-m-d');
 <div class="toast-container"></div>
 <script src="/projet%20web/Assets/materiel.js"></script>
 <script>
-  const API_RES = '/projet%20web/controller/ReservationController.php';
+  const API_RES = '/integration/equipment/api/reservations';
 
   /* ── Replier / Déplier un bloc patient ── */
   function toggleBloc(id) {

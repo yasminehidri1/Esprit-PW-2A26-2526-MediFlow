@@ -14,23 +14,23 @@
         <!-- Quick Stats Row -->
         <div class="grid grid-cols-4 gap-4">
             <div class="bg-surface-container-lowest p-5 rounded-xl border-t-2 border-tertiary-fixed shadow-sm">
-                <p class="text-xs font-bold text-on-surface-variant mb-1">Total Articles</p>
+                <p class="text-xs font-bold text-on-surface-variant mb-1">Total des Articles</p>
                 <h4 class="text-2xl font-extrabold text-primary stat-counter" data-target="<?= $postStats['total_articles'] ?? 0 ?>">0</h4>
                 <p class="text-[10px] text-tertiary mt-2 flex items-center">
                     <span class="material-symbols-outlined text-xs mr-1">article</span>
-                    <?= $postStats['published'] ?? 0 ?> published
+                    <?= $postStats['published'] ?? 0 ?> publiés
                 </p>
             </div>
             <div class="bg-surface-container-lowest p-5 rounded-xl border-t-2 border-tertiary-fixed shadow-sm">
-                <p class="text-xs font-bold text-on-surface-variant mb-1">Total Views</p>
+                <p class="text-xs font-bold text-on-surface-variant mb-1">Total des Vues</p>
                 <h4 class="text-2xl font-extrabold text-primary stat-counter" data-target="<?= $postStats['total_views'] ?? 0 ?>">0</h4>
                 <p class="text-[10px] text-tertiary mt-2 flex items-center">
                     <span class="material-symbols-outlined text-xs mr-1">trending_up</span>
-                    All time
+                    Global
                 </p>
             </div>
             <div class="bg-surface-container-lowest p-5 rounded-xl border-t-2 border-tertiary-fixed shadow-sm">
-                <p class="text-xs font-bold text-on-surface-variant mb-1">Total Likes</p>
+                <p class="text-xs font-bold text-on-surface-variant mb-1">Total des J'aime</p>
                 <h4 class="text-2xl font-extrabold text-primary stat-counter" data-target="<?= $postStats['total_likes'] ?? 0 ?>">0</h4>
                 <p class="text-[10px] text-tertiary mt-2 flex items-center">
                     <span class="material-symbols-outlined text-xs mr-1">favorite</span>
@@ -38,11 +38,11 @@
                 </p>
             </div>
             <div class="bg-surface-container-lowest p-5 rounded-xl border-t-2 border-<?= ($commentStats['pending'] ?? 0) > 0 ? 'error' : 'tertiary-fixed' ?> shadow-sm">
-                <p class="text-xs font-bold text-on-surface-variant mb-1">Pending Comments</p>
+                <p class="text-xs font-bold text-on-surface-variant mb-1">Commentaires en Attente</p>
                 <h4 class="text-2xl font-extrabold text-<?= ($commentStats['pending'] ?? 0) > 0 ? 'error' : 'primary' ?> stat-counter" data-target="<?= $commentStats['pending'] ?? 0 ?>">0</h4>
                 <p class="text-[10px] text-<?= ($commentStats['pending'] ?? 0) > 0 ? 'error' : 'on-surface-variant' ?> mt-2 flex items-center">
                     <span class="material-symbols-outlined text-xs mr-1">gavel</span>
-                    Needs review
+                    À réviser
                 </p>
             </div>
         </div>
@@ -52,10 +52,10 @@
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold flex items-center gap-2">
                     <span class="w-1 h-6 bg-tertiary rounded-full"></span>
-                    Recent Publications
+                    Publications Récentes
                 </h2>
                 <a href="/integration/magazine/admin/articles" class="text-xs font-bold text-primary bg-primary-fixed px-3 py-1 rounded-full hover:bg-primary-fixed-dim transition-colors">
-                    VIEW ALL
+                    VOIR TOUT
                 </a>
             </div>
 
@@ -76,8 +76,8 @@
                                 <h3 class="font-bold text-on-surface"><?= htmlspecialchars($post['titre']) ?></h3>
                                 <p class="text-xs text-on-surface-variant flex items-center gap-2">
                                     <span class="font-semibold text-tertiary"><?= htmlspecialchars($post['categorie']) ?></span>
-                                    • <?= date('M d, Y', strtotime($post['date_creation'])) ?>
-                                    • By <?= htmlspecialchars(($post['prenom'] ?? '') . ' ' . ($post['nom'] ?? '')) ?>
+                                    • <?= date('d M Y', strtotime($post['date_creation'])) ?>
+                                    • Par <?= htmlspecialchars(($post['prenom'] ?? '') . ' ' . ($post['nom'] ?? '')) ?>
                                 </p>
                             </div>
                         </div>
@@ -104,7 +104,7 @@
                 <?php else: ?>
                     <div class="text-center py-8 text-on-surface-variant">
                         <span class="material-symbols-outlined text-4xl mb-2">edit_note</span>
-                        <p>No articles yet. Create your first post!</p>
+                        <p>Aucun article pour le moment. Créez votre première publication !</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -113,8 +113,8 @@
             <?php if (($totalPostsPages ?? 1) > 1): ?>
             <div class="flex items-center justify-between pt-2 border-t border-surface-container">
                 <span class="text-xs text-on-surface-variant">
-                    Page <strong><?= $postsPage ?></strong> of <strong><?= $totalPostsPages ?></strong>
-                    <span class="opacity-60">(<?= $totalPostsCount ?> posts)</span>
+                    Page <strong><?= $postsPage ?></strong> sur <strong><?= $totalPostsPages ?></strong>
+                    <span class="opacity-60">(<?= $totalPostsCount ?> articles)</span>
                 </span>
                 <div class="flex items-center gap-1.5">
                     <?php if ($postsPage > 1): ?>
@@ -165,13 +165,13 @@
                 <div>
                     <h2 class="text-lg font-bold flex items-center gap-2">
                         <span class="material-symbols-outlined text-tertiary text-xl">forum</span>
-                        Comment Moderation
+                        Modération des Commentaires
                     </h2>
-                    <p class="text-[11px] text-on-surface-variant mt-0.5">Recent messages</p>
+                    <p class="text-[11px] text-on-surface-variant mt-0.5">Messages récents</p>
                 </div>
                 <a href="/integration/magazine/admin/comments"
                    class="text-[10px] font-bold text-primary bg-primary-fixed px-2.5 py-1 rounded-full hover:bg-primary-fixed-dim transition-colors">
-                    View All →
+                    Voir Tout →
                 </a>
             </div>
 
@@ -190,9 +190,9 @@
                             default     => 'bg-amber-50 text-amber-700',
                         };
                         $statusLabel = match($comment['statut']) {
-                            'approuve'  => 'Approved',
-                            'rejete'    => 'Rejected',
-                            default     => 'Pending',
+                            'approuve'  => 'Approuvé',
+                            'rejete'    => 'Rejeté',
+                            default     => 'En Attente',
                         };
                     ?>
                     <div class="bg-surface-container-lowest p-4 rounded-lg border-l-2 <?= $statusColor ?> shadow-sm">
@@ -213,7 +213,7 @@
                         <!-- Post reference -->
                         <?php if (!empty($comment['post_titre'])): ?>
                         <p class="text-[10px] text-on-surface-variant mb-1.5">
-                            on <a href="/integration/magazine/admin/comments?post_id=<?= $comment['id_post'] ?>"
+                            sur <a href="/integration/magazine/admin/comments?post_id=<?= $comment['id_post'] ?>"
                                   class="text-primary font-medium hover:underline"><?= htmlspecialchars($comment['post_titre']) ?></a>
                         </p>
                         <?php endif; ?>
@@ -226,7 +226,7 @@
                             <button onclick="showDeleteModal('/integration/magazine/admin/comment/delete?id=<?= $comment['id'] ?>&redirect=/integration/magazine/admin?comments_page=<?= $commentsPage ?? 1 ?>', 'comment')"
                                     class="flex items-center gap-1 px-3 py-1 text-[10px] font-bold rounded-lg bg-error-container/30 text-error hover:bg-error-container/60 transition-colors">
                                 <span class="material-symbols-outlined text-sm">delete</span>
-                                Delete
+                                Supprimer
                             </button>
                         </div>
                     </div>
@@ -234,7 +234,7 @@
                 <?php else: ?>
                     <div class="text-center py-6 text-on-surface-variant">
                         <span class="material-symbols-outlined text-3xl text-tertiary mb-1">check_circle</span>
-                        <p class="text-xs">No comments yet.</p>
+                        <p class="text-xs">Aucun commentaire pour le moment.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -285,7 +285,7 @@
 
         <!-- Category Breakdown -->
         <div class="bg-surface-container-low rounded-xl p-6 space-y-4">
-            <h2 class="text-lg font-bold">Categories</h2>
+            <h2 class="text-lg font-bold">Catégories</h2>
             <div class="space-y-3">
                 <?php if (!empty($postStats['categories'])): ?>
                     <?php foreach ($postStats['categories'] as $cat): ?>
@@ -301,11 +301,11 @@
         <!-- Quick Stats mini -->
         <div class="grid grid-cols-2 gap-4">
             <div class="bg-surface-container-lowest p-5 rounded-xl border-t-2 border-tertiary-fixed shadow-sm">
-                <p class="text-xs font-bold text-on-surface-variant mb-1">Drafts</p>
+                <p class="text-xs font-bold text-on-surface-variant mb-1">Brouillons</p>
                 <h4 class="text-2xl font-extrabold text-primary"><?= $postStats['drafts'] ?? 0 ?></h4>
             </div>
             <div class="bg-surface-container-lowest p-5 rounded-xl border-t-2 border-tertiary-fixed shadow-sm">
-                <p class="text-xs font-bold text-on-surface-variant mb-1">Comments</p>
+                <p class="text-xs font-bold text-on-surface-variant mb-1">Commentaires</p>
                 <h4 class="text-2xl font-extrabold text-primary"><?= $commentStats['total'] ?? 0 ?></h4>
             </div>
         </div>
@@ -318,18 +318,18 @@
     <div class="flex items-center gap-8">
         <div class="flex items-center gap-3">
             <span class="w-3 h-3 rounded-full bg-tertiary animate-pulse"></span>
-            <span class="text-sm font-bold">System Status: Operational</span>
+            <span class="text-sm font-bold">Statut du Système : Opérationnel</span>
         </div>
         <div class="h-8 w-px bg-outline-variant/30"></div>
         <div class="text-sm">
-            <span class="text-on-surface-variant">Database:</span>
+            <span class="text-on-surface-variant">Base de données :</span>
             <span class="font-bold ml-1">mediflow</span>
         </div>
     </div>
     <div class="flex items-center gap-4">
-        <span class="text-xs text-on-surface-variant italic">MediFlow Magazine Module v1.0</span>
+        <span class="text-xs text-on-surface-variant italic">Module Magazine MediFlow v1.0</span>
         <a href="/integration/magazine" class="bg-white px-4 py-2 rounded-lg text-xs font-bold text-primary shadow-sm hover:bg-slate-50 transition-all">
-            View Front Office →
+            Voir Front Office →
         </a>
     </div>
 </div>

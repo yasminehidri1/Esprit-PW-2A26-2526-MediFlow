@@ -63,8 +63,8 @@ class NotificationController
             $unreadCount   = NotificationService::countUnread();
         } else {
             if (!$userId) $this->json(['notifications' => [], 'unread_count' => 0]);
-            $notifications = $this->notifModel->getForUser($userId, 30);
-            $unreadCount   = $this->notifModel->countUnread($userId);
+            $notifications = $this->notifModel->getForUser($userId, 30, $role);
+            $unreadCount   = $this->notifModel->countUnread($userId, $role);
         }
 
         foreach ($notifications as &$n) {
@@ -118,8 +118,9 @@ class NotificationController
             $this->json(['notifications' => [], 'unread' => 0]);
         }
 
-        $notifications = $this->notifModel->getForUser($userId, 20);
-        $unread        = $this->notifModel->countUnread($userId);
+        $role  = $_SESSION['user']['role'] ?? '';
+        $notifications = $this->notifModel->getForUser($userId, 20, $role);
+        $unread        = $this->notifModel->countUnread($userId, $role);
 
         $this->json(['notifications' => $notifications, 'unread' => $unread]);
     }

@@ -44,13 +44,13 @@ $generatedAt    = date('d M Y, H:i');
         <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1">analytics</span>
       </div>
       <div>
-        <h1 class="font-headline text-2xl font-extrabold text-blue-900 leading-none">Magazine Statistics</h1>
-        <p class="text-xs text-slate-400 mt-1">Last refreshed: <?= $generatedAt ?></p>
+        <h1 class="font-headline text-2xl font-extrabold text-blue-900 leading-none">Statistiques du Magazine</h1>
+        <p class="text-xs text-slate-400 mt-1">Dernière actualisation : <?= $generatedAt ?></p>
       </div>
     </div>
     <a href="/integration/magazine/admin/stats"
        class="flex items-center gap-1.5 px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold rounded-xl hover:bg-blue-100 transition-colors">
-      <span class="material-symbols-outlined text-base">refresh</span> Refresh
+      <span class="material-symbols-outlined text-base">refresh</span> Actualiser
     </a>
   </div>
 
@@ -64,15 +64,15 @@ $generatedAt    = date('d M Y, H:i');
           <span class="material-symbols-outlined text-blue-600 text-lg" style="font-variation-settings:'FILL' 1">article</span>
         </span>
         <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-          +<?= $postStats['published'] ?> live
+          +<?= $postStats['published'] ?> en ligne
         </span>
       </div>
       <p class="text-2xl font-extrabold text-blue-900 font-headline" data-count="<?= $postStats['total_articles'] ?>">0</p>
-      <p class="text-xs text-slate-400 mt-0.5 font-medium">Total Articles</p>
+      <p class="text-xs text-slate-400 mt-0.5 font-medium">Total des Articles</p>
       <div class="flex gap-2 mt-2">
-        <span class="text-[10px] text-slate-400"><?= $postStats['drafts'] ?> drafts</span>
+        <span class="text-[10px] text-slate-400"><?= $postStats['drafts'] ?> brouillons</span>
         <span class="text-[10px] text-slate-300">·</span>
-        <span class="text-[10px] text-slate-400"><?= $archived ?> archived</span>
+        <span class="text-[10px] text-slate-400"><?= $archived ?> archivés</span>
       </div>
     </div>
 
@@ -84,7 +84,7 @@ $generatedAt    = date('d M Y, H:i');
         </span>
       </div>
       <p class="text-2xl font-extrabold text-blue-900 font-headline" data-count="<?= $postStats['total_views'] ?>">0</p>
-      <p class="text-xs text-slate-400 mt-0.5 font-medium">Total Views</p>
+      <p class="text-xs text-slate-400 mt-0.5 font-medium">Total des Vues</p>
     </div>
 
     <!-- Total Likes -->
@@ -95,7 +95,7 @@ $generatedAt    = date('d M Y, H:i');
         </span>
       </div>
       <p class="text-2xl font-extrabold text-blue-900 font-headline" data-count="<?= $postStats['total_likes'] ?>">0</p>
-      <p class="text-xs text-slate-400 mt-0.5 font-medium">Total Likes</p>
+      <p class="text-xs text-slate-400 mt-0.5 font-medium">Total des J'aime</p>
     </div>
 
     <!-- Total Comments -->
@@ -106,12 +106,12 @@ $generatedAt    = date('d M Y, H:i');
         </span>
         <?php if ($commentStats['pending'] > 0): ?>
         <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-          <?= $commentStats['pending'] ?> pending
+          <?= $commentStats['pending'] ?> en attente
         </span>
         <?php endif; ?>
       </div>
       <p class="text-2xl font-extrabold text-blue-900 font-headline" data-count="<?= $commentStats['total'] ?>">0</p>
-      <p class="text-xs text-slate-400 mt-0.5 font-medium">Total Comments</p>
+      <p class="text-xs text-slate-400 mt-0.5 font-medium">Total des Commentaires</p>
     </div>
 
     <!-- Bookmarks -->
@@ -122,7 +122,7 @@ $generatedAt    = date('d M Y, H:i');
         </span>
       </div>
       <p class="text-2xl font-extrabold text-blue-900 font-headline" data-count="<?= $totalBookmarks ?>">0</p>
-      <p class="text-xs text-slate-400 mt-0.5 font-medium">Bookmarks</p>
+      <p class="text-xs text-slate-400 mt-0.5 font-medium">Favoris</p>
     </div>
 
     <!-- Categories -->
@@ -133,7 +133,7 @@ $generatedAt    = date('d M Y, H:i');
         </span>
       </div>
       <p class="text-2xl font-extrabold text-blue-900 font-headline" data-count="<?= count($categoryBreakdown) ?>">0</p>
-      <p class="text-xs text-slate-400 mt-0.5 font-medium">Categories</p>
+      <p class="text-xs text-slate-400 mt-0.5 font-medium">Catégories</p>
     </div>
   </div>
 
@@ -142,28 +142,28 @@ $generatedAt    = date('d M Y, H:i');
 
     <!-- Activity Timeline (2/3) -->
     <div class="chart-card xl:col-span-2">
-      <h3><span class="material-symbols-outlined text-[15px] text-blue-500">show_chart</span> Activity Over 12 Months</h3>
+      <h3><span class="material-symbols-outlined text-[15px] text-blue-500">show_chart</span> Activité sur 12 Mois</h3>
       <canvas id="chartTimeline" height="110"></canvas>
     </div>
 
     <!-- Post Status Donut (1/3) -->
     <div class="chart-card xl:col-span-1 flex flex-col">
-      <h3><span class="material-symbols-outlined text-[15px] text-blue-500">donut_large</span> Post Status</h3>
+      <h3><span class="material-symbols-outlined text-[15px] text-blue-500">donut_large</span> Statut des Articles</h3>
       <div class="flex-1 flex items-center justify-center">
         <canvas id="chartPostStatus" style="max-height:200px"></canvas>
       </div>
       <div class="mt-3 grid grid-cols-3 gap-2 text-center">
         <div>
           <p class="text-base font-extrabold text-emerald-600"><?= $postStats['published'] ?></p>
-          <p class="text-[10px] text-slate-400 font-medium">Published</p>
+          <p class="text-[10px] text-slate-400 font-medium">Publié</p>
         </div>
         <div>
           <p class="text-base font-extrabold text-amber-500"><?= $postStats['drafts'] ?></p>
-          <p class="text-[10px] text-slate-400 font-medium">Drafts</p>
+          <p class="text-[10px] text-slate-400 font-medium">Brouillons</p>
         </div>
         <div>
           <p class="text-base font-extrabold text-slate-400"><?= $archived ?></p>
-          <p class="text-[10px] text-slate-400 font-medium">Archived</p>
+          <p class="text-[10px] text-slate-400 font-medium">Archivé</p>
         </div>
       </div>
     </div>
@@ -173,19 +173,19 @@ $generatedAt    = date('d M Y, H:i');
   <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
     <div class="chart-card">
-      <h3><span class="material-symbols-outlined text-[15px] text-rose-500" style="font-variation-settings:'FILL' 1">favorite</span> Top 5 Most Liked</h3>
+      <h3><span class="material-symbols-outlined text-[15px] text-rose-500" style="font-variation-settings:'FILL' 1">favorite</span> Top 5 des Plus Aimés</h3>
       <canvas id="chartTopLiked" height="160"></canvas>
     </div>
 
     <div class="chart-card">
-      <h3><span class="material-symbols-outlined text-[15px] text-sky-500" style="font-variation-settings:'FILL' 1">visibility</span> Top 5 Most Viewed</h3>
+      <h3><span class="material-symbols-outlined text-[15px] text-sky-500" style="font-variation-settings:'FILL' 1">visibility</span> Top 5 des Plus Vus</h3>
       <canvas id="chartTopViewed" height="160"></canvas>
     </div>
   </div>
 
   <!-- ── Row 4: Category Breakdown ── -->
   <div class="chart-card">
-    <h3><span class="material-symbols-outlined text-[15px] text-violet-500" style="font-variation-settings:'FILL' 1">label</span> Category Breakdown (Published Articles)</h3>
+    <h3><span class="material-symbols-outlined text-[15px] text-violet-500" style="font-variation-settings:'FILL' 1">label</span> Répartition par Catégorie (Articles Publiés)</h3>
     <canvas id="chartCategories" height="<?= max(60, count($categoryBreakdown) * 38) ?>"></canvas>
   </div>
 
@@ -194,29 +194,29 @@ $generatedAt    = date('d M Y, H:i');
 
     <!-- Comment Status -->
     <div class="chart-card flex flex-col">
-      <h3><span class="material-symbols-outlined text-[15px] text-teal-500" style="font-variation-settings:'FILL' 1">forum</span> Comment Moderation Status</h3>
+      <h3><span class="material-symbols-outlined text-[15px] text-teal-500" style="font-variation-settings:'FILL' 1">forum</span> Statut de Modération des Commentaires</h3>
       <div class="flex-1 flex items-center justify-center">
         <canvas id="chartCommentStatus" style="max-height:200px"></canvas>
       </div>
       <div class="mt-3 grid grid-cols-3 gap-2 text-center">
         <div>
           <p class="text-base font-extrabold text-emerald-600"><?= $commentStats['approved'] ?></p>
-          <p class="text-[10px] text-slate-400 font-medium">Approved</p>
+          <p class="text-[10px] text-slate-400 font-medium">Approuvé</p>
         </div>
         <div>
           <p class="text-base font-extrabold text-amber-500"><?= $commentStats['pending'] ?></p>
-          <p class="text-[10px] text-slate-400 font-medium">Pending</p>
+          <p class="text-[10px] text-slate-400 font-medium">En attente</p>
         </div>
         <div>
           <p class="text-base font-extrabold text-red-500"><?= $commentStats['rejected'] ?></p>
-          <p class="text-[10px] text-slate-400 font-medium">Rejected</p>
+          <p class="text-[10px] text-slate-400 font-medium">Rejeté</p>
         </div>
       </div>
     </div>
 
     <!-- Engagement totals bar -->
     <div class="chart-card">
-      <h3><span class="material-symbols-outlined text-[15px] text-blue-500">bolt</span> Engagement by Category</h3>
+      <h3><span class="material-symbols-outlined text-[15px] text-blue-500">bolt</span> Engagement par Catégorie</h3>
       <canvas id="chartCatEngagement" height="160"></canvas>
     </div>
   </div>
@@ -226,9 +226,9 @@ $generatedAt    = date('d M Y, H:i');
     <div class="px-6 py-4 border-b border-surface-container flex items-center justify-between">
       <h3 class="font-headline text-sm font-bold text-blue-900 flex items-center gap-2">
         <span class="material-symbols-outlined text-base text-blue-500" style="font-variation-settings:'FILL' 1">leaderboard</span>
-        Top 10 Articles by Engagement Score
+        Top 10 des Articles par Score d'Engagement
       </h3>
-      <span class="text-[10px] text-slate-400">Score = views + likes×3 + comments×2</span>
+      <span class="text-[10px] text-slate-400">Score = vues + j'aime×3 + commentaires×2</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -236,11 +236,11 @@ $generatedAt    = date('d M Y, H:i');
           <tr class="bg-surface-container-low text-xs text-slate-500 uppercase tracking-wide">
             <th class="px-5 py-3 text-left font-semibold w-8">#</th>
             <th class="px-5 py-3 text-left font-semibold">Article</th>
-            <th class="px-4 py-3 text-left font-semibold hidden md:table-cell">Category</th>
-            <th class="px-4 py-3 text-right font-semibold">Views</th>
-            <th class="px-4 py-3 text-right font-semibold">Likes</th>
-            <th class="px-4 py-3 text-right font-semibold hidden sm:table-cell">Comments</th>
-            <th class="px-4 py-3 text-right font-semibold hidden lg:table-cell">Bookmarks</th>
+            <th class="px-4 py-3 text-left font-semibold hidden md:table-cell">Catégorie</th>
+            <th class="px-4 py-3 text-right font-semibold">Vues</th>
+            <th class="px-4 py-3 text-right font-semibold">J'aime</th>
+            <th class="px-4 py-3 text-right font-semibold hidden sm:table-cell">Commentaires</th>
+            <th class="px-4 py-3 text-right font-semibold hidden lg:table-cell">Favoris</th>
             <th class="px-4 py-3 text-right font-semibold">Score</th>
           </tr>
         </thead>
@@ -278,7 +278,7 @@ $generatedAt    = date('d M Y, H:i');
           <?php endforeach; ?>
           <?php if (empty($topPosts)): ?>
           <tr>
-            <td colspan="8" class="px-6 py-12 text-center text-slate-400 text-sm">No published articles yet.</td>
+            <td colspan="8" class="px-6 py-12 text-center text-slate-400 text-sm">Aucun article publié pour le moment.</td>
           </tr>
           <?php endif; ?>
         </tbody>
@@ -338,7 +338,7 @@ $generatedAt    = date('d M Y, H:i');
             labels: monthLabels,
             datasets: [
                 {
-                    label: 'Articles Published',
+                    label: 'Articles Publiés',
                     data: postsData,
                     borderColor: C.primary,
                     backgroundColor: C.primary + '18',
@@ -350,7 +350,7 @@ $generatedAt    = date('d M Y, H:i');
                     yAxisID: 'yLeft',
                 },
                 {
-                    label: 'Comments',
+                    label: 'Commentaires',
                     data: commentsData,
                     borderColor: C.teal,
                     backgroundColor: C.teal + '18',
@@ -362,7 +362,7 @@ $generatedAt    = date('d M Y, H:i');
                     yAxisID: 'yLeft',
                 },
                 {
-                    label: 'Likes',
+                    label: 'J\'aime',
                     data: likesData,
                     borderColor: C.rose,
                     borderWidth: 1.5,
@@ -394,7 +394,7 @@ $generatedAt    = date('d M Y, H:i');
     new Chart(document.getElementById('chartPostStatus'), {
         type: 'doughnut',
         data: {
-            labels: ['Published', 'Drafts', 'Archived'],
+            labels: ['Publié', 'Brouillons', 'Archivé'],
             datasets: [{
                 data: [<?= $postStats['published'] ?>, <?= $postStats['drafts'] ?>, <?= $archived ?>],
                 backgroundColor: [C.emerald, C.amber, C.gray],
@@ -418,7 +418,7 @@ $generatedAt    = date('d M Y, H:i');
         data: {
             labels: <?= $jsLikedLabels ?>,
             datasets: [{
-                label: 'Likes',
+                label: 'J\'aime',
                 data: <?= $jsLikedData ?>,
                 backgroundColor: [
                     C.rose, C.rose + 'cc', C.rose + '99', C.rose + '66', C.rose + '44',
@@ -447,7 +447,7 @@ $generatedAt    = date('d M Y, H:i');
         data: {
             labels: <?= $jsViewedLabels ?>,
             datasets: [{
-                label: 'Views',
+                label: 'Vues',
                 data: <?= $jsViewedData ?>,
                 backgroundColor: [
                     C.sky, C.sky + 'cc', C.sky + '99', C.sky + '66', C.sky + '44',
@@ -485,7 +485,7 @@ $generatedAt    = date('d M Y, H:i');
                     borderSkipped: false,
                 },
                 {
-                    label: 'Likes',
+                    label: 'J\'aime',
                     data: <?= $jsCatLikes ?>,
                     backgroundColor: C.rose + 'bb',
                     borderRadius: 5,
@@ -511,7 +511,7 @@ $generatedAt    = date('d M Y, H:i');
     new Chart(document.getElementById('chartCommentStatus'), {
         type: 'doughnut',
         data: {
-            labels: ['Approved', 'Pending', 'Rejected'],
+            labels: ['Approuvé', 'En attente', 'Rejeté'],
             datasets: [{
                 data: [<?= $commentStats['approved'] ?>, <?= $commentStats['pending'] ?>, <?= $commentStats['rejected'] ?>],
                 backgroundColor: [C.emerald, C.amber, C.rose],
@@ -536,7 +536,7 @@ $generatedAt    = date('d M Y, H:i');
             labels: <?= $jsCatLabels ?>,
             datasets: [
                 {
-                    label: 'Views',
+                    label: 'Vues',
                     data: <?= $jsCatViews ?>,
                     backgroundColor: C.sky + 'cc',
                     borderRadius: 5,
@@ -544,7 +544,7 @@ $generatedAt    = date('d M Y, H:i');
                     stack: 'engagement',
                 },
                 {
-                    label: 'Likes',
+                    label: 'J\'aime',
                     data: <?= $jsCatLikes ?>,
                     backgroundColor: C.rose + 'bb',
                     borderRadius: 5,

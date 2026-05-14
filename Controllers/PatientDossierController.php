@@ -4,6 +4,7 @@ require_once __DIR__ . '/../Models/PatientModel.php';
 require_once __DIR__ . '/../Models/DemandeOrdonnanceModel.php';
 require_once __DIR__ . '/../Models/NotificationModel.php';
 require_once __DIR__ . '/../Services/ClaudeService.php';
+use Core\LogService;
 
 class PatientDossierController {
     private \PatientModel $patientModel;
@@ -51,7 +52,21 @@ class PatientDossierController {
         $tel     = trim($data['tel']     ?? '');
         $adresse = trim($data['adresse'] ?? '');
         try {
+            $oldData = $this->patientModel->getPatientById($this->patientId);
             $this->patientModel->updateProfile($this->patientId, $data['prenom'], $data['nom'], $data['email'], $tel, $adresse);
+            
+            LogService::logAction(
+                $_SESSION['user']['id'] ?? null, 
+                $_SESSION['user']['role'] ?? null, 
+                'UPDATE', 
+                'DOSSIER', 
+                "Mise à jour du profil patient ID: {$this->patientId}",
+                [
+                    'old' => $oldData,
+                    'new' => ['prenom' => $data['prenom'], 'nom' => $data['nom'], 'email' => $data['email'], 'tel' => $tel, 'adresse' => $adresse]
+                ]
+            );
+            
             echo json_encode(['success' => true, 'message' => 'Profil mis à jour', 'prenom' => $data['prenom'], 'nom' => $data['nom']]);
         } catch (\Exception $e) { http_response_code(500); echo json_encode(['success' => false, 'error' => 'Erreur serveur']); }
     }

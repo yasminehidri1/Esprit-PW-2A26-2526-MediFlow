@@ -289,6 +289,11 @@ class Product {
             $stmt->execute([$id]);
             
             return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            if ($e->getCode() == '23000' || strpos($e->getMessage(), '1451') !== false) {
+                throw new Exception("Impossible de supprimer ce produit car il est lié à une ou plusieurs commandes existantes.");
+            }
+            throw new Exception("Erreur lors de la suppression du produit: " . $e->getMessage());
         } catch (Exception $e) {
             throw new Exception("Erreur lors de la suppression du produit: " . $e->getMessage());
         }

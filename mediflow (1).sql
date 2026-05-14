@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 10, 2026 at 01:10 AM
+-- Generation Time: May 13, 2026 at 07:47 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -32,6 +32,8 @@ CREATE TABLE `commandes` (
   `date_commandes` datetime NOT NULL DEFAULT current_timestamp(),
   `date_livraison` date DEFAULT NULL,
   `statut` enum('en attente','valid?e','livr?e','annul?e','retourn?e') NOT NULL DEFAULT 'en attente',
+  `stripe_session_id` varchar(255) DEFAULT NULL,
+  `paiement_statut` enum('non payée','payée','remboursée') NOT NULL DEFAULT 'non payée',
   `pharmacien_matricule` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -39,13 +41,18 @@ CREATE TABLE `commandes` (
 -- Dumping data for table `commandes`
 --
 
-INSERT INTO `commandes` (`id`, `date_commandes`, `date_livraison`, `statut`, `pharmacien_matricule`) VALUES
-(18, '2026-04-15 20:56:35', NULL, '', NULL),
-(19, '2026-04-16 14:50:35', NULL, '', NULL),
-(20, '2026-04-20 19:28:49', NULL, '', NULL),
-(21, '2026-04-23 15:03:02', NULL, '', NULL),
-(22, '2026-04-23 15:16:32', NULL, '', NULL),
-(23, '2026-04-29 22:51:28', NULL, 'en attente', 'SM101');
+INSERT INTO `commandes` (`id`, `date_commandes`, `date_livraison`, `statut`, `stripe_session_id`, `paiement_statut`, `pharmacien_matricule`) VALUES
+(18, '2026-04-15 20:56:35', NULL, '', NULL, 'non payée', NULL),
+(19, '2026-04-16 14:50:35', NULL, '', NULL, 'non payée', NULL),
+(20, '2026-04-20 19:28:49', NULL, '', NULL, 'non payée', NULL),
+(21, '2026-04-23 15:03:02', NULL, '', NULL, 'non payée', NULL),
+(22, '2026-04-23 15:16:32', NULL, '', NULL, 'non payée', NULL),
+(23, '2026-04-29 22:51:28', NULL, 'en attente', NULL, 'non payée', 'SM101'),
+(24, '2026-05-11 21:18:30', NULL, 'en attente', NULL, 'non payée', 'PH100'),
+(25, '2026-05-11 21:22:27', NULL, 'en attente', NULL, 'non payée', 'PH100'),
+(26, '2026-05-11 21:32:25', NULL, '', 'cs_test_b1DvuFvcrw1J013HqpBHG6Px5pE98V5cP2c1G550YZxBjdnocaOjkAXS2k', 'payée', 'PH100'),
+(27, '2026-05-11 22:02:41', NULL, '', 'cs_test_a1uuibu7uwwk0PziKQNw3AEAhA09snUd1IpZnJJPWqaz9gomnxDsIYETKx', 'payée', 'PH100'),
+(28, '2026-05-11 22:23:27', NULL, 'en attente', 'cs_test_a17PCWbNnoLgIlpRkLDuwcjnHDumUN9VmIxbm9yUYR3P92lXaoZYYj0CGy', 'non payée', 'PH100');
 
 -- --------------------------------------------------------
 
@@ -106,7 +113,8 @@ INSERT INTO `comments` (`id`, `id_post`, `id_utilisateur`, `parent_id`, `contenu
 (37, 6, 25, 36, 'ahla', 'approuve', 1, '2026-05-09 14:21:50', '2026-05-09 14:23:46'),
 (38, 6, 25, 32, 'wa', 'approuve', 1, '2026-05-09 14:21:54', '2026-05-09 14:23:45'),
 (39, 7, 25, 31, 'a', 'approuve', 1, '2026-05-09 14:22:53', '2026-05-09 18:25:51'),
-(40, 7, 25, 30, 'ya bouti', 'approuve', 1, '2026-05-09 17:22:25', '2026-05-09 18:25:52');
+(40, 7, 25, 30, 'ya bouti', 'approuve', 1, '2026-05-09 17:22:25', '2026-05-09 18:25:52'),
+(41, 11, 25, 35, 'AAA', 'approuve', 0, '2026-05-10 21:46:59', '2026-05-10 21:46:59');
 
 -- --------------------------------------------------------
 
@@ -336,7 +344,14 @@ INSERT INTO `lignescommandes` (`id`, `commande_id`, `produit_id`, `quantite_dema
 (28, 21, 5, 1, 10.00),
 (30, 22, 5, 1, 10.00),
 (31, 23, 5, 1, 10.00),
-(32, 23, 7, 1, 5000.00);
+(32, 23, 7, 1, 5000.00),
+(33, 24, 4, 1, 11.00),
+(34, 25, 6, 1, 25.00),
+(35, 25, 5, 1, 10.00),
+(36, 26, 6, 1, 25.00),
+(37, 26, 5, 1, 10.00),
+(38, 27, 7, 1, 500.00),
+(39, 28, 7, 1, 500.00);
 
 -- --------------------------------------------------------
 
@@ -361,33 +376,103 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `type`, `title`, `message`, `icon`, `color`, `user_id`, `is_read`, `created_at`) VALUES
-(1, 'post_comment', 'New comment on your article', '\"ahla…\" — on \"Cardiovascular Robotics: A New Frontier\"', 'chat_bubble', 'blue', 3, 0, '2026-05-09 14:21:40'),
+(1, 'post_comment', 'New comment on your article', '\"ahla…\" — on \"Cardiovascular Robotics: A New Frontier\"', 'chat_bubble', 'blue', 3, 1, '2026-05-09 14:21:40'),
 (2, 'comment_reply', 'Someone replied to your comment', '\"ahla…\"', 'reply', 'violet', 19, 1, '2026-05-09 14:21:40'),
-(3, 'post_comment', 'New comment on your article', '\"ahla…\" — on \"Cardiovascular Robotics: A New Frontier\"', 'chat_bubble', 'blue', 3, 0, '2026-05-09 14:21:50'),
-(4, 'post_comment', 'New comment on your article', '\"wa…\" — on \"Cardiovascular Robotics: A New Frontier\"', 'chat_bubble', 'blue', 3, 0, '2026-05-09 14:21:54'),
+(3, 'post_comment', 'New comment on your article', '\"ahla…\" — on \"Cardiovascular Robotics: A New Frontier\"', 'chat_bubble', 'blue', 3, 1, '2026-05-09 14:21:50'),
+(4, 'post_comment', 'New comment on your article', '\"wa…\" — on \"Cardiovascular Robotics: A New Frontier\"', 'chat_bubble', 'blue', 3, 1, '2026-05-09 14:21:54'),
 (5, 'comment_reply', 'Someone replied to your comment', '\"wa…\"', 'reply', 'violet', 19, 1, '2026-05-09 14:21:54'),
 (6, 'comment_like', 'Someone liked your comment', '\"Alo…\"', 'thumb_up', 'violet', 19, 1, '2026-05-09 14:21:57'),
-(7, 'post_comment', 'New comment on your article', '\"a…\" — on \"Epidemiology Trends: 2026 Seasonal Preview\"', 'chat_bubble', 'blue', 41, 0, '2026-05-09 14:22:53'),
-(8, 'comment_reply', 'Someone replied to your comment', '\"a…\"', 'reply', 'violet', 20, 0, '2026-05-09 14:22:53'),
+(7, 'post_comment', 'New comment on your article', '\"a…\" — on \"Epidemiology Trends: 2026 Seasonal Preview\"', 'chat_bubble', 'blue', 41, 1, '2026-05-09 14:22:53'),
+(8, 'comment_reply', 'Someone replied to your comment', '\"a…\"', 'reply', 'violet', 20, 1, '2026-05-09 14:22:53'),
 (9, 'comment_like', 'Someone liked your comment', '\"ahla…\"', 'thumb_up', 'violet', 19, 1, '2026-05-09 14:28:26'),
 (10, 'comment_like', 'Someone liked your comment', '\"AHLA…\"', 'thumb_up', 'violet', 19, 1, '2026-05-09 14:28:27'),
-(11, 'comment_like', 'Someone liked your comment', '\"aaaa…\"', 'thumb_up', 'violet', 0, 0, '2026-05-09 14:28:28'),
-(12, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 0, '2026-05-09 14:28:30'),
-(13, 'post_like', 'Someone liked your article', 'Your article \"Epidemiology Trends: 2026 Seasonal Preview\" received a new like.', 'favorite', 'rose', 41, 0, '2026-05-09 14:28:35'),
-(14, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 0, '2026-05-09 15:06:44'),
-(15, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 0, '2026-05-09 17:16:44'),
-(16, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 0, '2026-05-09 17:22:00'),
-(17, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 0, '2026-05-09 17:22:01'),
-(18, 'post_comment', 'New comment on your article', '\"ya bouti…\" — on \"Epidemiology Trends: 2026 Seasonal Preview\"', 'chat_bubble', 'blue', 41, 0, '2026-05-09 17:22:25'),
+(11, 'comment_like', 'Someone liked your comment', '\"aaaa…\"', 'thumb_up', 'violet', 0, 1, '2026-05-09 14:28:28'),
+(12, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 1, '2026-05-09 14:28:30'),
+(13, 'post_like', 'Someone liked your article', 'Your article \"Epidemiology Trends: 2026 Seasonal Preview\" received a new like.', 'favorite', 'rose', 41, 1, '2026-05-09 14:28:35'),
+(14, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 1, '2026-05-09 15:06:44'),
+(15, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 1, '2026-05-09 17:16:44'),
+(16, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 1, '2026-05-09 17:22:00'),
+(17, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 1, '2026-05-09 17:22:01'),
+(18, 'post_comment', 'New comment on your article', '\"ya bouti…\" — on \"Epidemiology Trends: 2026 Seasonal Preview\"', 'chat_bubble', 'blue', 41, 1, '2026-05-09 17:22:25'),
 (19, 'comment_reply', 'Someone replied to your comment', '\"ya bouti…\"', 'reply', 'violet', 19, 1, '2026-05-09 17:22:25'),
-(20, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 0, '2026-05-09 18:25:46'),
+(20, 'comment_like', 'Someone liked your comment', '\"aha…\"', 'thumb_up', 'violet', 20, 1, '2026-05-09 18:25:46'),
 (21, 'comment_like', 'Someone liked your comment', '\"a…\"', 'thumb_up', 'violet', 25, 1, '2026-05-09 18:25:51'),
 (22, 'comment_like', 'Someone liked your comment', '\"ya bouti…\"', 'thumb_up', 'violet', 25, 1, '2026-05-09 18:25:52'),
-(23, 'comment_like', 'Someone liked your comment', '\"aaaa…\"', 'thumb_up', 'violet', 0, 0, '2026-05-09 18:25:54'),
+(23, 'comment_like', 'Someone liked your comment', '\"aaaa…\"', 'thumb_up', 'violet', 0, 1, '2026-05-09 18:25:54'),
 (24, 'nouveau_rdv', 'Nouveau rendez-vous', 'Nouveau rendez-vous de John Doe le 09/05/2026 à 22:39.', 'calendar', 'primary', 24, 1, '2026-05-09 18:40:01'),
 (25, 'confirme', 'Rendez-vous confirmé', 'Dr. Adam Smith a confirmé votre rendez-vous du 09/05/2026 à 22:39.', 'check-circle', 'success', 25, 1, '2026-05-09 18:41:50'),
 (26, 'modifie', 'Rendez-vous modifié', 'Dr. Adam Smith a modifié votre rendez-vous : nouveau créneau le 10/05/2026 à 22:39.', 'edit', 'warning', 25, 1, '2026-05-09 18:44:03'),
-(27, 'modifie', 'Rendez-vous modifié', 'Dr. Adam Smith a modifié votre rendez-vous : nouveau créneau le 11/05/2026 à 22:39.', 'edit', 'warning', 25, 1, '2026-05-09 19:06:39');
+(27, 'modifie', 'Rendez-vous modifié', 'Dr. Adam Smith a modifié votre rendez-vous : nouveau créneau le 11/05/2026 à 22:39.', 'edit', 'warning', 25, 1, '2026-05-09 19:06:39'),
+(28, 'post_comment', 'New comment on your article', '\"AAA…\" — on \"Test22\"', 'chat_bubble', 'blue', 19, 1, '2026-05-10 21:46:59'),
+(29, 'comment_reply', 'Someone replied to your comment', '\"AAA…\"', 'reply', 'violet', 20, 1, '2026-05-10 21:46:59'),
+(30, 'user_suspended', 'Compte suspendu', 'Le compte de samad abdo (Matricule: PT101) a été suspendu.', 'block', 'error', 20, 1, '2026-05-10 22:47:03'),
+(31, 'user_activated', 'Compte réactivé', 'Le compte de samad abdo (Matricule: PT101) a été réactivé.', 'check_circle', 'tertiary', 20, 1, '2026-05-10 22:47:19'),
+(32, 'user_suspended', 'Compte suspendu', 'Le compte de samad abdo (Matricule: PT101) a été suspendu.', 'block', 'error', 20, 1, '2026-05-10 22:48:28'),
+(33, 'user_activated', 'Compte réactivé', 'Le compte de samad abdo (Matricule: PT101) a été réactivé.', 'check_circle', 'tertiary', 20, 1, '2026-05-10 22:48:30'),
+(34, 'google_signup', 'Inscription via Google', 'Le patient Khalil Cherif (Matricule: PT321) s\'est inscrit avec son compte Google.', 'account_circle', 'primary', 67, 1, '2026-05-10 22:54:09'),
+(35, 'user_suspended', 'Compte suspendu', 'Le compte de samad abdo (Matricule: PT101) a été suspendu.', 'block', 'error', 20, 1, '2026-05-10 23:00:37'),
+(36, 'user_activated', 'Compte réactivé', 'Le compte de samad abdo (Matricule: PT101) a été réactivé.', 'check_circle', 'tertiary', 20, 1, '2026-05-10 23:12:29'),
+(37, 'user_suspended', 'Compte suspendu', 'Le compte de samad abdo (Matricule: PT101) a été suspendu.', 'block', 'error', 20, 1, '2026-05-10 23:12:32'),
+(38, 'user_activated', 'Compte réactivé', 'Le compte de samad abdo (Matricule: PT101) a été réactivé.', 'check_circle', 'tertiary', 20, 1, '2026-05-10 23:12:55'),
+(39, 'user_updated', 'Utilisateur modifié', 'Le compte de samad abdo (Matricule: PT101) a été modifié par un administrateur.', 'manage_accounts', 'secondary', 20, 1, '2026-05-10 23:13:14'),
+(40, 'password_changed', 'Mot de passe réinitialisé', 'L\'utilisateur (Matricule: PT102) a réinitialisé son mot de passe.', 'lock_reset', 'secondary', 20, 1, '2026-05-10 23:33:14'),
+(41, 'user_suspended', 'Compte suspendu', 'Le compte de samad abdo (Matricule: PT101) a été suspendu.', 'block', 'error', 20, 1, '2026-05-11 21:41:27'),
+(42, 'user_activated', 'Compte réactivé', 'Le compte de samad abdo (Matricule: PT101) a été réactivé.', 'check_circle', 'tertiary', 20, 1, '2026-05-11 21:41:33'),
+(43, 'low_stock', 'Stock critique — doliprane 100', 'Il reste 2 unité(s) de « doliprane 100 » (seuil : 5). Pensez à passer une commande.', 'inventory_2', 'error', 27, 1, '2026-05-11 22:02:43'),
+(44, 'low_stock', 'Stock critique — doliprane 100', 'Il reste 2 unité(s) de « doliprane 100 » (seuil : 5). Pensez à passer une commande.', 'inventory_2', 'error', 35, 1, '2026-05-11 22:02:43'),
+(45, 'low_stock', 'Stock critique — doliprane 100', 'Il reste 2 unité(s) de « doliprane 100 » (seuil : 5). Pensez à passer une commande.', 'inventory_2', 'error', 39, 1, '2026-05-11 22:02:43'),
+(46, 'low_stock', 'Stock critique — doliprane 100', 'Il reste 2 unité(s) de « doliprane 100 » (seuil : 5). Pensez à passer une commande.', 'inventory_2', 'error', 27, 1, '2026-05-11 22:23:29'),
+(47, 'low_stock', 'Stock critique — doliprane 100', 'Il reste 2 unité(s) de « doliprane 100 » (seuil : 5). Pensez à passer une commande.', 'inventory_2', 'error', 35, 1, '2026-05-11 22:23:29'),
+(48, 'low_stock', 'Stock critique — doliprane 100', 'Il reste 2 unité(s) de « doliprane 100 » (seuil : 5). Pensez à passer une commande.', 'inventory_2', 'error', 39, 1, '2026-05-11 22:23:29'),
+(49, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-12 21:05:20'),
+(50, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-12 21:05:20'),
+(51, 'new_demande', 'Nouvelle demande d\'ordonnance', 'John Doe vous a envoyé une demande d\'ordonnance.', 'assignment', 'blue', 24, 1, '2026-05-12 21:06:22'),
+(52, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-12 21:06:32'),
+(53, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-12 21:06:32'),
+(54, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-12 21:06:36'),
+(55, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-12 21:06:36'),
+(56, 'new_demande', 'Nouvelle demande d\'ordonnance', 'John Doe vous a envoyé une demande d\'ordonnance.', 'assignment', 'blue', 24, 1, '2026-05-12 21:14:24'),
+(57, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:10'),
+(58, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:10'),
+(59, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:14'),
+(60, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:14'),
+(61, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:18'),
+(62, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:18'),
+(63, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:21'),
+(64, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:21'),
+(65, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:23'),
+(66, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:23'),
+(67, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:26'),
+(68, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:26'),
+(69, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:28'),
+(70, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:28'),
+(71, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:31'),
+(72, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:31'),
+(73, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:35'),
+(74, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:35'),
+(75, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:38'),
+(76, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:38'),
+(77, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:40'),
+(78, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:40'),
+(79, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:43'),
+(80, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:43'),
+(81, 'demande_refusee', 'Demande refusée', 'Email de refus envoyé à John Doe.', 'cancel', 'red', 24, 1, '2026-05-12 21:15:45'),
+(82, 'demande_refusee', 'Demande d\'ordonnance non retenue', 'Votre médecin n\'a pas pu donner suite à votre demande. Consultez votre email pour les détails.', 'cancel', 'red', 25, 1, '2026-05-12 21:15:45'),
+(83, 'new_demande', 'Nouvelle demande d\'ordonnance', 'John Doe vous a envoyé une demande d\'ordonnance.', 'assignment', 'blue', 24, 1, '2026-05-12 21:31:28'),
+(84, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-12 21:31:48'),
+(85, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-12 21:31:48'),
+(86, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-12 22:08:24'),
+(87, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-12 22:08:24'),
+(88, 'new_demande', 'Nouvelle demande d\'ordonnance', 'John Doe vous a envoyé une demande d\'ordonnance.', 'assignment', 'blue', 24, 1, '2026-05-12 22:11:56'),
+(89, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-12 22:12:37'),
+(90, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-12 22:12:37'),
+(91, 'new_demande', 'Nouvelle demande d\'ordonnance', 'John Doe vous a envoyé une demande d\'ordonnance.', 'assignment', 'blue', 24, 1, '2026-05-12 22:31:21'),
+(92, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-12 22:31:41'),
+(93, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-12 22:31:41'),
+(94, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-13 17:22:05'),
+(95, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 0, '2026-05-13 17:22:05'),
+(96, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-13 17:22:06'),
+(97, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 0, '2026-05-13 17:22:06');
 
 -- --------------------------------------------------------
 
@@ -459,6 +544,20 @@ INSERT INTO `ordonnance` (`id_ordonnance`, `id_consultation`, `numero_ordonnance
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id` int(11) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `planning`
 --
 
@@ -526,7 +625,7 @@ INSERT INTO `posts` (`id`, `titre`, `contenu`, `categorie`, `image_url`, `auteur
 (6, 'Cardiovascular Robotics: A New Frontier', 'Robotic-assisted cardiovascular procedures are revolutionizing how surgeons approach complex heart operations, offering unprecedented precision and faster patient recovery.\r\n\r\nThe integration of robotics into cardiovascular surgery represents one of the most significant technological advances in modern medicine. These sophisticated systems allow surgeons to perform intricate procedures through small incisions with enhanced visualization and greater dexterity than the human hand alone can provide.\r\n\r\nCurrent applications include:\r\n- Robotic-assisted coronary artery bypass grafting (CABG)\r\n- Minimally invasive mitral valve repair\r\n- Catheter-based interventions with robotic navigation\r\n- Hybrid procedures combining traditional and robotic techniques\r\n\r\nThe da Vinci surgical system and newer platforms offer 3D high-definition visualization, motion scaling (converting large hand movements into precise micro-movements), and tremor filtration. These capabilities are particularly valuable in cardiac surgery where precision is literally a matter of life and death.', 'Journals', 'https://www.acc.org//-/media/Non-Clinical/Images/2024/01/CARDIOLOGY/02/Robotics-3-1200x800.jpg', 3, 'publie', 326, 2912, '2026-04-13 10:00:00', '2026-05-09 14:22:57', '2026-04-13 10:00:00'),
 (7, 'Epidemiology Trends: 2026 Seasonal Preview', 'A data-driven look at respiratory health and preventive measures for the coming months based on global surveillance data.\r\n\r\nAs we enter the second quarter of 2026, epidemiological data from global health surveillance networks provides crucial insights into what we can expect in terms of seasonal health challenges.\r\n\r\nThis preview is based on data collected from the WHO Global Influenza Surveillance and Response System, CDC FluView, and European Centre for Disease Prevention and Control.\r\n\r\nKey trends for the upcoming season include shifts in influenza strain dominance, emerging respiratory syncytial virus (RSV) patterns, and the continued evolution of COVID-19 variants.\r\n\r\nPreventive recommendations:\r\n- Updated vaccination schedules for high-risk populations\r\n- Enhanced indoor air quality measures in clinical settings\r\n- Community-based health literacy programs\r\n- Early warning systems integration with primary care networks', 'General Health', 'https://img.freepik.com/premium-psd/medical-clinic-poster-design_452208-1049.jpg', 41, 'publie', 294, 2162, '2026-04-14 13:20:00', '2026-05-09 19:05:58', '2026-04-14 13:20:00'),
 (8, 'Mental Health in the Digital Age: Navigating Screen Time', 'Understanding the complex relationship between technology use and psychological well-being, with evidence-based strategies for healthier digital habits.\r\n\r\nThe ubiquity of smartphones, social media, and digital entertainment has created an unprecedented challenge for mental health. While technology offers incredible benefits for connectivity and information access, excessive or mindless use can contribute to anxiety, depression, and sleep disorders.\r\n\r\nThis article is currently under review by our editorial board and will be published upon completion of peer review.', 'Mental Wellness', 'https://static.vecteezy.com/system/resources/thumbnails/004/341/503/small/prenatal-clinic-social-media-post-mockup-childbirth-at-hospital-advertising-web-banner-design-template-social-media-booster-content-layout-promotion-poster-print-ads-with-flat-illustrations-vector.jpg', 3, 'brouillon', 0, 0, '2026-04-15 09:00:00', '2026-04-16 13:26:39', NULL),
-(11, 'Test22', 'aaaaaaavbbbaaaaaaaaaaaaaaaaaaaa', 'General Health', '/integration/assets/uploads/img_69ff506faefa72.91032537.jpg', 19, 'publie', 3, 17, '2026-04-24 15:36:32', '2026-05-09 16:19:11', '2026-04-24 17:00:50'),
+(11, 'Test22', 'aaaaaaavbbbaaaaaaaaaaaaaaaaaaaa', 'General Health', '/integration/assets/uploads/img_69ff506faefa72.91032537.jpg', 19, 'publie', 3, 18, '2026-04-24 15:36:32', '2026-05-10 21:46:54', '2026-04-24 17:00:50'),
 (12, 'I WANT YOU FOR IDIOTS INCORPORATED', 'Original Text:\r\nUse a lightweight Olma model for images on your local machine to avoid bottlenecks during inference.\r\n\r\nPronounced “Im-mple-ment,” this process involves implementing a custom vision model on your local machine using ONNX Runtime or TensorFlow Lite for fast inference speeds. \r\n\r\nThis is an advanced topic, but it provides significant benefits by freeing up resources and improving inference speed. It\'s the perfect way to optimize your machine learning models and achieve better results in less time. By implementing custom vision models using ONNX Runtime or TensorFlow Lite for faster inference, you can focus on building more advanced systems while ensuring optimal performance.\r\n\r\nAs a professional, we\'re committed to providing you with the best possible experience. We take our work seriously but also understand that it takes careful planning and execution to create something truly great. With ONNX Runtime or TensorFlow Lite, your machine learning models can run faster and be more efficient. This leads to increased accuracy, lower costs, and higher success rates for your projects.\r\n\r\nSo if you\'re interested in optimizing your machine learning models and achieving better results in less time, give this process a try! With ONNX Runtime or TensorFlow Lite, you can focus on building more advanced systems while improving inference speeds. We\'re confident that you\'ll enjoy the benefits of custom vision models using these techniques – we\'ve seen firsthand how they can improve your projects in exciting new ways!', 'General Health', '/integration/assets/uploads/img_69ff7c046e75e4.72067954.png', 19, 'publie', 0, 1, '2026-05-09 19:24:41', '2026-05-09 20:39:09', '2026-05-09 20:25:08');
 
 -- --------------------------------------------------------
@@ -602,10 +701,10 @@ CREATE TABLE `produits` (
 --
 
 INSERT INTO `produits` (`id`, `nom`, `image`, `categorie`, `quantite_disponible`, `prix_unitaire`, `seuil_alerte`, `prix_achat`, `fournisseur_matricule`) VALUES
-(4, 'mehdi', '/Mediflow1/assets/images/produit/produit_1776022575_69dbf42f00497.png', 'comprim?s', 6, 11.00, 5, 6.00, NULL),
-(5, 'bibo', 'assets/images/produit/produit_1777503177_69f28bc982e57.png', 'injectables', 22, 10.00, 5, 5.00, 'AD103'),
-(6, 'tito', 'assets/images/produit/produit_1776286564_69dffb6404d5b.jpg', 'comprim?s', 10, 25.00, 5, 2.00, NULL),
-(7, 'doliprane 100', 'assets/images/produit/produit_1777503368_69f28c8859009.jpg', 'comprim?s', 3, 500.00, 5, 3000.00, 'AD103'),
+(4, 'mehdi', '/Mediflow1/assets/images/produit/produit_1776022575_69dbf42f00497.png', 'comprim?s', 5, 11.00, 5, 6.00, NULL),
+(5, 'bibo', 'assets/images/produit/produit_1777503177_69f28bc982e57.png', 'injectables', 20, 10.00, 52, 5.00, 'PT102'),
+(6, 'tito', 'assets/images/produit/produit_1776286564_69dffb6404d5b.jpg', 'comprim?s', 8, 25.00, 5, 2.00, NULL),
+(7, 'doliprane 100', 'assets/images/produit/produit_1777503368_69f28c8859009.jpg', 'comprim?s', 2, 500.00, 5, 3000.00, 'AD103'),
 (9, 'testtttt', 'assets/images/produit/produit_1777499119_69f27bef55dfb.png', 'sirops', 25, 15.00, 5, 65.00, 'FR101');
 
 -- --------------------------------------------------------
@@ -717,61 +816,64 @@ CREATE TABLE `utilisateurs` (
   `status` enum('active','suspended') NOT NULL DEFAULT 'active',
   `cin` char(8) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `profile_pic` varchar(255) DEFAULT NULL,
+  `onboarding_completed` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `utilisateurs`
 --
 
-INSERT INTO `utilisateurs` (`id_PK`, `matricule`, `nom`, `prenom`, `mail`, `motdp`, `tel`, `adresse`, `id_role`, `status`, `cin`, `created_at`, `updated_at`) VALUES
-(3, NULL, 'yasss', 'ss', 'medecin2@mediflow.com', '$2y$10$DWh64If5QpqCT.LEvRwP0O2XWg3AS6C32H5qOpEkig8EOsEnxK5Wy', '+212612345679', 'Tunis, Tunisia', 5, 'active', NULL, '2026-04-11 15:39:37', '2026-04-16 12:48:48'),
-(11, 'AD101', 'aa', 'aaaaa', 'aaaaa@mediflow.com', '$2y$10$mLnxXqMhZF09jNgd.dtOWOyyWZ2cfV.rPjsMG0q6n3O7soGg8OyNq', NULL, 'dddd', 1, 'suspended', NULL, '2026-04-13 22:36:04', '2026-04-29 23:50:01'),
-(15, 'AD100', 'Admin', 'MediFlow', 'admin@mediflow.com', '$2y$10$dAUyViEr3jFurQWGeKDhKO9MMPJR8z0SiAN.nrDMGzq/xel2d.PNe', '+216 00 000 000', NULL, 1, 'active', NULL, '2026-04-13 22:44:16', '2026-04-13 22:46:34'),
-(16, 'AD102', 'fathi', 'khelifi', 'fathikhelifi@mediflow.com', '$2y$10$kBpNqqIQYw3XftXxsdGL7u7D2GZRGMzqCAgj05rZ9kGVOkBGW8gMC', NULL, 'ghazel', 9, 'active', NULL, '2026-04-13 22:47:29', '2026-04-29 23:20:04'),
-(17, 'PT100', 'fathi', 'fathitest', 'fathikk@gmail.com', '$2y$10$UufGs0R1Sp6XozR7fbMoWu2oeArzEksu.r0UZ.P97X4HH5imXjIby', '99999999999', NULL, 9, 'active', '12345678', '2026-04-13 23:18:06', '2026-04-29 18:33:43'),
-(18, 'PT101', 'abdo', 'samad', 'abdo@mediflow.com', '$2y$10$8wybCzdyPYdGXlrB5OaLauGYqBpYAzIziw5Gx10a8/Uvna02mur26', '444444444444', 'Ariena,Ghazela', 9, 'active', '12345678', '2026-04-15 18:07:26', '2026-04-29 18:33:43'),
-(19, 'AD103', 'fathi', 'khelifi', 'admin11@mediflow.com', '$2y$10$9TUE.90W5k6IkVyMWzHND.WB4b4brVFoagkE0H8p11z80ObcPju0G', '+216 92 518 333', 'Ariena,Ghazela', 1, 'active', NULL, '2026-04-16 12:40:30', '2026-04-16 12:40:30'),
-(20, 'PT102', 'khelifi', 'fathi', 'fathikhelifi10@gmail.com', '$2y$10$3NgQjaBa4nrg2ubQadmZ3.FhPq8bQphdB.t6ELvhtnPJsDaO15I7q', '+216 92 518 333', NULL, 1, 'active', NULL, '2026-04-16 12:59:14', '2026-04-30 09:28:41'),
-(21, 'MD100', 'fathi', 'khelifi', 'MED1@mediflow.com', '$2y$10$o8Yi2QkYNkAMYHISYJnzre6qZvZunda2yeObGuD3YCPGgaCpMqaeu', NULL, 'Ariena,Ghazela', 2, 'active', NULL, '2026-04-16 13:12:06', '2026-04-16 13:12:06'),
-(22, 'EQ101', 'nada', 'karoui', 'nada@mediflow.com', '$2y$10$jji1Az.JjOARrkRAsDcysOEZDHueHhxGv7Zy0UE1ljso0F2z4hZr2', NULL, NULL, 5, 'active', NULL, '2026-04-21 00:06:42', '2026-04-21 00:06:42'),
-(23, 'PT103', 'khalil', 'cherif', 'khalil@mediflow.com', '$2y$10$c7J0m95iBePywJdx36ETR.pSosQp8ebTiwfHOPVB/zkGt5eMnAG6m', NULL, NULL, 9, 'active', '12345678', '2026-04-21 01:04:22', '2026-04-29 18:33:43'),
-(24, 'MD200', 'Smith', 'Adam', 'dr.smith@mediflow.com', '$2y$10$uWu93squAEw/91qe7kX0tuoY1xqsHUbkMbgAYTBRw1IDdUBmAeXpa', NULL, NULL, 2, 'active', NULL, '2026-04-28 20:17:06', '2026-04-28 20:17:06'),
-(25, 'PT200', 'Doe', 'John', 'john.doe@gmail.com', '$2y$10$5aYyIrc.ZyMUxEiDV9uVKeuYgz.SDdpR.9oPYHFm6xIk7dL5/T8Ny', '55667788', NULL, 9, 'active', '12345678', '2026-04-28 20:17:06', '2026-04-29 18:33:43'),
-(27, 'SM100', 'ahmed12', 'aaa', 'ahmedS@gmail.com', '$2y$10$8PwfR5l.XGjN28HTpfTTpOu/XaRMoIl1il7LdZ.qPP2md9sxavAGG', NULL, NULL, 4, 'active', NULL, '2026-04-29 21:14:53', '2026-04-29 21:14:53'),
-(32, 'FR100', 'test', 'test', 'testf2@gmail.com', '$2y$10$Ml.GzXs/.K5d9hgrT3uvAuS4VIFS4aJEwR28SsPcwaKg2uUhey1oO', NULL, NULL, 10, 'active', NULL, '2026-04-29 21:40:50', '2026-04-29 21:40:50'),
-(34, 'FR101', 'fathiF', 'ffff', 'fathiF1@gmail.com', '$2y$10$Tafyk01ZP0TjJd9MNCVfD.X2zG7arsTslXl7ehV1yBZHr4nEYFWt2', NULL, NULL, 10, 'active', NULL, '2026-04-29 21:44:31', '2026-04-29 21:44:31'),
-(35, 'SM101', 'abdoo', 'aaa', 'abdoP@gmail.com', '$2y$10$L6r7yjPeOjNCXGHxZOoE2.RQgKSOVbdngsWG0IkFUo6ZxA4akUN.K', NULL, NULL, 4, 'active', NULL, '2026-04-29 21:46:26', '2026-04-29 21:46:26'),
-(36, 'PT201', 'alloooo', 'laaaa', 'aloP@gmail.com', '$2y$10$W75DLeKAEVEv/Pk6GmEuzeleuqnxsGsvbSxObK9KCFBOVa.EVRTeO', NULL, NULL, 9, 'active', NULL, '2026-04-29 23:24:57', '2026-04-29 23:24:57'),
-(37, 'UK100', 'nada11', 'aa', 'nada11@gmail.com', '$2y$10$8bhohDpipvpa52r807J6HOyEetNH76zA3TC6axOSvki7awrSc.cLi', NULL, NULL, 5, 'active', NULL, '2026-04-30 00:27:22', '2026-04-30 00:27:22'),
-(38, 'FR102', 'mehdi', 'four', 'mehdiF@gmail.com', '$2y$10$I59OHhZqMPxagd3fS0WhyO3VyYlhQlkmzK54H7X5cFBjyuXoehO0C', NULL, NULL, 10, 'active', NULL, '2026-04-30 00:46:49', '2026-04-30 00:46:49'),
-(39, 'PH100', 'mehdi12', 'aloo', 'mehdi12@gmail.com', '$2y$10$.P6pIB5vrc2QzJEUisCC.u0tDFKpcV4txKxQfVLesaN6RErKnFQ8G', NULL, NULL, 4, 'active', NULL, '2026-04-30 00:48:25', '2026-04-30 00:48:25'),
-(41, 'RD100', 'khalil', 'aaa', 'khalil12@gmail.com', '$2y$10$u896uJ99wgxIWODl9FerLem56Kz2g1LpmgN.xMAncmgf2NGFTR33y', NULL, NULL, 6, 'active', NULL, '2026-04-30 00:52:58', '2026-04-30 00:52:58'),
-(42, 'MD300', 'Dupont', 'Dr. Alice', 'alice.dupont@mediflow.com', '$2y$10$GEfC3fUpaw71d29IQSaSNe7ElWO3VN/OfacfSP.Ua7HJOif/CW7aS', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(43, 'MD301', 'Martin', 'Dr. Bernard', 'bernard.martin@mediflow.com', '$2y$10$HOfJmArDWVqtFmb/Amqbke9sXHSKeKbuH.peOxptdZrerONPX9l2K', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(44, 'MD302', 'Lefebvre', 'Dr. Clara', 'clara.lefebvre@mediflow.com', '$2y$10$WoVyIrFgOiyzVQe9rqd12utc5f8z/3mMftll/4IKyspOtQkIxzJCe', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(45, 'MD303', 'Rousseau', 'Dr. David', 'david.rousseau@mediflow.com', '$2y$10$3wdB/njR.AubnSoIVOr0y.hxaRquU/7c/4vBIqfP3tI3jXjyLtQdW', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(46, 'MD304', 'Laurent', 'Dr. Emma', 'emma.laurent@mediflow.com', '$2y$10$jmXKp0B5B9t/7jrZx.pbousWrN4ors4TTrkOKSPagpi50E9JSc9zi', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(47, 'PT301', 'Test1', 'Patient1', 'patient1@test.com', '$2y$10$EofkrYeoQkBPBPy/LnuL2O9IXJ79ft0UQmJ1OJZhmUSQJBnV5hrn2', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(48, 'PT302', 'Test2', 'Patient2', 'patient2@test.com', '$2y$10$PrqmTu9Me6V17amq3WQTt.XiDs.N/ZD5GEVkkVivmDr0Ov5dEzcza', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(49, 'PT303', 'Test3', 'Patient3', 'patient3@test.com', '$2y$10$3VZ4b0pGHLInaibiWkteLOjeEWYHOYJyFZp4ubs0WSVlTgZzkfaBW', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(50, 'PT304', 'Test4', 'Patient4', 'patient4@test.com', '$2y$10$yEIjUkhhRzh4xRrdgTEN.uvPjKHUGnpk6D5UsDUooaT1tSYrsbAhG', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(51, 'PT305', 'Test5', 'Patient5', 'patient5@test.com', '$2y$10$612qYibHeOU9QASt88VAv.l.XJnhZPFn2U6rw74AndQYn4hTD1fg6', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(52, 'PT306', 'Test6', 'Patient6', 'patient6@test.com', '$2y$10$NjsCfXy3YoepRQCA6CVAJuLjDRE26jJt3abFU48OjPK0RJ1lFia3W', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(53, 'PT307', 'Test7', 'Patient7', 'patient7@test.com', '$2y$10$E1LZ7GvQ9YWkAgnpUD1kkeNqG5WAaPcIdbKA52oQsbkRuQlIC59cS', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34'),
-(54, 'PT308', 'Test8', 'Patient8', 'patient8@test.com', '$2y$10$bmvfUFOWOyhOJhQTP51gU.wJ3E6spPZJASS2lq1nu5q3MXeRDhAdm', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(55, 'PT309', 'Test9', 'Patient9', 'patient9@test.com', '$2y$10$3SArRI6lmktg1EFSmYD3leZfTLCYVeqwSPTL1.OKt9d08NQ/GPgDa', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(56, 'PT310', 'Test10', 'Patient10', 'patient10@test.com', '$2y$10$jclXognDDqPueFYxk3o.UuxwG3SR5gVjZ/tMHC6xLoe.7U0T7UzVq', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(57, 'PT311', 'Test11', 'Patient11', 'patient11@test.com', '$2y$10$HrkqIXyszKukWStcMGmdBe0.sOdOLJaw6GqcF3VlyrV1fIcg/VhNi', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(58, 'PT312', 'Test12', 'Patient12', 'patient12@test.com', '$2y$10$8Xdxoo81iddfSQNgZ413x.kreC7EkMPfxStr50ohPLsNd48XBS.Sq', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(59, 'PT313', 'Test13', 'Patient13', 'patient13@test.com', '$2y$10$wC4KcYRAcjMzOlz3KBZ1rOC5qOTj3poMoFEBhg1oJNjohrlBnmz3q', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(60, 'PT314', 'Test14', 'Patient14', 'patient14@test.com', '$2y$10$AHe5FgY/0Ut/LypRGMJY8eXQV67Qg1ClSh2Q/8kn6k4WaJCycPDHu', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(61, 'PT315', 'Test15', 'Patient15', 'patient15@test.com', '$2y$10$9/DsMXKyXFCrEh97l7n9he9K1BFnaUkjYHRgJAnpTB2oyjYOdaZ1S', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(62, 'PT316', 'Test16', 'Patient16', 'patient16@test.com', '$2y$10$ust8pQ88kZm7NIHcb3KRnu3cR6qZT8qlfMqtxFHzn2hmHyxpyBqSW', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(63, 'PT317', 'Test17', 'Patient17', 'patient17@test.com', '$2y$10$e20iUxjJpQeKBDU0gmd7leHj.6sPXWDnnwLNBQBrKQaXCPoPU1o7u', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(64, 'PT318', 'Test18', 'Patient18', 'patient18@test.com', '$2y$10$g7OyOGowLN3niU2EGjE0KObD0SIc1JgWVkBNAubDZLiMYZHlTb4vK', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(65, 'PT319', 'Test19', 'Patient19', 'patient19@test.com', '$2y$10$6WCKJ2avsfnbVfSEch5LfuVfvUWOXg8oVbP/VI4zPHKKxuzOFfZgq', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35'),
-(66, 'PT320', 'Test20', 'Patient20', 'patient20@test.com', '$2y$10$Z2WNfXMg7rd1NpRk/4EdSeyhDcj7AzUctp15i576sa3uPBdwZD8bS', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35');
+INSERT INTO `utilisateurs` (`id_PK`, `matricule`, `nom`, `prenom`, `mail`, `motdp`, `tel`, `adresse`, `id_role`, `status`, `cin`, `created_at`, `updated_at`, `profile_pic`, `onboarding_completed`) VALUES
+(3, NULL, 'yasss', 'ss', 'medecin2@mediflow.com', '$2y$10$DWh64If5QpqCT.LEvRwP0O2XWg3AS6C32H5qOpEkig8EOsEnxK5Wy', '+212612345679', 'Tunis, Tunisia', 5, 'active', NULL, '2026-04-11 15:39:37', '2026-04-16 12:48:48', NULL, 0),
+(11, 'AD101', 'aa', 'aaaaa', 'aaaaa@mediflow.com', '$2y$10$mLnxXqMhZF09jNgd.dtOWOyyWZ2cfV.rPjsMG0q6n3O7soGg8OyNq', NULL, 'dddd', 1, 'suspended', NULL, '2026-04-13 22:36:04', '2026-04-29 23:50:01', NULL, 0),
+(15, 'AD100', 'Admin', 'MediFlow', 'admin@mediflow.com', '$2y$10$dAUyViEr3jFurQWGeKDhKO9MMPJR8z0SiAN.nrDMGzq/xel2d.PNe', '+216 00 000 000', NULL, 1, 'active', NULL, '2026-04-13 22:44:16', '2026-04-13 22:46:34', NULL, 0),
+(16, 'AD102', 'fathi', 'khelifi', 'fathikhelifi@mediflow.com', '$2y$10$kBpNqqIQYw3XftXxsdGL7u7D2GZRGMzqCAgj05rZ9kGVOkBGW8gMC', NULL, 'ghazel', 9, 'active', NULL, '2026-04-13 22:47:29', '2026-04-29 23:20:04', NULL, 0),
+(17, 'PT100', 'fathi', 'fathitest', 'fathikk@gmail.com', '$2y$10$UufGs0R1Sp6XozR7fbMoWu2oeArzEksu.r0UZ.P97X4HH5imXjIby', '99999999999', NULL, 9, 'active', '12345678', '2026-04-13 23:18:06', '2026-04-29 18:33:43', NULL, 0),
+(18, 'PT101', 'abdo', 'samad', 'abdo@mediflow.com', '$2y$10$8wybCzdyPYdGXlrB5OaLauGYqBpYAzIziw5Gx10a8/Uvna02mur26', '444444444445', 'Ariena,Ghazela', 9, 'active', '12345678', '2026-04-15 18:07:26', '2026-05-11 20:41:32', NULL, 0),
+(19, 'AD103', 'fathi', 'khelifi', 'admin11@mediflow.com', '$2y$10$9TUE.90W5k6IkVyMWzHND.WB4b4brVFoagkE0H8p11z80ObcPju0G', '+216 92 518 333', 'Ariena,Ghazela', 1, 'active', NULL, '2026-04-16 12:40:30', '2026-04-16 12:40:30', NULL, 0),
+(20, 'PT102', 'khelifi', 'fathi', 'fathikhelifi10@gmail.com', '$2y$10$75zfIgQA2HgxT1gYhbmg9uyMX4c1Tm4bSVk3c/ngltLbNg1uUTTtC', '+216 92 518 333', NULL, 1, 'active', NULL, '2026-04-16 12:59:14', '2026-05-10 22:33:14', NULL, 0),
+(21, 'MD100', 'fathi', 'khelifi', 'MED1@mediflow.com', '$2y$10$o8Yi2QkYNkAMYHISYJnzre6qZvZunda2yeObGuD3YCPGgaCpMqaeu', NULL, 'Ariena,Ghazela', 2, 'active', NULL, '2026-04-16 13:12:06', '2026-04-16 13:12:06', NULL, 0),
+(22, 'EQ101', 'nada', 'karoui', 'nada@mediflow.com', '$2y$10$jji1Az.JjOARrkRAsDcysOEZDHueHhxGv7Zy0UE1ljso0F2z4hZr2', NULL, NULL, 5, 'active', NULL, '2026-04-21 00:06:42', '2026-04-21 00:06:42', NULL, 0),
+(23, 'PT103', 'khalil', 'cherif', 'khalil@mediflow.com', '$2y$10$c7J0m95iBePywJdx36ETR.pSosQp8ebTiwfHOPVB/zkGt5eMnAG6m', NULL, NULL, 9, 'active', '12345678', '2026-04-21 01:04:22', '2026-04-29 18:33:43', NULL, 0),
+(24, 'MD200', 'Smith', 'Adam', 'dr.smith@mediflow.com', '$2y$10$uWu93squAEw/91qe7kX0tuoY1xqsHUbkMbgAYTBRw1IDdUBmAeXpa', NULL, NULL, 2, 'active', NULL, '2026-04-28 20:17:06', '2026-04-28 20:17:06', NULL, 0),
+(25, 'PT200', 'Doe', 'John', 'khalil05cherif@gmail.com', '$2y$10$5aYyIrc.ZyMUxEiDV9uVKeuYgz.SDdpR.9oPYHFm6xIk7dL5/T8Ny', '55667788', NULL, 9, 'active', '12345678', '2026-04-28 20:17:06', '2026-05-13 16:21:14', '/integration/assets/uploads/profiles/profile_25_1778449441.jpg', 1),
+(27, 'SM100', 'ahmed12', 'aaa', 'ahmedS@gmail.com', '$2y$10$8PwfR5l.XGjN28HTpfTTpOu/XaRMoIl1il7LdZ.qPP2md9sxavAGG', NULL, NULL, 4, 'active', NULL, '2026-04-29 21:14:53', '2026-04-29 21:14:53', NULL, 0),
+(32, 'FR100', 'test', 'test', 'testf2@gmail.com', '$2y$10$Ml.GzXs/.K5d9hgrT3uvAuS4VIFS4aJEwR28SsPcwaKg2uUhey1oO', NULL, NULL, 10, 'active', NULL, '2026-04-29 21:40:50', '2026-04-29 21:40:50', NULL, 0),
+(34, 'FR101', 'fathiF', 'ffff', 'fathiF1@gmail.com', '$2y$10$Tafyk01ZP0TjJd9MNCVfD.X2zG7arsTslXl7ehV1yBZHr4nEYFWt2', NULL, NULL, 10, 'active', NULL, '2026-04-29 21:44:31', '2026-04-29 21:44:31', NULL, 0),
+(35, 'SM101', 'abdoo', 'aaa', 'abdoP@gmail.com', '$2y$10$L6r7yjPeOjNCXGHxZOoE2.RQgKSOVbdngsWG0IkFUo6ZxA4akUN.K', NULL, NULL, 4, 'active', NULL, '2026-04-29 21:46:26', '2026-04-29 21:46:26', NULL, 0),
+(36, 'PT201', 'alloooo', 'laaaa', 'aloP@gmail.com', '$2y$10$W75DLeKAEVEv/Pk6GmEuzeleuqnxsGsvbSxObK9KCFBOVa.EVRTeO', NULL, NULL, 9, 'active', NULL, '2026-04-29 23:24:57', '2026-04-29 23:24:57', NULL, 0),
+(37, 'UK100', 'nada11', 'aa', 'nada11@gmail.com', '$2y$10$8bhohDpipvpa52r807J6HOyEetNH76zA3TC6axOSvki7awrSc.cLi', NULL, NULL, 5, 'active', NULL, '2026-04-30 00:27:22', '2026-04-30 00:27:22', NULL, 0),
+(38, 'FR102', 'mehdi', 'four', 'mehdiF@gmail.com', '$2y$10$I59OHhZqMPxagd3fS0WhyO3VyYlhQlkmzK54H7X5cFBjyuXoehO0C', NULL, NULL, 10, 'active', NULL, '2026-04-30 00:46:49', '2026-04-30 00:46:49', NULL, 0),
+(39, 'PH100', 'mehdi12', 'aloo', 'mehdi12@gmail.com', '$2y$10$.P6pIB5vrc2QzJEUisCC.u0tDFKpcV4txKxQfVLesaN6RErKnFQ8G', NULL, NULL, 4, 'active', NULL, '2026-04-30 00:48:25', '2026-04-30 00:48:25', NULL, 0),
+(41, 'RD100', 'khalil', 'aaa', 'khalil12@gmail.com', '$2y$10$u896uJ99wgxIWODl9FerLem56Kz2g1LpmgN.xMAncmgf2NGFTR33y', NULL, NULL, 6, 'active', NULL, '2026-04-30 00:52:58', '2026-04-30 00:52:58', NULL, 0),
+(42, 'MD300', 'Dupont', 'Dr. Alice', 'alice.dupont@mediflow.com', '$2y$10$GEfC3fUpaw71d29IQSaSNe7ElWO3VN/OfacfSP.Ua7HJOif/CW7aS', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(43, 'MD301', 'Martin', 'Dr. Bernard', 'bernard.martin@mediflow.com', '$2y$10$HOfJmArDWVqtFmb/Amqbke9sXHSKeKbuH.peOxptdZrerONPX9l2K', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(44, 'MD302', 'Lefebvre', 'Dr. Clara', 'clara.lefebvre@mediflow.com', '$2y$10$WoVyIrFgOiyzVQe9rqd12utc5f8z/3mMftll/4IKyspOtQkIxzJCe', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(45, 'MD303', 'Rousseau', 'Dr. David', 'david.rousseau@mediflow.com', '$2y$10$3wdB/njR.AubnSoIVOr0y.hxaRquU/7c/4vBIqfP3tI3jXjyLtQdW', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(46, 'MD304', 'Laurent', 'Dr. Emma', 'emma.laurent@mediflow.com', '$2y$10$jmXKp0B5B9t/7jrZx.pbousWrN4ors4TTrkOKSPagpi50E9JSc9zi', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(47, 'PT301', 'Test1', 'Patient1', 'patient1@test.com', '$2y$10$EofkrYeoQkBPBPy/LnuL2O9IXJ79ft0UQmJ1OJZhmUSQJBnV5hrn2', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(48, 'PT302', 'Test2', 'Patient2', 'patient2@test.com', '$2y$10$PrqmTu9Me6V17amq3WQTt.XiDs.N/ZD5GEVkkVivmDr0Ov5dEzcza', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(49, 'PT303', 'Test3', 'Patient3', 'patient3@test.com', '$2y$10$3VZ4b0pGHLInaibiWkteLOjeEWYHOYJyFZp4ubs0WSVlTgZzkfaBW', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(50, 'PT304', 'Test4', 'Patient4', 'patient4@test.com', '$2y$10$yEIjUkhhRzh4xRrdgTEN.uvPjKHUGnpk6D5UsDUooaT1tSYrsbAhG', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(51, 'PT305', 'Test5', 'Patient5', 'patient5@test.com', '$2y$10$612qYibHeOU9QASt88VAv.l.XJnhZPFn2U6rw74AndQYn4hTD1fg6', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(52, 'PT306', 'Test6', 'Patient6', 'patient6@test.com', '$2y$10$NjsCfXy3YoepRQCA6CVAJuLjDRE26jJt3abFU48OjPK0RJ1lFia3W', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(53, 'PT307', 'Test7', 'Patient7', 'patient7@test.com', '$2y$10$E1LZ7GvQ9YWkAgnpUD1kkeNqG5WAaPcIdbKA52oQsbkRuQlIC59cS', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
+(54, 'PT308', 'Test8', 'Patient8', 'patient8@test.com', '$2y$10$bmvfUFOWOyhOJhQTP51gU.wJ3E6spPZJASS2lq1nu5q3MXeRDhAdm', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(55, 'PT309', 'Test9', 'Patient9', 'patient9@test.com', '$2y$10$3SArRI6lmktg1EFSmYD3leZfTLCYVeqwSPTL1.OKt9d08NQ/GPgDa', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(56, 'PT310', 'Test10', 'Patient10', 'patient10@test.com', '$2y$10$jclXognDDqPueFYxk3o.UuxwG3SR5gVjZ/tMHC6xLoe.7U0T7UzVq', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(57, 'PT311', 'Test11', 'Patient11', 'patient11@test.com', '$2y$10$HrkqIXyszKukWStcMGmdBe0.sOdOLJaw6GqcF3VlyrV1fIcg/VhNi', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(58, 'PT312', 'Test12', 'Patient12', 'patient12@test.com', '$2y$10$8Xdxoo81iddfSQNgZ413x.kreC7EkMPfxStr50ohPLsNd48XBS.Sq', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(59, 'PT313', 'Test13', 'Patient13', 'patient13@test.com', '$2y$10$wC4KcYRAcjMzOlz3KBZ1rOC5qOTj3poMoFEBhg1oJNjohrlBnmz3q', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(60, 'PT314', 'Test14', 'Patient14', 'patient14@test.com', '$2y$10$AHe5FgY/0Ut/LypRGMJY8eXQV67Qg1ClSh2Q/8kn6k4WaJCycPDHu', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(61, 'PT315', 'Test15', 'Patient15', 'patient15@test.com', '$2y$10$9/DsMXKyXFCrEh97l7n9he9K1BFnaUkjYHRgJAnpTB2oyjYOdaZ1S', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(62, 'PT316', 'Test16', 'Patient16', 'patient16@test.com', '$2y$10$ust8pQ88kZm7NIHcb3KRnu3cR6qZT8qlfMqtxFHzn2hmHyxpyBqSW', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(63, 'PT317', 'Test17', 'Patient17', 'patient17@test.com', '$2y$10$e20iUxjJpQeKBDU0gmd7leHj.6sPXWDnnwLNBQBrKQaXCPoPU1o7u', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(64, 'PT318', 'Test18', 'Patient18', 'patient18@test.com', '$2y$10$g7OyOGowLN3niU2EGjE0KObD0SIc1JgWVkBNAubDZLiMYZHlTb4vK', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(65, 'PT319', 'Test19', 'Patient19', 'patient19@test.com', '$2y$10$6WCKJ2avsfnbVfSEch5LfuVfvUWOXg8oVbP/VI4zPHKKxuzOFfZgq', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(66, 'PT320', 'Test20', 'Patient20', 'patient20@test.com', '$2y$10$Z2WNfXMg7rd1NpRk/4EdSeyhDcj7AzUctp15i576sa3uPBdwZD8bS', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
+(67, 'PT321', 'Cherif', 'Khalil', 'B@GMAIL.COM', '$2y$10$AegAq8IMA6fEulMEohv0teU3QAcobGUd.scxldgn8FkoZ5C0KBtzG', NULL, NULL, 9, 'active', NULL, '2026-05-10 21:54:09', '2026-05-13 16:21:00', 'https://lh3.googleusercontent.com/a/ACg8ocIvo_svki_OO0Ue1YjZJreCV5aW61jBV6AkqtHgMfVk9zr-c_Ce=s96-c', 1);
 
 --
 -- Indexes for dumped tables
@@ -846,6 +948,16 @@ ALTER TABLE `ordonnance`
   ADD PRIMARY KEY (`id_ordonnance`),
   ADD UNIQUE KEY `uk_numero` (`numero_ordonnance`),
   ADD KEY `idx_consultation` (`id_consultation`);
+
+--
+-- Indexes for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD UNIQUE KEY `unique_email` (`email`),
+  ADD KEY `key_token` (`token`),
+  ADD KEY `key_expires` (`expires_at`);
 
 --
 -- Indexes for table `planning`
@@ -925,13 +1037,13 @@ ALTER TABLE `utilisateurs`
 -- AUTO_INCREMENT for table `commandes`
 --
 ALTER TABLE `commandes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `comment_likes`
@@ -961,19 +1073,25 @@ ALTER TABLE `equipement`
 -- AUTO_INCREMENT for table `lignescommandes`
 --
 ALTER TABLE `lignescommandes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
 
 --
 -- AUTO_INCREMENT for table `ordonnance`
 --
 ALTER TABLE `ordonnance`
   MODIFY `id_ordonnance` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+
+--
+-- AUTO_INCREMENT for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `planning`
@@ -1027,7 +1145,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `utilisateurs`
 --
 ALTER TABLE `utilisateurs`
-  MODIFY `id_PK` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
+  MODIFY `id_PK` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- Constraints for dumped tables
@@ -1073,6 +1191,12 @@ ALTER TABLE `lignescommandes`
 --
 ALTER TABLE `ordonnance`
   ADD CONSTRAINT `fk_ordo_consultation` FOREIGN KEY (`id_consultation`) REFERENCES `consultation` (`id_consultation`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`email`) REFERENCES `utilisateurs` (`mail`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `planning`

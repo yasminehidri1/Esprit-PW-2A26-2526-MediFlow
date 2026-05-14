@@ -11,6 +11,7 @@
 namespace Controllers;
 
 use Core\SessionHelper;
+use Core\LogService;
 use Models\UserModel;
 
 class AuthController
@@ -70,6 +71,15 @@ class AuthController
 
             // Set session and redirect
             $this->setSession($result, $username);
+            
+            LogService::logAction(
+                $result['id_PK'], 
+                $result['role_name'], 
+                'LOGIN', 
+                'AUTH', 
+                "Connexion réussie pour l'utilisateur: {$username}"
+            );
+            
             header('Location: /integration/dashboard');
             exit;
         } catch (\PDOException $e) {

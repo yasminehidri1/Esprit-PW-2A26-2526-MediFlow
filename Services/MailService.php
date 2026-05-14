@@ -163,6 +163,63 @@ class MailService
         $this->send($this->notifyTo, $subject, $body);
     }
 
+    // ─── Rendez-vous notifications ───────────────────────────────────────────
+
+    public static function rdvModifie(array $rdv, array $medecin, string $ancienneDate, string $ancienneHeure): bool
+    {
+        $instance = new self();
+        $to = $rdv['patient_email'] ?? '';
+        if (empty($to)) return false;
+
+        $subject = "Modification de votre rendez-vous — MediFlow";
+        $body = $instance->templateRdvModifie($rdv, $medecin, $ancienneDate, $ancienneHeure);
+        return $instance->send($to, $subject, $body, ($rdv['patient_prenom'] ?? '') . ' ' . ($rdv['patient_nom'] ?? ''));
+    }
+
+    public static function rdvConfirme(array $rdv, array $medecin): bool
+    {
+        $instance = new self();
+        $to = $rdv['patient_email'] ?? '';
+        if (empty($to)) return false;
+
+        $subject = "Confirmation de votre rendez-vous — MediFlow";
+        $body = $instance->templateRdvConfirme($rdv, $medecin);
+        return $instance->send($to, $subject, $body, ($rdv['patient_prenom'] ?? '') . ' ' . ($rdv['patient_nom'] ?? ''));
+    }
+
+    public static function rdvAnnule(array $rdv, array $medecin): bool
+    {
+        $instance = new self();
+        $to = $rdv['patient_email'] ?? '';
+        if (empty($to)) return false;
+
+        $subject = "Annulation de votre rendez-vous — MediFlow";
+        $body = $instance->templateRdvAnnule($rdv, $medecin);
+        return $instance->send($to, $subject, $body, ($rdv['patient_prenom'] ?? '') . ' ' . ($rdv['patient_nom'] ?? ''));
+    }
+
+    public static function rdvRappel(array $rdv, array $medecin): bool
+    {
+        $instance = new self();
+        $to = $rdv['patient_email'] ?? '';
+        if (empty($to)) return false;
+
+        $subject = "Rappel : Votre rendez-vous de demain — MediFlow";
+        $body = $instance->templateRdvRappel($rdv, $medecin);
+        return $instance->send($to, $subject, $body, ($rdv['patient_prenom'] ?? '') . ' ' . ($rdv['patient_nom'] ?? ''));
+    }
+
+    public static function verifyToken(int $rdvId, string $action, string $token): bool
+    {
+        return $token === self::generateToken($rdvId, $action);
+    }
+
+    public static function generateToken(int $rdvId, string $action): string
+    {
+        $secret = "MediFlow_RDV_Secret_2026"; 
+        return hash_hmac('sha256', $rdvId . $action, $secret);
+    }
+
     // ─── Private helpers ──────────────────────────────────────────────────────
 
     private function log(string $to, string $name, string $subject, string $status): void
@@ -534,6 +591,132 @@ HTML;
         ";
 
         return $this->baseTemplate('Ordonnance Médicale', $body);
+    }
+
+    private function templateRdvModifie(array $rdv, array $medecin, string $oldDate, string $oldHeure): string
+    {
+        $name = ($rdv['patient_prenom'] ?? '') . ' ' . ($rdv['patient_nom'] ?? '');
+        $dr   = 'Dr. ' . ($medecin['prenom'] ?? '') . ' ' . ($medecin['nom'] ?? '');
+        $date = date('d/m/Y', strtotime($rdv['date_rdv']));
+        $time = substr($rdv['heure_rdv'], 0, 5);
+        $oldD = date('d/m/Y', strtotime($oldDate));
+        $oldH = substr($oldHeure, 0, 5);
+
+        $tokenC = self::generateToken($rdv['id'], 'confirmer');
+        $tokenA = self::generateToken($rdv['id'], 'annuler');
+        $urlC = "http://localhost/integration/rdv/reponse-modification?rdv_id={$rdv['id']}&action=confirmer&token={$tokenC}";
+        $urlA = "http://localhost/integration/rdv/reponse-modification?rdv_id={$rdv['id']}&action=annuler&token={$tokenA}";
+
+        $body = "
+            <div style='text-align:center;padding:4px 0 24px;'>
+                <span style='display:inline-block;background:#fffbeb;color:#92400e;font-size:11px;font-weight:700;text-transform:uppercase;padding:5px 16px;border-radius:20px;border:1px solid #fde68a;'>
+                    ⚠ Rendez-vous modifié
+                </span>
+            </div>
+            <p style='margin:0 0 8px;font-size:16px;font-weight:700;color:#0f172a;'>Bonjour {$name},</p>
+            <p style='margin:0 0 24px;font-size:15px;color:#475569;line-height:1.75;'>
+                Votre médecin <strong>{$dr}</strong> a dû modifier l'horaire de votre rendez-vous initialement prévu le {$oldD} à {$oldH}.
+            </p>
+            <div style='background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:24px;'>
+                <p style='margin:0 0 10px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;'>Nouvel horaire</p>
+                <p style='margin:0;font-size:18px;font-weight:800;color:#004d99;'>{$date} à {$time}</p>
+            </div>
+            <p style='margin:0 0 20px;font-size:14px;color:#475569;'>Merci de nous confirmer si ce nouveau créneau vous convient :</p>
+            <table width='100%' cellpadding='0' cellspacing='0'>
+                <tr>
+                    <td>
+                        <a href='{$urlC}' style='display:inline-block;padding:12px 24px;background:#004d99;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:14px;'>Confirmer le nouveau créneau</a>
+                    </td>
+                    <td style='text-align:right;'>
+                        <a href='{$urlA}' style='display:inline-block;padding:12px 24px;background:#fee2e2;color:#b91c1c;text-decoration:none;border-radius:10px;font-weight:700;font-size:14px;'>Annuler le rendez-vous</a>
+                    </td>
+                </tr>
+            </table>
+        ";
+        return $this->baseTemplate('Espace Patient', $body);
+    }
+
+    private function templateRdvConfirme(array $rdv, array $medecin): string
+    {
+        $name = ($rdv['patient_prenom'] ?? '') . ' ' . ($rdv['patient_nom'] ?? '');
+        $dr   = 'Dr. ' . ($medecin['prenom'] ?? '') . ' ' . ($medecin['nom'] ?? '');
+        $date = date('d/m/Y', strtotime($rdv['date_rdv']));
+        $time = substr($rdv['heure_rdv'], 0, 5);
+
+        $body = "
+            <div style='text-align:center;padding:4px 0 24px;'>
+                <span style='display:inline-block;background:#dcfce7;color:#15803d;font-size:11px;font-weight:700;text-transform:uppercase;padding:5px 16px;border-radius:20px;border:1px solid #bbf7d0;'>
+                    ✓ Rendez-vous confirmé
+                </span>
+            </div>
+            <p style='margin:0 0 8px;font-size:16px;font-weight:700;color:#0f172a;'>Bonjour {$name},</p>
+            <p style='margin:0 0 24px;font-size:15px;color:#475569;line-height:1.75;'>
+                Bonne nouvelle ! Votre rendez-vous avec <strong>{$dr}</strong> a été <strong>confirmé</strong>.
+            </p>
+            <div style='background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:20px 24px;margin-bottom:24px;'>
+                <p style='margin:0 0 10px;font-size:11px;font-weight:700;color:#15803d;text-transform:uppercase;'>Détails du rendez-vous</p>
+                <p style='margin:0;font-size:18px;font-weight:800;color:#166534;'>{$date} à {$time}</p>
+            </div>
+            <p style='font-size:14px;color:#475569;line-height:1.6;'>
+                Nous vous attendons au cabinet à l'heure prévue. En cas d'empêchement, merci de nous prévenir au plus vite.
+            </p>
+        ";
+        return $this->baseTemplate('Espace Patient', $body);
+    }
+
+    private function templateRdvAnnule(array $rdv, array $medecin): string
+    {
+        $name = ($rdv['patient_prenom'] ?? '') . ' ' . ($rdv['patient_nom'] ?? '');
+        $dr   = 'Dr. ' . ($medecin['prenom'] ?? '') . ' ' . ($medecin['nom'] ?? '');
+        $date = date('d/m/Y', strtotime($rdv['date_rdv']));
+        $time = substr($rdv['heure_rdv'], 0, 5);
+
+        $body = "
+            <div style='text-align:center;padding:4px 0 24px;'>
+                <span style='display:inline-block;background:#fef2f2;color:#b91c1c;font-size:11px;font-weight:700;text-transform:uppercase;padding:5px 16px;border-radius:20px;border:1px solid #fecaca;'>
+                    ❌ Rendez-vous annulé
+                </span>
+            </div>
+            <p style='margin:0 0 8px;font-size:16px;font-weight:700;color:#0f172a;'>Bonjour {$name},</p>
+            <p style='margin:0 0 24px;font-size:15px;color:#475569;line-height:1.75;'>
+                Votre rendez-vous avec <strong>{$dr}</strong> prévu le {$date} à {$time} a été <strong>annulé</strong>.
+            </p>
+            <p style='font-size:14px;color:#475569;line-height:1.6;'>
+                Vous pouvez reprendre rendez-vous à tout moment depuis votre espace patient sur MediFlow.
+            </p>
+            <div style='margin-top:28px;text-align:center;'>
+                <a href='http://localhost/integration/rdv/annuaire' style='display:inline-block;padding:12px 24px;background:#004d99;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:14px;'>Prendre un nouveau rendez-vous</a>
+            </div>
+        ";
+        return $this->baseTemplate('Espace Patient', $body);
+    }
+
+    private function templateRdvRappel(array $rdv, array $medecin): string
+    {
+        $name = ($rdv['patient_prenom'] ?? '') . ' ' . ($rdv['patient_nom'] ?? '');
+        $dr   = 'Dr. ' . ($medecin['prenom'] ?? '') . ' ' . ($medecin['nom'] ?? '');
+        $date = date('d/m/Y', strtotime($rdv['date_rdv']));
+        $time = substr($rdv['heure_rdv'], 0, 5);
+
+        $body = "
+            <div style='text-align:center;padding:4px 0 24px;'>
+                <span style='display:inline-block;background:#eff6ff;color:#1e40af;font-size:11px;font-weight:700;text-transform:uppercase;padding:5px 16px;border-radius:20px;border:1px solid #bfdbfe;'>
+                    🔔 Rappel de rendez-vous
+                </span>
+            </div>
+            <p style='margin:0 0 8px;font-size:16px;font-weight:700;color:#0f172a;'>Bonjour {$name},</p>
+            <p style='margin:0 0 24px;font-size:15px;color:#475569;line-height:1.75;'>
+                Ceci est un petit rappel pour votre rendez-vous de <strong>demain</strong> avec <strong>{$dr}</strong>.
+            </p>
+            <div style='background:#f0f9ff;border:1px solid #bfdbfe;border-radius:14px;padding:20px 24px;margin-bottom:24px;'>
+                <p style='margin:0 0 10px;font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;'>Demain le {$date}</p>
+                <p style='margin:0;font-size:20px;font-weight:800;color:#004d99;'>À {$time}</p>
+            </div>
+            <p style='font-size:14px;color:#475569;line-height:1.6;'>
+                Nous vous remercions de votre ponctualité.
+            </p>
+        ";
+        return $this->baseTemplate('Espace Patient', $body);
     }
 
     private function baseTemplate(string $label, string $body): string

@@ -16,9 +16,9 @@ $paginationBase = '/integration/magazine/admin/comments'
 
 // Helpers reused across card statuses
 $statusMeta = [
-    'approuve'  => ['color' => 'border-tertiary',   'bg'    => 'bg-tertiary-fixed/10',     'badge' => 'bg-tertiary-fixed text-on-tertiary-fixed',      'label' => 'Approved'],
-    'rejete'    => ['color' => 'border-error',       'bg'    => 'bg-error-container/20',    'badge' => 'bg-error-container text-error',                 'label' => 'Rejected'],
-    'en_attente'=> ['color' => 'border-amber-400',   'bg'    => 'bg-amber-50/30',           'badge' => 'bg-amber-50 text-amber-700',                    'label' => 'Pending'],
+    'approuve'  => ['color' => 'border-tertiary',   'bg'    => 'bg-tertiary-fixed/10',     'badge' => 'bg-tertiary-fixed text-on-tertiary-fixed',      'label' => 'Approuvé'],
+    'rejete'    => ['color' => 'border-error',       'bg'    => 'bg-error-container/20',    'badge' => 'bg-error-container text-error',                 'label' => 'Rejeté'],
+    'en_attente'=> ['color' => 'border-amber-400',   'bg'    => 'bg-amber-50/30',           'badge' => 'bg-amber-50 text-amber-700',                    'label' => 'En Attente'],
 ];
 ?>
 
@@ -30,16 +30,16 @@ $statusMeta = [
             <div class="flex items-center gap-3 mb-1">
                 <h2 class="text-2xl font-bold flex items-center gap-3">
                     <span class="w-1.5 h-8 bg-tertiary rounded-full"></span>
-                    <?= $isFiltered ? 'Post Comments' : 'All Comments' ?>
+                    <?= $isFiltered ? 'Commentaires de l\'Article' : 'Tous les Commentaires' ?>
                 </h2>
             </div>
             <?php if ($isFiltered): ?>
             <p class="text-sm text-on-surface-variant ml-5">
-                Showing comments for:
+                Affichage des commentaires pour :
                 <span class="font-semibold text-primary"><?= htmlspecialchars($postTitle) ?></span>
             </p>
             <?php else: ?>
-            <p class="text-sm text-on-surface-variant ml-5">All comments across every publication</p>
+            <p class="text-sm text-on-surface-variant ml-5">Tous les commentaires de toutes les publications</p>
             <?php endif; ?>
         </div>
 
@@ -55,12 +55,12 @@ $statusMeta = [
             ?>
             <?php if ($approved > 0): ?>
             <span class="text-xs font-bold text-tertiary bg-tertiary-fixed px-3 py-1.5 rounded-full">
-                <?= $approved ?> Approved
+                <?= $approved ?> Approuvés
             </span>
             <?php endif; ?>
             <?php if ($pending > 0): ?>
             <span class="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full">
-                <?= $pending ?> Pending
+                <?= $pending ?> En Attente
             </span>
             <?php endif; ?>
 
@@ -68,7 +68,7 @@ $statusMeta = [
             <a href="/integration/magazine/admin/comments"
                class="flex items-center gap-1.5 text-xs font-bold text-primary bg-primary-fixed px-3 py-1.5 rounded-full hover:bg-primary-fixed-dim transition-colors">
                 <span class="material-symbols-outlined text-sm">filter_alt_off</span>
-                All Comments
+                Tous les Commentaires
             </a>
             <?php endif; ?>
         </div>
@@ -79,12 +79,12 @@ $statusMeta = [
     <div class="flex items-center gap-3 bg-primary-fixed/40 border border-primary/20 rounded-xl px-5 py-3">
         <span class="material-symbols-outlined text-primary text-xl">filter_alt</span>
         <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-primary">Filtered by publication</p>
+            <p class="text-sm font-semibold text-primary">Filtré par publication</p>
             <p class="text-xs text-on-surface-variant truncate"><?= htmlspecialchars($postTitle) ?></p>
         </div>
         <a href="/integration/magazine/admin/comments"
            class="text-xs font-bold text-primary hover:underline whitespace-nowrap">
-            ✕ Clear filter
+            ✕ Effacer le filtre
         </a>
     </div>
     <?php endif; ?>
@@ -144,7 +144,7 @@ $statusMeta = [
                 <button onclick="showDeleteModal('/integration/magazine/admin/comment/delete?id=<?= $comment['id'] ?>&redirect=<?= urlencode($deleteRedirect) ?>', 'comment')"
                         class="flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold rounded-lg bg-error-container/30 text-error hover:bg-error-container/70 transition-colors">
                     <span class="material-symbols-outlined text-sm">delete</span>
-                    Delete
+                    Supprimer
                 </button>
             </div>
         </div>
@@ -156,8 +156,8 @@ $statusMeta = [
     <div class="flex items-center justify-between bg-surface-container-low rounded-xl p-4 border border-surface-container">
         <div class="text-sm text-on-surface-variant">
             Page <span class="font-bold text-on-surface"><?= $currentPage ?></span>
-            of <span class="font-bold text-on-surface"><?= $totalPages ?></span>
-            <span class="text-xs ml-1 opacity-70">(<?= $totalComments ?> total)</span>
+            sur <span class="font-bold text-on-surface"><?= $totalPages ?></span>
+            <span class="text-xs ml-1 opacity-70">(<?= $totalComments ?> au total)</span>
         </div>
         <div class="flex items-center gap-2">
             <!-- Previous -->
@@ -165,12 +165,12 @@ $statusMeta = [
             <a href="<?= $paginationBase ?>&page=<?= $currentPage - 1 ?>"
                class="px-4 py-2 text-xs font-bold rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors flex items-center gap-1">
                 <span class="material-symbols-outlined text-sm">chevron_left</span>
-                Prev
+                Précédent
             </a>
             <?php else: ?>
             <button disabled class="px-4 py-2 text-xs font-bold rounded-lg bg-surface-container text-on-surface-variant opacity-40 flex items-center gap-1">
                 <span class="material-symbols-outlined text-sm">chevron_left</span>
-                Prev
+                Précédent
             </button>
             <?php endif; ?>
 
@@ -203,12 +203,12 @@ $statusMeta = [
             <?php if ($currentPage < $totalPages): ?>
             <a href="<?= $paginationBase ?>&page=<?= $currentPage + 1 ?>"
                class="px-4 py-2 text-xs font-bold rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity flex items-center gap-1">
-                Next
+                Suivant
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
             </a>
             <?php else: ?>
             <button disabled class="px-4 py-2 text-xs font-bold rounded-lg bg-surface-container text-on-surface-variant opacity-40 flex items-center gap-1">
-                Next
+                Suivant
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
             </button>
             <?php endif; ?>
@@ -220,18 +220,18 @@ $statusMeta = [
     <div class="bg-surface-container-lowest rounded-2xl p-20 text-center">
         <span class="material-symbols-outlined text-6xl text-tertiary mb-4 block">chat_bubble_outline</span>
         <h3 class="text-xl font-bold text-on-surface mb-2">
-            <?= $isFiltered ? 'No Comments for This Post' : 'No Comments Yet' ?>
+            <?= $isFiltered ? 'Aucun commentaire pour cet article' : 'Aucun commentaire pour le moment' ?>
         </h3>
         <p class="text-on-surface-variant mb-6">
             <?= $isFiltered
-                ? 'This publication hasn\'t received any comments yet.'
-                : 'No comments have been submitted yet.' ?>
+                ? 'Cette publication n\'a pas encore reçu de commentaires.'
+                : 'Aucun commentaire n\'a encore été soumis.' ?>
         </p>
         <?php if ($isFiltered): ?>
         <a href="/integration/magazine/admin/comments"
            class="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold hover:opacity-90 transition-opacity">
             <span class="material-symbols-outlined text-sm">forum</span>
-            View All Comments
+            Voir Tous les Commentaires
         </a>
         <?php endif; ?>
     </div>

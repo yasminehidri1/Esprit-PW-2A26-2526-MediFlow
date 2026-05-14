@@ -143,6 +143,40 @@ class DashboardController
             $data['commandesValidees']  = count(array_filter($allOrders, fn($c) => ($c['statut'] ?? '') === 'validée'));
             $data['lowStockItems']      = array_slice($lowStock, 0, 5);
 
+        } elseif ($role === 'Medecin') {
+            require_once __DIR__ . '/../Models/RendezVousModel.php';
+            $rdvModel   = new \Models\RendezVousModel();
+            $stats      = $rdvModel->getStatsMedecin($userId);
+            $allRdvs    = $rdvModel->getRdvByMedecin($userId);
+
+            // Today's and upcoming appointments (next 7 days)
+            $today      = date('Y-m-d');
+            $next7      = date('Y-m-d', strtotime('+7 days'));
+            $todayRdvs  = array_filter($allRdvs, fn($r) => ($r['date_rdv'] ?? '') === $today && ($r['statut'] ?? '') !== 'annule');
+            $upcomingRdvs = array_filter($allRdvs, fn($r) => ($r['date_rdv'] ?? '') > $today && ($r['date_rdv'] ?? '') <= $next7 && ($r['statut'] ?? '') !== 'annule');
+
+            // Unique patients (by CIN)
+            $uniquePatients = count(array_unique(array_filter(array_column($allRdvs, 'cin'))));
+
+            // Recent appointments (last 5, non-annulé)
+            $recentRdvs = array_slice(array_filter(array_reverse($allRdvs), fn($r) => ($r['date_rdv'] ?? '') <= $today && ($r['statut'] ?? '') !== 'annule'), 0, 5);
+
+            // Next appointment
+            $futureRdvs = array_filter($allRdvs, fn($r) => ($r['date_rdv'] ?? '') >= $today && ($r['statut'] ?? '') !== 'annule');
+            usort($futureRdvs, fn($a, $b) => strcmp($a['date_rdv'].$a['heure_rdv'], $b['date_rdv'].$b['heure_rdv']));
+            $nextRdv = reset($futureRdvs) ?: null;
+
+            $data['rdvStats']        = $stats;
+            $data['totalRdv']        = (int)($stats['total'] ?? 0);
+            $data['rdvAujourdhui']   = count($todayRdvs);
+            $data['rdvEnAttente']    = (int)($stats['nb_attente'] ?? 0);
+            $data['rdvConfirmes']    = (int)($stats['nb_confirmes'] ?? 0);
+            $data['rdvAnnules']      = (int)($stats['nb_annules'] ?? 0);
+            $data['patientsUniques'] = $uniquePatients;
+            $data['rdvUpcoming']     = array_values($upcomingRdvs);
+            $data['recentRdvs']      = array_values($recentRdvs);
+            $data['nextRdv']         = $nextRdv;
+
         } else {
             // Other roles — generic placeholder until their module is built
             $data['stats'] = [];
