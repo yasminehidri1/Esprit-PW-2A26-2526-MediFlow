@@ -83,6 +83,173 @@ class MailService
         return $this->send($toEmail, $subject, $body, $toName);
     }
 
+    /**
+     * Send ordonnance email WITH a PDF attachment generated on-the-fly by DomPDF.
+     * Falls back to plain HTML email if DomPDF is unavailable.
+     */
+    public function sendOrdonnanceWithPdf(
+        string $toEmail,
+        string $toName,
+        string $doctorName,
+        string $dateEmission,
+        array  $medicaments,
+        string $notePharmacien = '',
+        string $numeroOrdonnance = ''
+    ): bool {
+        $subject  = "Votre ordonnance médicale — MediFlow";
+        $htmlBody = $this->templateOrdonnance($toName, $doctorName, $dateEmission, $medicaments, $notePharmacien);
+
+        // Try to generate PDF attachment
+        $pdfContent = null;
+        try {
+            if (!class_exists('Dompdf\\Dompdf')) {
+                require_once __DIR__ . '/../vendor/autoload.php';
+            }
+            $pdfHtml = $this->templateOrdonnancePdf($toName, $doctorName, $dateEmission, $medicaments, $notePharmacien, $numeroOrdonnance);
+            $dompdf  = new \Dompdf\Dompdf(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => false]);
+            $dompdf->loadHtml($pdfHtml);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            $pdfContent = $dompdf->output();
+        } catch (\Throwable $e) {
+            error_log('[MailService] DomPDF error: ' . $e->getMessage());
+        }
+
+        // Build mail with optional attachment
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host       = \config::getSmtpHost();
+            $mail->SMTPAuth   = true;
+            $mail->Username   = \config::getSmtpUser();
+            $mail->Password   = \config::getSmtpPass();
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = \config::getSmtpPort();
+            $mail->CharSet    = 'UTF-8';
+            $mail->setFrom(\config::getSmtpFrom(), \config::getSmtpFromName());
+            $mail->addAddress($toEmail, $toName);
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body    = $htmlBody;
+            $mail->AltBody = strip_tags(str_replace(['<tr>', '<td>', '</td>'], ["\n", " | ", ""], $htmlBody));
+
+            // Attach PDF if generated
+            if ($pdfContent !== null) {
+                $filename = 'Ordonnance_' . ($numeroOrdonnance ?: date('Y-m-d')) . '.pdf';
+                $mail->addStringAttachment($pdfContent, $filename, PHPMailer::ENCODING_BASE64, 'application/pdf');
+            }
+
+            $mail->send();
+            $this->log($toEmail, $toName, $subject, 'OK' . ($pdfContent ? ' (avec PDF)' : ' (sans PDF)'));
+            return true;
+        } catch (Exception $e) {
+            $err = $mail->ErrorInfo ?: $e->getMessage();
+            $this->log($toEmail, $toName, $subject, 'ERREUR SMTP : ' . $err);
+            error_log('[MailService] ' . $err);
+            return false;
+        }
+    }
+
+    /**
+     * Build a clean, print-ready PDF template for the ordonnance.
+     */
+    private function templateOrdonnancePdf(
+        string $toName,
+        string $doctorName,
+        string $dateEmission,
+        array  $medicaments,
+        string $notePharmacien,
+        string $numeroOrdonnance
+    ): string {
+        $dateStr = date('d/m/Y', strtotime($dateEmission));
+        $numStr  = $numeroOrdonnance ?: 'ORD-' . date('Y');
+        $note    = !empty(trim($notePharmacien)) ? htmlspecialchars($notePharmacien) : '';
+
+        $rows = '';
+        foreach ($medicaments as $i => $med) {
+            $bg    = ($i % 2 === 0) ? '#ffffff' : '#f8fafc';
+            $nom   = htmlspecialchars($med['nom']          ?? '—');
+            $dos   = htmlspecialchars($med['dosage']        ?? '—');
+            $freq  = htmlspecialchars($med['frequence']     ?? '—');
+            $dur   = htmlspecialchars($med['duree']         ?? '—');
+            $instr = htmlspecialchars($med['instructions']  ?? '');
+            $rows .= "
+            <tr style='background:{$bg};'>
+                <td style='padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:center;color:#004d99;font-weight:700;'>" . ($i + 1) . "</td>
+                <td style='padding:8px 10px;border-bottom:1px solid #e2e8f0;font-weight:700;'>{$nom}" . ($instr ? "<br><span style='font-size:11px;font-weight:400;color:#64748b;'>{$instr}</span>" : '') . "</td>
+                <td style='padding:8px 10px;border-bottom:1px solid #e2e8f0;'>{$dos}</td>
+                <td style='padding:8px 10px;border-bottom:1px solid #e2e8f0;'>{$freq}</td>
+                <td style='padding:8px 10px;border-bottom:1px solid #e2e8f0;'>{$dur}</td>
+            </tr>";
+        }
+
+        $noteHtml = $note ? "
+            <div style='margin-top:20px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;'>
+                <p style='margin:0 0 4px;font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;'>Note pour le pharmacien</p>
+                <p style='margin:0;font-size:13px;color:#451a03;'>{$note}</p>
+            </div>" : '';
+
+        return "<!DOCTYPE html>
+<html lang='fr'>
+<head>
+<meta charset='UTF-8'>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #1e293b; margin: 0; padding: 0; }
+  .header { background: linear-gradient(135deg, #004d99, #0284c7); color: #fff; padding: 24px 32px; border-radius: 0 0 12px 12px; }
+  .header h1 { margin: 0; font-size: 24px; letter-spacing: -0.5px; }
+  .header p  { margin: 4px 0 0; font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.1em; }
+  .body { padding: 28px 32px; }
+  .meta-grid { display: table; width: 100%; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+  .meta-row { display: table-row; }
+  .meta-label { display: table-cell; padding: 8px 14px; background: #f8fafc; color: #64748b; font-size: 12px; width: 35%; border-bottom: 1px solid #e2e8f0; }
+  .meta-value { display: table-cell; padding: 8px 14px; color: #0f172a; border-bottom: 1px solid #e2e8f0; }
+  table.meds { width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+  table.meds th { padding: 9px 10px; background: #f1f5f9; font-size: 11px; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; text-align: left; }
+  .footer { margin-top: 40px; border-top: 2px solid #004d99; padding-top: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .sig-line { border-top: 1px solid #94a3b8; width: 160px; margin-top: 40px; text-align: center; padding-top: 6px; font-size: 11px; color: #64748b; }
+</style>
+</head>
+<body>
+  <div class='header'>
+    <h1>Medi<span style='color:#84f5e8;'>Flow</span></h1>
+    <p>Dossier Médical &mdash; Ordonnance Médicale</p>
+  </div>
+  <div class='body'>
+    <div class='meta-grid'>
+      <div class='meta-row'><div class='meta-label'>N° Ordonnance</div><div class='meta-value' style='font-weight:700;color:#004d99;'>{$numStr}</div></div>
+      <div class='meta-row'><div class='meta-label'>Date d'émission</div><div class='meta-value'>{$dateStr}</div></div>
+      <div class='meta-row'><div class='meta-label'>Médecin</div><div class='meta-value'>{$doctorName}</div></div>
+      <div class='meta-row'><div class='meta-label'>Patient</div><div class='meta-value'>{$toName}</div></div>
+    </div>
+
+    <p style='margin:0 0 10px;font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:0.08em;'>Médicaments prescrits</p>
+    <table class='meds'>
+      <thead>
+        <tr>
+          <th style='width:28px;text-align:center;'>#</th>
+          <th>Médicament</th>
+          <th>Dosage</th>
+          <th>Fréquence</th>
+          <th>Durée</th>
+        </tr>
+      </thead>
+      <tbody>{$rows}</tbody>
+    </table>
+
+    {$noteHtml}
+
+    <div class='footer'>
+      <div>
+        <p style='margin:0;font-size:11px;color:#64748b;'>Document généré par MediFlow &mdash; " . date('d/m/Y') . "</p>
+        <p style='margin:4px 0 0;font-size:11px;color:#94a3b8;'>Ce document est à présenter à votre pharmacien.</p>
+      </div>
+      <div class='sig-line'>Signature du médecin</div>
+    </div>
+  </div>
+</body>
+</html>";
+    }
+
     // ─── Order notifications ──────────────────────────────────────────────────
 
     public function sendOrderCreated(int $commandeId, array $cart, string $pharmacienMatricule): void

@@ -80,7 +80,33 @@ class OrdonnanceController {
             $errors = $this->validateOrdonnance($data);
             if (!empty($errors)) { $_SESSION['validation_errors'] = $errors; $this->redirect("/integration/dossier/ordonnance/add?consult_id={$consultationId}"); }
             $ordonnanceId = $this->ordonnanceModel->create($data);
-            $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Ordonnance créée avec succès.'];
+
+            // Fetch saved ordonnance + patient info to send email with PDF
+            $savedOrdonnance  = $this->ordonnanceModel->getById($ordonnanceId);
+            $numeroOrdonnance = $savedOrdonnance['numero_ordonnance'] ?? '';
+            $consultation     = $this->consultationModel->getConsultationById($consultationId);
+            $patient          = $consultation ? $this->consultationModel->getPatientById((int)$consultation['id_patient']) : null;
+            $patientEmail     = trim($patient['mail'] ?? '');
+            $patientName      = trim(($patient['prenom'] ?? '') . ' ' . ($patient['nom'] ?? ''));
+            $emailSent        = false;
+            if (!empty($patientEmail)) {
+                $medsDecoded = json_decode($medicaments, true) ?: [];
+                $doctorName  = 'Dr. ' . $this->medecinInfo['prenom'] . ' ' . $this->medecinInfo['nom'];
+                require_once __DIR__ . '/../Services/MailService.php';
+                $emailSent = (new \Services\MailService())->sendOrdonnanceWithPdf(
+                    $patientEmail, $patientName, $doctorName,
+                    $data['date_emission'], $medsDecoded, $data['note_pharmacien'],
+                    $numeroOrdonnance
+                );
+            }
+
+            if ($emailSent) {
+                $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Ordonnance créée · Email envoyé au patient avec le PDF joint.'];
+            } elseif (!empty($patientEmail)) {
+                $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Ordonnance créée. (Envoi email échoué — vérifiez data/mail_log.txt)'];
+            } else {
+                $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Ordonnance créée avec succès.'];
+            }
             $this->redirect("/integration/dossier/ordonnance/view?id={$ordonnanceId}");
         }
         $consultation = $this->consultationModel->getConsultationById($consultationId);
@@ -117,7 +143,11 @@ class OrdonnanceController {
             }
             $ordonnanceId = $this->ordonnanceModel->create($data);
 
-            // Send ordonnance to patient by email
+            // Fetch the saved ordonnance to get auto-generated numero_ordonnance
+            $savedOrdonnance = $this->ordonnanceModel->getById($ordonnanceId);
+            $numeroOrdonnance = $savedOrdonnance['numero_ordonnance'] ?? '';
+
+            // Send ordonnance to patient by email WITH PDF attachment
             $toEmail   = trim($_POST['patient_email'] ?? '');
             $toName    = trim($_POST['patient_name']  ?? '');
             $emailSent = false;
@@ -125,9 +155,10 @@ class OrdonnanceController {
                 $medsDecoded = json_decode($medicaments, true) ?: [];
                 $doctorName  = 'Dr. ' . $this->medecinInfo['prenom'] . ' ' . $this->medecinInfo['nom'];
                 require_once __DIR__ . '/../Services/MailService.php';
-                $emailSent = (new \Services\MailService())->sendOrdonnance(
+                $emailSent = (new \Services\MailService())->sendOrdonnanceWithPdf(
                     $toEmail, $toName, $doctorName,
-                    $data['date_emission'], $medsDecoded, $data['note_pharmacien']
+                    $data['date_emission'], $medsDecoded, $data['note_pharmacien'],
+                    $numeroOrdonnance
                 );
             }
 

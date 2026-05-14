@@ -80,14 +80,56 @@ class DemandeController {
         $mailer       = new \Services\MailService();
 
         if ($statut === 'traitee') {
-            $mailer->sendDemandeTraitee($patientEmail, $patientName, $description);
+            // Try to find the latest ordonnance this doctor created for this patient
+            $ordonnanceSent = false;
+            try {
+                require_once __DIR__ . '/../Models/OrdonnanceModel.php';
+                $ordoModel = new \OrdonnanceModel();
+                // Query the most recent ordonnance for this patient by this doctor
+                $latestOrdo = $db->prepare("
+                    SELECT o.*, o.numero_ordonnance, o.date_emission, o.medicaments, o.note_pharmacien,
+                           CONCAT(um.prenom, ' ', um.nom) AS nom_medecin_prenom,
+                           um.prenom AS prenom_medecin, um.nom AS nom_medecin_nom
+                    FROM ordonnance o
+                    JOIN consultation c ON c.id_consultation = o.id_consultation
+                    JOIN utilisateurs um ON um.id_PK = c.id_medecin
+                    WHERE c.id_patient = :pid
+                      AND c.id_medecin = :mid
+                    ORDER BY o.date_emission DESC, o.id_ordonnance DESC
+                    LIMIT 1
+                ");
+                $latestOrdo->execute([':pid' => (int)$demande['id_patient'], ':mid' => $this->medecinId]);
+                $ordo = $latestOrdo->fetch();
+
+                if ($ordo) {
+                    $medicaments = json_decode($ordo['medicaments'] ?? '[]', true) ?: [];
+                    $doctorName  = 'Dr. ' . ($ordo['prenom_medecin'] ?? $this->medecinInfo['prenom'])
+                                          . ' ' . ($ordo['nom_medecin_nom'] ?? $this->medecinInfo['nom']);
+                    $ordonnanceSent = $mailer->sendOrdonnanceWithPdf(
+                        $patientEmail,
+                        $patientName,
+                        $doctorName,
+                        $ordo['date_emission'],
+                        $medicaments,
+                        $ordo['note_pharmacien'] ?? '',
+                        $ordo['numero_ordonnance'] ?? ''
+                    );
+                }
+            } catch (\Throwable $e) {
+                error_log('[DemandeController] Ordonnance lookup error: ' . $e->getMessage());
+            }
+
+            // Fallback to generic acceptance email if no ordonnance found
+            if (!$ordonnanceSent) {
+                $mailer->sendDemandeTraitee($patientEmail, $patientName, $description);
+            }
 
             // Notification confirmation → médecin
             $notifModel->add(
                 $this->medecinId,
                 'demande_traitee',
                 'Demande traitée ✓',
-                "Email de confirmation envoyé à {$patientName}.",
+                "Email envoyé à {$patientName}" . ($ordonnanceSent ? ' avec l\'ordonnance PDF.' : '.'),
                 $demandeId
             );
             // Notification → patient
@@ -95,10 +137,17 @@ class DemandeController {
                 (int)$demande['id_patient'],
                 'demande_traitee',
                 'Demande d\'ordonnance acceptée ✓',
-                'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.',
+                $ordonnanceSent
+                    ? 'Votre ordonnance a été envoyée par email (avec PDF joint).'
+                    : 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.',
                 $demandeId
             );
-            $_SESSION['flash'] = ['type' => 'success', 'msg' => "Demande traitée · Email envoyé à {$patientName}."];
+            $_SESSION['flash'] = [
+                'type' => 'success',
+                'msg'  => $ordonnanceSent
+                    ? "Demande traitée · Ordonnance PDF envoyée à {$patientName}."
+                    : "Demande traitée · Email envoyé à {$patientName}.",
+            ];
         } else {
             $mailer->sendDemandeRefusee($patientEmail, $patientName, $description, $aiMessage);
 

@@ -583,7 +583,7 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
 <main class="ml-64 min-h-screen flex flex-col">
 
     <!-- Top bar -->
-    <header class="sticky top-0 z-30 h-16 bg-white/80 backdrop-blur-xl border-b border-outline-variant/30 flex items-center justify-between px-8 shadow-[0_1px_12px_rgba(0,77,153,0.06)]">
+    <header class="sticky top-0 z-50 h-16 bg-white/80 backdrop-blur-xl border-b border-outline-variant/30 flex items-center justify-between px-8 shadow-[0_1px_12px_rgba(0,77,153,0.06)]">
         <!-- Left: page context breadcrumb / search -->
         <div class="flex items-center gap-4">
             <form method="GET" action="/integration/magazine/admin/articles" class="hidden md:flex items-center gap-2 bg-surface-container-low border border-outline-variant/30 rounded-full px-4 py-2 text-sm focus-within:ring-2 focus-within:ring-primary/20">
@@ -611,8 +611,8 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
 
               <!-- Dropdown -->
               <div id="boNotifDropdown"
-                   class="hidden absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl shadow-blue-900/10 border border-surface-container z-50 overflow-hidden"
-                   style="animation:slideDownIn .2s ease-out">
+                   class="hidden fixed w-80 bg-white rounded-2xl shadow-2xl shadow-blue-900/10 border border-surface-container overflow-hidden"
+                   style="z-index:9999;animation:slideDownIn .2s ease-out">
                 <!-- Header -->
                 <div class="flex items-center justify-between px-5 py-3.5 border-b border-surface-container">
                   <div class="flex items-center gap-2">
@@ -647,7 +647,8 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
 
               <!-- Dropdown -->
               <div id="bkNavDropdown"
-                   class="hidden absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl shadow-blue-900/10 border border-surface-container z-50 overflow-hidden">
+                   class="hidden fixed w-80 bg-white rounded-2xl shadow-2xl shadow-blue-900/10 border border-surface-container overflow-hidden"
+                   style="z-index:9999">
                 <!-- Header -->
                 <div class="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-blue-50 to-sky-50 border-b border-blue-100">
                   <div class="flex items-center gap-2">
@@ -834,11 +835,18 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
             });
     }
 
-    // Toggle dropdown
+    // Toggle dropdown — position it relative to button using fixed coords
+    function positionDropdown() {
+        const rect = btn.getBoundingClientRect();
+        dropdown.style.top  = (rect.bottom + 8) + 'px';
+        dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+        dropdown.style.left  = 'auto';
+    }
+
     btn.addEventListener('click', function (e) {
         e.stopPropagation();
         const isHidden = dropdown.classList.toggle('hidden');
-        if (!isHidden) loadNotifications();
+        if (!isHidden) { positionDropdown(); loadNotifications(); }
     });
 
     // Mark all read
@@ -920,10 +928,18 @@ if (in_array($role, ['Admin', 'pharmacien'])) {
             });
     }
 
+    // Position bookmark dropdown with fixed coords
+    function positionBkDropdown() {
+        const rect = btn.getBoundingClientRect();
+        dropdown.style.top  = (rect.bottom + 8) + 'px';
+        dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+        dropdown.style.left  = 'auto';
+    }
+
     btn.addEventListener('click', function (e) {
         e.stopPropagation();
         const isHidden = dropdown.classList.toggle('hidden');
-        if (!isHidden) loadBookmarks();
+        if (!isHidden) { positionBkDropdown(); loadBookmarks(); }
     });
 
     document.addEventListener('click', function (e) {

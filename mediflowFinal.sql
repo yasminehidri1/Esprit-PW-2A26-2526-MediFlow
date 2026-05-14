@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 13, 2026 at 07:47 PM
+-- Generation Time: May 14, 2026 at 03:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -309,10 +309,10 @@ CREATE TABLE `equipement` (
 
 INSERT INTO `equipement` (`id`, `reference`, `nom`, `categorie`, `prix_jour`, `statut`, `image`, `created_at`) VALUES
 (1, 'EQ-9402', 'Moniteur Patient V60', 'Cardiologie', 9.00, 'disponible', NULL, '2026-04-13 12:15:01'),
-(3, 'EQ-7721', 'Fauteuil M?dicalis? X3', 'G?riatrie', 12.00, 'loue', 'EQ-7721.jpg', '2026-04-13 12:15:01'),
+(3, 'EQ-7721', 'Fauteuil M?dicalis? X3', 'Réanimation', 12.00, 'disponible', NULL, '2026-04-13 12:15:01'),
 (4, 'EQ-2256', '?chographe Portable S9', 'Radiologie', 18.00, 'loue', 'EQ-2256.jpg', '2026-04-13 12:15:01'),
 (5, 'EQ-3310', 'Concentrateur Oxyg?ne', 'Respiratoire', 15.00, 'disponible', 'EQ-3310.jpg', '2026-04-13 12:15:01'),
-(6, 'EQ-4401', 'D?ambulateur Rollator', 'Mobilit?', 5.00, 'disponible', 'EQ-4401.jpg', '2026-04-13 12:15:01'),
+(6, 'EQ-4401', 'D?ambulateur Rollator', 'Réanimation', 5.00, 'disponible', NULL, '2026-04-13 12:15:01'),
 (15, 'EG-2222', 'matelas axtair automorphooo', 'Respiratoire', 11.00, 'disponible', NULL, '2026-04-19 20:48:36');
 
 -- --------------------------------------------------------
@@ -470,9 +470,35 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `message`, `icon`, `color`, 
 (92, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-12 22:31:41'),
 (93, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-12 22:31:41'),
 (94, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-13 17:22:05'),
-(95, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 0, '2026-05-13 17:22:05'),
+(95, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-13 17:22:05'),
 (96, 'demande_traitee', 'Demande traitée ✓', 'Email de confirmation envoyé à John Doe.', 'check_circle', 'green', 24, 1, '2026-05-13 17:22:06'),
-(97, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 0, '2026-05-13 17:22:06');
+(97, 'demande_traitee', 'Demande d\'ordonnance acceptée ✓', 'Votre médecin a accepté et traité votre demande. Vous pouvez récupérer votre ordonnance.', 'check_circle', 'green', 25, 1, '2026-05-13 17:22:06'),
+(98, 'user_suspended', 'Compte suspendu', 'Le compte de samad abdo (Matricule: PT101) a été suspendu.', 'block', 'error', 19, 1, '2026-05-13 19:11:02'),
+(99, 'user_activated', 'Compte réactivé', 'Le compte de samad abdo (Matricule: PT101) a été réactivé.', 'check_circle', 'tertiary', 19, 1, '2026-05-13 19:25:53'),
+(100, 'new_user', 'Nouvel utilisateur (Admin)', 'L\'administrateur a créé le compte de final test (Matricule: PT322).', 'person_add', 'primary', 19, 1, '2026-05-13 19:26:25'),
+(101, 'google_signup', 'Inscription via Google', 'Le patient fathi khelifi11 (Matricule: PT323) s\'est inscrit avec son compte Google.', 'account_circle', 'primary', 69, 1, '2026-05-13 19:28:39'),
+(102, 'google_signup', 'Inscription via Google', 'Le patient Fathi V1 (Matricule: PT324) s\'est inscrit avec son compte Google.', 'account_circle', 'primary', 70, 1, '2026-05-13 19:29:27'),
+(103, 'user_deleted', 'Utilisateur supprimé', 'Un compte utilisateur (Matricule: PT324) a été supprimé par l\'administrateur.', 'person_remove', 'error', 19, 1, '2026-05-13 19:33:34'),
+(104, 'google_signup', 'Inscription via Google', 'Le patient fathi khelifi11 (Matricule: PT324) s\'est inscrit avec son compte Google.', 'account_circle', 'primary', 71, 1, '2026-05-13 19:42:56'),
+(105, 'user_suspended', 'Compte suspendu', 'Le compte de samad abdo (Matricule: PT101) a été suspendu.', 'block', 'error', 20, 1, '2026-05-13 19:43:44'),
+(106, 'new_user', 'Nouvel utilisateur (Admin)', 'L\'administrateur a créé le compte de lllll alloooooooooo (Matricule: PH101).', 'person_add', 'primary', 20, 1, '2026-05-13 19:44:27'),
+(107, 'user_deleted', 'Utilisateur supprimé', 'Un compte utilisateur (Matricule: AD100) a été supprimé par l\'administrateur.', 'person_remove', 'error', 20, 1, '2026-05-13 19:50:03'),
+(108, 'new_user', 'Nouvel utilisateur (Admin)', 'L\'administrateur a créé le compte de abbess mahmoud (Matricule: MD305).', 'person_add', 'primary', 20, 1, '2026-05-13 19:50:42'),
+(109, 'google_signup', 'Inscription via Google', 'Le patient android TN (Matricule: PT325) s\'est inscrit avec son compte Google.', 'account_circle', 'primary', 74, 1, '2026-05-13 19:50:59'),
+(110, 'password_changed', 'Mot de passe mis à jour', 'L\'utilisateur fathi khelifi (Matricule: PT102) a mis à jour son mot de passe.', 'lock_reset', 'secondary', 20, 1, '2026-05-13 23:14:08'),
+(111, 'password_changed', 'Mot de passe mis à jour', 'L\'utilisateur Adam Smith (Matricule: MD200) a mis à jour son mot de passe.', 'lock_reset', 'secondary', 24, 1, '2026-05-13 23:23:43'),
+(112, 'nouveau_rdv', 'Nouveau rendez-vous', 'Nouveau rendez-vous de aaa aloo le 25/05/2026 à 23:32.', 'calendar', 'primary', 24, 1, '2026-05-13 23:33:28'),
+(113, 'confirme', 'Rendez-vous confirmé', 'Dr. Adam Smith a confirmé votre rendez-vous du 25/05/2026 à 23:32.', 'check-circle', 'success', 74, 1, '2026-05-13 23:34:17'),
+(114, 'new_demande', 'Nouvelle Réservation', 'Le patient aloo TN a réservé : Concentrateur Oxyg?ne.', 'assignment', 'blue', 3, 1, '2026-05-13 23:56:59'),
+(115, 'new_demande', 'Nouvelle Réservation', 'Le patient aloo TN a réservé : Concentrateur Oxyg?ne.', 'assignment', 'blue', 22, 1, '2026-05-13 23:56:59'),
+(116, 'new_demande', 'Nouvelle Réservation', 'Le patient aloo TN a réservé : Concentrateur Oxyg?ne.', 'assignment', 'blue', 37, 1, '2026-05-13 23:56:59'),
+(117, 'password_changed', 'Mot de passe mis à jour', 'L\'utilisateur four mehdi (Matricule: FR102) a mis à jour son mot de passe.', 'lock_reset', 'secondary', 38, 0, '2026-05-14 00:16:55'),
+(118, 'password_changed', 'Mot de passe mis à jour', 'L\'utilisateur four mehdi (Matricule: FR102) a mis à jour son mot de passe.', 'lock_reset', 'secondary', 38, 0, '2026-05-14 00:17:20'),
+(119, 'new_demande', 'Nouvelle Réservation', 'Le patient fathi khelifi a réservé : D?ambulateur Rollator.', 'assignment', 'blue', 3, 0, '2026-05-14 00:35:22'),
+(120, 'new_demande', 'Nouvelle Réservation', 'Le patient fathi khelifi a réservé : D?ambulateur Rollator.', 'assignment', 'blue', 22, 0, '2026-05-14 00:35:22'),
+(121, 'new_demande', 'Nouvelle Réservation', 'Le patient fathi khelifi a réservé : D?ambulateur Rollator.', 'assignment', 'blue', 37, 0, '2026-05-14 00:35:22'),
+(122, 'nouveau_rdv', 'Nouveau rendez-vous', 'Nouveau rendez-vous de fathi khelif le 16/05/2026 à 22:25.', 'calendar', 'primary', 21, 0, '2026-05-14 00:43:42'),
+(123, 'user_updated', 'Utilisateur modifié', 'Le compte de John Doe (Matricule: PT200) a été modifié par un administrateur.', 'manage_accounts', 'secondary', 20, 0, '2026-05-14 00:49:17');
 
 -- --------------------------------------------------------
 
@@ -701,11 +727,11 @@ CREATE TABLE `produits` (
 --
 
 INSERT INTO `produits` (`id`, `nom`, `image`, `categorie`, `quantite_disponible`, `prix_unitaire`, `seuil_alerte`, `prix_achat`, `fournisseur_matricule`) VALUES
-(4, 'mehdi', '/Mediflow1/assets/images/produit/produit_1776022575_69dbf42f00497.png', 'comprim?s', 5, 11.00, 5, 6.00, NULL),
-(5, 'bibo', 'assets/images/produit/produit_1777503177_69f28bc982e57.png', 'injectables', 20, 10.00, 52, 5.00, 'PT102'),
+(4, 'Panadol', 'assets/images/produit/produit_1778714704_6a05085046688.jpg', '', 25, 11.00, 5, 7.00, 'FR102'),
+(5, ' Efferalgan', 'assets/images/produit/produit_1778714653_6a05081dda8c7.jpg', 'sirops', 100, 10.00, 52, 5.00, 'FR102'),
 (6, 'tito', 'assets/images/produit/produit_1776286564_69dffb6404d5b.jpg', 'comprim?s', 8, 25.00, 5, 2.00, NULL),
 (7, 'doliprane 100', 'assets/images/produit/produit_1777503368_69f28c8859009.jpg', 'comprim?s', 2, 500.00, 5, 3000.00, 'AD103'),
-(9, 'testtttt', 'assets/images/produit/produit_1777499119_69f27bef55dfb.png', 'sirops', 25, 15.00, 5, 65.00, 'FR101');
+(10, ' Dafalgan', 'assets/images/produit/produit_1778714616_6a0507f8c9ae3.webp', '', 50, 25.00, 10, 5.00, 'FR102');
 
 -- --------------------------------------------------------
 
@@ -736,7 +762,9 @@ CREATE TABLE `rendez_vous` (
 INSERT INTO `rendez_vous` (`id`, `medecin_id`, `patient_nom`, `patient_prenom`, `cin`, `patient_email`, `genre`, `date_rdv`, `heure_rdv`, `motif`, `statut`, `rappel_envoye`, `created_at`) VALUES
 (17, 24, 'Doe', 'John', '12345678', NULL, 'homme', '2026-04-30', '10:00:00', 'Suivi post-op?ratoire', 'confirme', 0, '2026-04-28 20:17:06'),
 (18, 24, 'Doe', 'John', '12345678', NULL, 'homme', '2026-05-01', '11:30:00', 'Vaccination', 'en_attente', 0, '2026-04-28 20:17:06'),
-(19, 24, 'Doe', 'John', '12345678', 'john.doe@gmail.com', 'homme', '2026-05-11', '22:39:00', 'Consultation g?n?rale', 'en_attente', 0, '2026-05-09 17:40:01');
+(19, 24, 'Doe', 'John', '12345678', 'john.doe@gmail.com', 'homme', '2026-05-20', '22:39:00', 'Consultation g?n?rale', 'en_attente', 0, '2026-05-09 17:40:01'),
+(20, 24, 'aloo', 'aaa', '14529632', 'lastgames70@gmail.com', 'homme', '2026-05-25', '23:32:00', 'Consultation g?n?rale', 'confirme', 0, '2026-05-13 22:33:28'),
+(21, 21, 'khelif', 'fathi', '14529632', 'fathikhelifi0769@gmail.com', 'homme', '2026-05-16', '22:25:00', 'Consultation g?n?rale', 'en_attente', 0, '2026-05-13 23:43:42');
 
 -- --------------------------------------------------------
 
@@ -768,7 +796,9 @@ INSERT INTO `reservation` (`id`, `equipement_id`, `locataire_nom`, `matricule`, 
 (30, 6, 'Fathi bin AlKhalifa', NULL, '', '2026-07-22', '2026-07-30', 'en_cours', '', 'espece', 'pending', NULL, '2026-04-21 01:12:37'),
 (31, 15, 'abdo samad', 'PT102', '', '2027-07-22', '2027-07-30', 'en_cours', '+216 92 518 333', 'espece', 'pending', NULL, '2026-04-21 01:15:46'),
 (34, 15, 'cherif khalil', 'PT103', '', '2026-07-07', '2026-07-08', 'en_cours', '', 'espece', 'pending', NULL, '2026-04-23 00:20:22'),
-(35, 1, 'fathi khelifi', 'PT102', '', '2026-07-20', '2026-07-26', 'en_cours', '+216 92 518 333', 'espece', 'pending', NULL, '2026-04-23 01:01:27');
+(35, 1, 'fathi khelifi', 'PT102', '', '2026-07-20', '2026-07-26', 'en_cours', '+216 92 518 333', 'espece', 'pending', NULL, '2026-04-23 01:01:27'),
+(40, 5, 'aloo TN', NULL, '', '2026-05-23', '2026-05-25', 'termine', '', 'clinique', 'pending', NULL, '2026-05-13 22:56:59'),
+(41, 6, 'fathi khelifi', 'PT323', '', '2026-05-22', '2026-05-24', 'en_cours', '', 'clinique', 'pending', NULL, '2026-05-13 23:35:22');
 
 -- --------------------------------------------------------
 
@@ -796,6 +826,59 @@ INSERT INTO `roles` (`id_role`, `libelle`, `permission`, `date_creation`) VALUES
 (6, 'redacteur', NULL, '2026-04-11'),
 (9, 'Patient', NULL, '2026-04-13'),
 (10, 'Fournisseur', 'gestion_stock', '2026-04-29');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `system_logs`
+--
+
+CREATE TABLE `system_logs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `role` varchar(50) DEFAULT NULL,
+  `action_type` varchar(50) NOT NULL,
+  `module` varchar(100) NOT NULL,
+  `description` text NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`payload`)),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `system_logs`
+--
+
+INSERT INTO `system_logs` (`id`, `user_id`, `role`, `action_type`, `module`, `description`, `ip_address`, `user_agent`, `payload`, `created_at`) VALUES
+(1, 3, 'Admin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: admin@mediflow.com', '127.0.0.1', 'Unknown', NULL, '2026-05-13 18:41:24'),
+(2, 3, 'Admin', 'UPDATE', 'DOSSIER', 'Mise à jour du profil patient ID: 15', '127.0.0.1', 'Unknown', '{\"old\":{\"tel\":\"123\"},\"new\":{\"tel\":\"456\"}}', '2026-05-13 18:41:24'),
+(3, 3, 'Admin', 'CREATE', 'USERS', 'Création du nouvel utilisateur', '127.0.0.1', 'Unknown', NULL, '2026-05-13 18:41:24'),
+(4, 3, 'Admin', 'DELETE', 'DOSSIER', 'Suppression d\'un document', '127.0.0.1', 'Unknown', NULL, '2026-05-13 18:41:24'),
+(5, 20, 'Admin', 'DELETE', 'USERS', 'Suppression du compte (Matricule: AD100)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '{\"deleted_user\":{\"id_PK\":\"15\",\"matricule\":\"AD100\",\"nom\":\"Admin\",\"prenom\":\"MediFlow\",\"mail\":\"admin@mediflow.com\",\"tel\":\"+216 00 000 000\",\"adresse\":null,\"id_role\":\"1\",\"status\":\"active\",\"profile_pic\":null,\"role_name\":\"Admin\"}}', '2026-05-13 18:50:03'),
+(6, 20, 'Admin', 'CREATE', 'USERS', 'Création du compte utilisateur: abbess mahmoud (Matricule: MD305)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '{\"new\":{\"nom\":\"mahmoud\",\"prenom\":\"abbess\",\"mail\":\"mah@gmail.com\",\"tel\":null,\"adresse\":null,\"id_role\":2,\"password\":\"fathi2004\"}}', '2026-05-13 18:50:42'),
+(7, 73, 'Medecin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: mah@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 22:03:36'),
+(8, 24, 'Medecin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: dr.smith@mediflow.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 22:21:26'),
+(9, 37, 'Technicien', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: nada11@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 22:22:28'),
+(10, 24, 'Medecin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: dr.smith@mediflow.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 22:23:05'),
+(11, 37, 'Technicien', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: nada11@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 22:37:11'),
+(12, 24, 'Medecin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: dr.smith@mediflow.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:00:43'),
+(13, 37, 'Technicien', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: nada11@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:07:49'),
+(14, 38, 'Fournisseur', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: mehdiF@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:08:53'),
+(15, 39, 'pharmacien', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: mehdi12@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:10:11'),
+(16, 38, 'Fournisseur', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: mehdiF@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:15:44'),
+(17, 37, 'Technicien', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: nada11@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:17:36'),
+(18, 23, 'Patient', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: khalil@mediflow.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:18:54'),
+(19, 38, 'Fournisseur', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: mehdiF@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:22:45'),
+(20, 20, 'Admin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: fathikhelifi10@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:31:53'),
+(21, 20, 'Admin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: fathikhelifi10@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:32:11'),
+(22, 37, 'Technicien', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: nada11@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:42:01'),
+(23, 24, 'Medecin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: dr.smith@mediflow.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:47:10'),
+(24, 20, 'Admin', 'UPDATE', 'USERS', 'Mise à jour du compte de John Doe (Matricule: PT200)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '{\"old\":{\"id_PK\":\"25\",\"matricule\":\"PT200\",\"nom\":\"Doe\",\"prenom\":\"John\",\"mail\":\"khalil05cherif@gmail.com\",\"tel\":\"55667788\",\"adresse\":null,\"id_role\":\"9\",\"status\":\"active\",\"profile_pic\":\"\\/integration\\/assets\\/uploads\\/profiles\\/profile_25_1778449441.jpg\",\"role_name\":\"Patient\"},\"new\":{\"id_PK\":\"25\",\"matricule\":\"PT200\",\"nom\":\"Doe\",\"prenom\":\"John\",\"mail\":\"khalil05cherif@gmail.com\",\"tel\":\"55667788\",\"adresse\":null,\"id_role\":\"9\",\"status\":\"active\",\"profile_pic\":\"\\/integration\\/assets\\/uploads\\/profiles\\/profile_25_1778449441.jpg\",\"role_name\":\"Patient\"}}', '2026-05-13 23:49:17'),
+(25, 25, 'Patient', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: khalil05cherif@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:49:35'),
+(26, 20, 'Admin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: fathikhelifi10@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-13 23:52:02'),
+(27, 19, 'Admin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: admin11@mediflow.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-14 00:18:59'),
+(28, 20, 'Admin', 'LOGIN', 'AUTH', 'Connexion réussie pour l\'utilisateur: fathikhelifi10@gmail.com', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', NULL, '2026-05-14 00:43:02');
 
 -- --------------------------------------------------------
 
@@ -828,24 +911,23 @@ CREATE TABLE `utilisateurs` (
 INSERT INTO `utilisateurs` (`id_PK`, `matricule`, `nom`, `prenom`, `mail`, `motdp`, `tel`, `adresse`, `id_role`, `status`, `cin`, `created_at`, `updated_at`, `profile_pic`, `onboarding_completed`) VALUES
 (3, NULL, 'yasss', 'ss', 'medecin2@mediflow.com', '$2y$10$DWh64If5QpqCT.LEvRwP0O2XWg3AS6C32H5qOpEkig8EOsEnxK5Wy', '+212612345679', 'Tunis, Tunisia', 5, 'active', NULL, '2026-04-11 15:39:37', '2026-04-16 12:48:48', NULL, 0),
 (11, 'AD101', 'aa', 'aaaaa', 'aaaaa@mediflow.com', '$2y$10$mLnxXqMhZF09jNgd.dtOWOyyWZ2cfV.rPjsMG0q6n3O7soGg8OyNq', NULL, 'dddd', 1, 'suspended', NULL, '2026-04-13 22:36:04', '2026-04-29 23:50:01', NULL, 0),
-(15, 'AD100', 'Admin', 'MediFlow', 'admin@mediflow.com', '$2y$10$dAUyViEr3jFurQWGeKDhKO9MMPJR8z0SiAN.nrDMGzq/xel2d.PNe', '+216 00 000 000', NULL, 1, 'active', NULL, '2026-04-13 22:44:16', '2026-04-13 22:46:34', NULL, 0),
 (16, 'AD102', 'fathi', 'khelifi', 'fathikhelifi@mediflow.com', '$2y$10$kBpNqqIQYw3XftXxsdGL7u7D2GZRGMzqCAgj05rZ9kGVOkBGW8gMC', NULL, 'ghazel', 9, 'active', NULL, '2026-04-13 22:47:29', '2026-04-29 23:20:04', NULL, 0),
 (17, 'PT100', 'fathi', 'fathitest', 'fathikk@gmail.com', '$2y$10$UufGs0R1Sp6XozR7fbMoWu2oeArzEksu.r0UZ.P97X4HH5imXjIby', '99999999999', NULL, 9, 'active', '12345678', '2026-04-13 23:18:06', '2026-04-29 18:33:43', NULL, 0),
-(18, 'PT101', 'abdo', 'samad', 'abdo@mediflow.com', '$2y$10$8wybCzdyPYdGXlrB5OaLauGYqBpYAzIziw5Gx10a8/Uvna02mur26', '444444444445', 'Ariena,Ghazela', 9, 'active', '12345678', '2026-04-15 18:07:26', '2026-05-11 20:41:32', NULL, 0),
+(18, 'PT101', 'abdo', 'samad', 'abdo@mediflow.com', '$2y$10$8wybCzdyPYdGXlrB5OaLauGYqBpYAzIziw5Gx10a8/Uvna02mur26', '444444444445', 'Ariena,Ghazela', 9, 'suspended', '12345678', '2026-04-15 18:07:26', '2026-05-13 18:43:44', NULL, 0),
 (19, 'AD103', 'fathi', 'khelifi', 'admin11@mediflow.com', '$2y$10$9TUE.90W5k6IkVyMWzHND.WB4b4brVFoagkE0H8p11z80ObcPju0G', '+216 92 518 333', 'Ariena,Ghazela', 1, 'active', NULL, '2026-04-16 12:40:30', '2026-04-16 12:40:30', NULL, 0),
-(20, 'PT102', 'khelifi', 'fathi', 'fathikhelifi10@gmail.com', '$2y$10$75zfIgQA2HgxT1gYhbmg9uyMX4c1Tm4bSVk3c/ngltLbNg1uUTTtC', '+216 92 518 333', NULL, 1, 'active', NULL, '2026-04-16 12:59:14', '2026-05-10 22:33:14', NULL, 0),
+(20, 'PT102', 'khelifi', 'fathi', 'fathikhelifi10@gmail.com', '$2y$10$d.CPaELAF2CRAYLFzweoKOzayfI8dXd/HCM4r0WEJh1bESzak1yfG', '+216 92 518 333', '', 1, 'active', NULL, '2026-04-16 12:59:14', '2026-05-13 22:14:08', '/integration/assets/uploads/profiles/profile_20_1778710438.webp', 0),
 (21, 'MD100', 'fathi', 'khelifi', 'MED1@mediflow.com', '$2y$10$o8Yi2QkYNkAMYHISYJnzre6qZvZunda2yeObGuD3YCPGgaCpMqaeu', NULL, 'Ariena,Ghazela', 2, 'active', NULL, '2026-04-16 13:12:06', '2026-04-16 13:12:06', NULL, 0),
 (22, 'EQ101', 'nada', 'karoui', 'nada@mediflow.com', '$2y$10$jji1Az.JjOARrkRAsDcysOEZDHueHhxGv7Zy0UE1ljso0F2z4hZr2', NULL, NULL, 5, 'active', NULL, '2026-04-21 00:06:42', '2026-04-21 00:06:42', NULL, 0),
-(23, 'PT103', 'khalil', 'cherif', 'khalil@mediflow.com', '$2y$10$c7J0m95iBePywJdx36ETR.pSosQp8ebTiwfHOPVB/zkGt5eMnAG6m', NULL, NULL, 9, 'active', '12345678', '2026-04-21 01:04:22', '2026-04-29 18:33:43', NULL, 0),
-(24, 'MD200', 'Smith', 'Adam', 'dr.smith@mediflow.com', '$2y$10$uWu93squAEw/91qe7kX0tuoY1xqsHUbkMbgAYTBRw1IDdUBmAeXpa', NULL, NULL, 2, 'active', NULL, '2026-04-28 20:17:06', '2026-04-28 20:17:06', NULL, 0),
-(25, 'PT200', 'Doe', 'John', 'khalil05cherif@gmail.com', '$2y$10$5aYyIrc.ZyMUxEiDV9uVKeuYgz.SDdpR.9oPYHFm6xIk7dL5/T8Ny', '55667788', NULL, 9, 'active', '12345678', '2026-04-28 20:17:06', '2026-05-13 16:21:14', '/integration/assets/uploads/profiles/profile_25_1778449441.jpg', 1),
+(23, 'PT103', 'khalil', 'cherif', 'khalil@mediflow.com', '$2y$10$c7J0m95iBePywJdx36ETR.pSosQp8ebTiwfHOPVB/zkGt5eMnAG6m', NULL, NULL, 9, 'active', '12345678', '2026-04-21 01:04:22', '2026-05-13 23:19:05', NULL, 1),
+(24, 'MD200', 'Smith', 'Adam', 'dr.smith@mediflow.com', '$2y$10$97HgVjhakvH/MELftQfa1ObT2heyYYo0HNwzO4JW6xlK4vNifHiOy', '', '', 2, 'active', NULL, '2026-04-28 20:17:06', '2026-05-13 22:23:43', '/integration/assets/uploads/profiles/profile_24_1778711001.jpg', 0),
+(25, 'PT200', 'Doe', 'John', 'khalil05cherif@gmail.com', '$2y$10$2jYrPsXYDHFODIOZMvsZo.i3AK6uBY24BNIoepy32wlC3.907G6CG', '55667788', NULL, 9, 'active', '12345678', '2026-04-28 20:17:06', '2026-05-13 23:49:17', '/integration/assets/uploads/profiles/profile_25_1778449441.jpg', 1),
 (27, 'SM100', 'ahmed12', 'aaa', 'ahmedS@gmail.com', '$2y$10$8PwfR5l.XGjN28HTpfTTpOu/XaRMoIl1il7LdZ.qPP2md9sxavAGG', NULL, NULL, 4, 'active', NULL, '2026-04-29 21:14:53', '2026-04-29 21:14:53', NULL, 0),
 (32, 'FR100', 'test', 'test', 'testf2@gmail.com', '$2y$10$Ml.GzXs/.K5d9hgrT3uvAuS4VIFS4aJEwR28SsPcwaKg2uUhey1oO', NULL, NULL, 10, 'active', NULL, '2026-04-29 21:40:50', '2026-04-29 21:40:50', NULL, 0),
 (34, 'FR101', 'fathiF', 'ffff', 'fathiF1@gmail.com', '$2y$10$Tafyk01ZP0TjJd9MNCVfD.X2zG7arsTslXl7ehV1yBZHr4nEYFWt2', NULL, NULL, 10, 'active', NULL, '2026-04-29 21:44:31', '2026-04-29 21:44:31', NULL, 0),
 (35, 'SM101', 'abdoo', 'aaa', 'abdoP@gmail.com', '$2y$10$L6r7yjPeOjNCXGHxZOoE2.RQgKSOVbdngsWG0IkFUo6ZxA4akUN.K', NULL, NULL, 4, 'active', NULL, '2026-04-29 21:46:26', '2026-04-29 21:46:26', NULL, 0),
 (36, 'PT201', 'alloooo', 'laaaa', 'aloP@gmail.com', '$2y$10$W75DLeKAEVEv/Pk6GmEuzeleuqnxsGsvbSxObK9KCFBOVa.EVRTeO', NULL, NULL, 9, 'active', NULL, '2026-04-29 23:24:57', '2026-04-29 23:24:57', NULL, 0),
 (37, 'UK100', 'nada11', 'aa', 'nada11@gmail.com', '$2y$10$8bhohDpipvpa52r807J6HOyEetNH76zA3TC6axOSvki7awrSc.cLi', NULL, NULL, 5, 'active', NULL, '2026-04-30 00:27:22', '2026-04-30 00:27:22', NULL, 0),
-(38, 'FR102', 'mehdi', 'four', 'mehdiF@gmail.com', '$2y$10$I59OHhZqMPxagd3fS0WhyO3VyYlhQlkmzK54H7X5cFBjyuXoehO0C', NULL, NULL, 10, 'active', NULL, '2026-04-30 00:46:49', '2026-04-30 00:46:49', NULL, 0),
+(38, 'FR102', 'mehdi', 'four', 'mehdiF@gmail.com', '$2y$10$/J2VW8VMJDp2JERq3JT99OBYPLEtGJ6V41/zz8CqRQGC6.dLVvkbe', '', 'ddddd', 10, 'active', NULL, '2026-04-30 00:46:49', '2026-05-13 23:17:20', '/integration/assets/uploads/profiles/profile_38_1778714209.jpg', 0),
 (39, 'PH100', 'mehdi12', 'aloo', 'mehdi12@gmail.com', '$2y$10$.P6pIB5vrc2QzJEUisCC.u0tDFKpcV4txKxQfVLesaN6RErKnFQ8G', NULL, NULL, 4, 'active', NULL, '2026-04-30 00:48:25', '2026-04-30 00:48:25', NULL, 0),
 (41, 'RD100', 'khalil', 'aaa', 'khalil12@gmail.com', '$2y$10$u896uJ99wgxIWODl9FerLem56Kz2g1LpmgN.xMAncmgf2NGFTR33y', NULL, NULL, 6, 'active', NULL, '2026-04-30 00:52:58', '2026-04-30 00:52:58', NULL, 0),
 (42, 'MD300', 'Dupont', 'Dr. Alice', 'alice.dupont@mediflow.com', '$2y$10$GEfC3fUpaw71d29IQSaSNe7ElWO3VN/OfacfSP.Ua7HJOif/CW7aS', '0102030405', NULL, 2, 'active', NULL, '2026-05-04 19:41:34', '2026-05-04 19:41:34', NULL, 0),
@@ -873,7 +955,13 @@ INSERT INTO `utilisateurs` (`id_PK`, `matricule`, `nom`, `prenom`, `mail`, `motd
 (64, 'PT318', 'Test18', 'Patient18', 'patient18@test.com', '$2y$10$g7OyOGowLN3niU2EGjE0KObD0SIc1JgWVkBNAubDZLiMYZHlTb4vK', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
 (65, 'PT319', 'Test19', 'Patient19', 'patient19@test.com', '$2y$10$6WCKJ2avsfnbVfSEch5LfuVfvUWOXg8oVbP/VI4zPHKKxuzOFfZgq', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
 (66, 'PT320', 'Test20', 'Patient20', 'patient20@test.com', '$2y$10$Z2WNfXMg7rd1NpRk/4EdSeyhDcj7AzUctp15i576sa3uPBdwZD8bS', '0607080910', NULL, 9, 'active', NULL, '2026-05-04 19:41:35', '2026-05-04 19:41:35', NULL, 0),
-(67, 'PT321', 'Cherif', 'Khalil', 'B@GMAIL.COM', '$2y$10$AegAq8IMA6fEulMEohv0teU3QAcobGUd.scxldgn8FkoZ5C0KBtzG', NULL, NULL, 9, 'active', NULL, '2026-05-10 21:54:09', '2026-05-13 16:21:00', 'https://lh3.googleusercontent.com/a/ACg8ocIvo_svki_OO0Ue1YjZJreCV5aW61jBV6AkqtHgMfVk9zr-c_Ce=s96-c', 1);
+(67, 'PT321', 'Cherif', 'Khalil', 'B@GMAIL.COM', '$2y$10$AegAq8IMA6fEulMEohv0teU3QAcobGUd.scxldgn8FkoZ5C0KBtzG', NULL, NULL, 9, 'active', NULL, '2026-05-10 21:54:09', '2026-05-13 16:21:00', 'https://lh3.googleusercontent.com/a/ACg8ocIvo_svki_OO0Ue1YjZJreCV5aW61jBV6AkqtHgMfVk9zr-c_Ce=s96-c', 1),
+(68, 'PT322', 'test', 'final', 'test07@mediflow.com', '$2y$10$OYl3B.Q3IIXyLY4zmrM98u0RU/Sd7OaVA0KMXRNpvr/yWP/DWxsTu', NULL, NULL, 9, 'active', NULL, '2026-05-13 18:26:25', '2026-05-13 18:26:25', NULL, 0),
+(69, 'PT323', 'khelifi11', 'fathi', 'fathikhelifi0769@gmail.com', '$2y$10$6Ov3Qsb5dE9.e6mInjM5quMNsFqQJIzjQNiBFcwHNO5A1rU3KK/2a', '', '', 9, 'active', NULL, '2026-05-13 18:28:39', '2026-05-13 18:35:00', '/integration/assets/uploads/profiles/profile_69_1778697295.png', 1),
+(71, 'PT324', 'khelifi11', 'fathi', 'fathikhelifi11@gmail.com', '$2y$10$MTSgmcnXgjr9Vnm2WGE8l.1o0cm6FJoCB6p5yWWaTXXP4AoenGilC', NULL, NULL, 9, 'active', NULL, '2026-05-13 18:42:56', '2026-05-13 18:43:04', 'https://lh3.googleusercontent.com/a/ACg8ocIZSouSoj9jRW7HfCXXOChYGIh4TWr8TE_3Cd7XZHiTaEwS_Q=s96-c', 1),
+(72, 'PH101', 'alloooooooooo', 'lllll', 'aloo@gmail.com', '$2y$10$7J1juYOzhSowz4rlj.ZVSeXGr6aC73Sm9j3AYAZ7cU.8P8OIzrMC.', NULL, NULL, 4, 'active', NULL, '2026-05-13 18:44:27', '2026-05-13 18:44:27', NULL, 0),
+(73, 'MD305', 'mahmoud', 'abbess', 'mah@gmail.com', '$2y$10$aehg0uNparXgL8nHprlb0.hwcXryQOqxY8ffchhFrDX4zcc1kLKn2', NULL, NULL, 2, 'active', NULL, '2026-05-13 18:50:42', '2026-05-13 18:50:42', NULL, 0),
+(74, 'PT325', 'TN', 'android', 'lastgames70@gmail.com', '$2y$10$h2Pk6RRpe92LEnpXAVV.FuFFMOUoF8LPM.FEcm3JNI26HJzyc5pz6', NULL, NULL, 9, 'active', NULL, '2026-05-13 18:50:59', '2026-05-13 18:51:04', 'https://lh3.googleusercontent.com/a/ACg8ocIpiiXXYC-PJyA_TRdUvC-TaMZuta_2BH1DOCEjEB_lCFMT7Ec=s96-c', 1);
 
 --
 -- Indexes for dumped tables
@@ -1021,6 +1109,13 @@ ALTER TABLE `roles`
   ADD UNIQUE KEY `libelle` (`libelle`);
 
 --
+-- Indexes for table `system_logs`
+--
+ALTER TABLE `system_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `utilisateurs`
 --
 ALTER TABLE `utilisateurs`
@@ -1079,7 +1174,7 @@ ALTER TABLE `lignescommandes`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=124;
 
 --
 -- AUTO_INCREMENT for table `ordonnance`
@@ -1121,19 +1216,19 @@ ALTER TABLE `post_likes`
 -- AUTO_INCREMENT for table `produits`
 --
 ALTER TABLE `produits`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `rendez_vous`
 --
 ALTER TABLE `rendez_vous`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `reservation`
 --
 ALTER TABLE `reservation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -1142,10 +1237,16 @@ ALTER TABLE `roles`
   MODIFY `id_role` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
+-- AUTO_INCREMENT for table `system_logs`
+--
+ALTER TABLE `system_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+
+--
 -- AUTO_INCREMENT for table `utilisateurs`
 --
 ALTER TABLE `utilisateurs`
-  MODIFY `id_PK` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
+  MODIFY `id_PK` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- Constraints for dumped tables
@@ -1236,6 +1337,12 @@ ALTER TABLE `rendez_vous`
 --
 ALTER TABLE `reservation`
   ADD CONSTRAINT `reservation_ibfk_1` FOREIGN KEY (`equipement_id`) REFERENCES `equipement` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `system_logs`
+--
+ALTER TABLE `system_logs`
+  ADD CONSTRAINT `system_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `utilisateurs` (`id_PK`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `utilisateurs`

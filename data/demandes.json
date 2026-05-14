@@ -67,8 +67,32 @@
         "urgence": "tres_urgent",
         "ai_urgence": "tres_urgent",
         "ai_justification": "",
-        "ai_refus_message": null,
+        "ai_refus_message": "Madame, Monsieur, votre demande d'ordonnance n'a pas pu être traitée : Médicament non approprié. Nous vous invitons à prendre rendez-vous pour en discuter avec votre médecin.",
         "statut": "traitee",
         "created_at": "2026-05-12 23:31:20"
+    },
+    {
+        "id_demande": 7,
+        "id_patient": 69,
+        "id_medecin": 24,
+        "description": "fffffffffff",
+        "urgence": "urgent",
+        "ai_urgence": "urgent",
+        "ai_justification": "",
+        "ai_refus_message": null,
+        "statut": "traitee",
+        "created_at": "2026-05-14 12:40:38"
+    },
+    {
+        "id_demande": 8,
+        "id_patient": 69,
+        "id_medecin": 24,
+        "description": "belehi panadol exitra",
+        "urgence": "urgent",
+        "ai_urgence": "urgent",
+        "ai_justification": "",
+        "ai_refus_message": null,
+        "statut": "traitee",
+        "created_at": "2026-05-14 13:14:17"
     }
 ]
